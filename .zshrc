@@ -1,25 +1,26 @@
 # Add aliases
 . ~/.aliasrc
 
-# Service account impersonation for gcp
 imp () {
     # get the impersonable service account
+    fmt_str=mlops-c
+    project_id=`gcloud projects list --filter="name ~ $fmt_str" --format="value(PROJECT_ID)"`
     SERVICE_ACCOUNT=$(
         gcloud iam service-accounts list \
+            --project=$project_id \
             --filter="email ~ -developers@" \
             --format="value(email)" \
         )
-    
+
     if [[ -z "${SERVICE_ACCOUNT// }" ]]; then
         echo "Couldn't find service account" >&2
         return 1
     fi
-    
+
     # this is how we turn on service account impersonation globally
     gcloud config set auth/impersonate_service_account $SERVICE_ACCOUNT
 
     echo "Started impersonating $SERVICE_ACCOUNT"
-
 }
 unimp () {
     # Undo impersonation
