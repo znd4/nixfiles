@@ -3,10 +3,14 @@ repos:
     rev: "v2.4.1" # Use the sha or tag you want to point at
     hooks:
       - id: prettier
-  - repo: https://github.com/jumanjihouse/pre-commit-hooks
-    rev: "2.1.5"
+  - repo: https://github.com/maxwinterstein/shfmt-py
+    rev: 3.3.1.8
     hooks:
       - id: shfmt
+  # - repo: https://github.com/jumanjihouse/pre-commit-hooks
+  #   rev: "2.1.5"
+  #   hooks:
+  #     - id: shfmt
   # - repo: local
   #   hooks:
   #     - id: shfmt
