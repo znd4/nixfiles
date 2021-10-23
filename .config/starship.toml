@@ -4,4 +4,8 @@ format = 'on [$symbol$account(@$domain)(\($project\))]($style) '
 [shell]
 powershell_indicator = "_"
 zsh_indicator = "🍎"
+bash_indicator = "🔨"
+disabled = false
+
+[time]
 disabled = false
