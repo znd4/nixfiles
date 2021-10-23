@@ -46,3 +46,32 @@ echo -n $full_versions | xargs -P $n_cores -n1 pyenv install
 # set globals
 pyenv global $full_versions
 ```
+
+## pre-commit install
+
+Install pipx and pre-commit
+
+```sh
+python3.9 -m pip install --user pipx
+pipx install pre-commit
+```
+
+Run pre-commit install
+
+```sh
+dotfiles pre-commit install
+```
+
+## Install shfmt
+
+Install go
+
+```sh
+sudo apt install golang-go
+```
+
+Install `shfmt`
+
+```sh
+go install mvdan.cc/sh/v3/cmd/shfmt@latest
+```
