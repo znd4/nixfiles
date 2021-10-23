@@ -16,3 +16,5 @@
 [user]
 	name = Zane Dufour
 	email = zane@znd4.me
+[pull]
+	rebase = true
