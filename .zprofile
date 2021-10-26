@@ -12,8 +12,6 @@ export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 
-. ~/.zshrc
-
 . ~/.profile
 
 eval "$(pyenv init --path)"
