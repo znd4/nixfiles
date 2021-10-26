@@ -2,6 +2,9 @@ alias dotfiles="GIT_WORK_TREE=~ GIT_DIR=~/.cfg"
 
 alias config='/usr/bin/env git --git-dir=$HOME/.cfg/ --work-tree=$HOME'
 
+alias wdotfiles="GIT_WORK_TREE=~ GIT_DIR=~/.work-dotfiles"
+alias wconfig='/usr/bin/env git --git-dir=$HOME/.work-dotfiles/ --work-tree=$HOME'
+
 # enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
