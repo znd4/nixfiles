@@ -54,3 +54,17 @@ fi
 source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 . ~/.scripts/rc/.zshrc
+
+if [ $(uname) = "Darwin" ]; then
+    export ZPLUG_HOME=$(brew --prefix)/opt/zplug
+else
+    echo "WARNING: Haven't implemented OS"
+fi
+
+compinit
+
+export ZPLUG_LOADFILE=$HOME/.zplug_packages.zsh
+source $ZPLUG_HOME/init.zsh
+if zplug check || zplug install; then
+    zplug load --verbose
+fi
