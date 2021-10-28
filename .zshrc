@@ -61,10 +61,17 @@ else
     echo "WARNING: Haven't implemented OS"
 fi
 
-compinit
-
 export ZPLUG_LOADFILE=$HOME/.zplug_packages.zsh
 source $ZPLUG_HOME/init.zsh
 if zplug check || zplug install; then
     zplug load --verbose
 fi
+
+# The following lines were added by compinstall
+zstyle :compinstall filename '/Users/zdufour/.zshrc'
+
+autoload -Uz compinit
+compinit
+# End of lines added by compinstall
+
+eval "$(register-python-argcomplete pipx)"
