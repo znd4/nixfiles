@@ -64,7 +64,7 @@ fi
 export ZPLUG_LOADFILE=$HOME/.zplug_packages.zsh
 source $ZPLUG_HOME/init.zsh
 if zplug check || zplug install; then
-    zplug load --verbose
+    zplug load
 fi
 
 # The following lines were added by compinstall
