@@ -34,8 +34,9 @@ unimp() {
     echo "Stopped impersonating"
 }
 
-source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc"
-source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc"
+# gcloud setup
+
+. ~/.dotfiles/gcloud.sh
 
 if [ -d "$HOME/.dr-proxy" ]; then
     . ~/.dr-proxy/auto_proxy.sh http://internet.ford.com 83
