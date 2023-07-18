@@ -81,3 +81,5 @@ rebase = false
 	helper = !/usr/bin/env gh auth git-credential
 [credential "https://git2.company.com"]
 	provider = generic
+	helper = 
+	helper = !/home/linuxbrew/.linuxbrew/Cellar/glab/1.31.0/bin/glab auth git-credential
