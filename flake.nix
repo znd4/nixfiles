@@ -11,7 +11,6 @@
     nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [ 
-        ./hardware-configuration.nix
       	./configuration.nix
 	nixos-06cb-009a-fingerprint-sensor.nixosModules.open-fprintd
       	nixos-06cb-009a-fingerprint-sensor.nixosModules.python-validity
