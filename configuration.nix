@@ -125,6 +125,7 @@
     cargo
     fd
     fish
+    gcc
     gh
     git
     gnumake
