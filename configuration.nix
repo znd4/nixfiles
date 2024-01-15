@@ -132,6 +132,7 @@
     just
     lazygit
     logseq
+    make
     neovim
     nodejs
     python3
