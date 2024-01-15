@@ -127,6 +127,7 @@
     fish
     gh
     git
+    gnumake
     go
     htop
     just
