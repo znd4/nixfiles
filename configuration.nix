@@ -6,7 +6,8 @@
 
 {
   imports =
-    [ # Include the results of the hardware scan.
+    [
+      # Include the results of the hardware scan.
       ./hardware-configuration.nix
     ];
 
@@ -89,7 +90,7 @@
     packages = with pkgs; [
       firefox
       kate
-    #  thunderbird
+      #  thunderbird
     ];
   };
 
@@ -99,20 +100,20 @@
     "electron-20.3.12"
   ];
   nixpkgs.overlays = [
-  (
-    final: prev: {
-      logseq = prev.logseq.overrideAttrs (oldAttrs: {
-        postFixup = ''
-          makeWrapper ${prev.electron_20}/bin/electron $out/bin/${oldAttrs.pname} \
-            --set "LOCAL_GIT_DIRECTORY" ${prev.git} \
-            --add-flags $out/share/${oldAttrs.pname}/resources/app \
-            --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations}}" \
-            --prefix LD_LIBRARY_PATH : "${prev.lib.makeLibraryPath [ prev.stdenv.cc.cc.lib ]}"
-        '';
-      });
-    }
-  )
-];
+    (
+      final: prev: {
+        logseq = prev.logseq.overrideAttrs (oldAttrs: {
+          postFixup = ''
+            makeWrapper ${prev.electron_20}/bin/electron $out/bin/${oldAttrs.pname} \
+              --set "LOCAL_GIT_DIRECTORY" ${prev.git} \
+              --add-flags $out/share/${oldAttrs.pname}/resources/app \
+              --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations}}" \
+              --prefix LD_LIBRARY_PATH : "${prev.lib.makeLibraryPath [ prev.stdenv.cc.cc.lib ]}"
+          '';
+        });
+      }
+    )
+  ];
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -123,6 +124,7 @@
     bat
     broot
     cargo
+    direnv
     fd
     fish
     gcc
@@ -136,15 +138,18 @@
     logseq
     neovim
     nodejs
+    opam
     python3
+    ripgrep
     rustc
     stow
     stylua
     tmux
+    unzip
     usbutils
     wget
     zig
-  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
 
     (vivaldi.override {
       proprietaryCodecs = true;
@@ -173,7 +178,7 @@
 
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
-  
+
   services.open-fprintd.enable = true;
   services.python-validity.enable = true;
 
