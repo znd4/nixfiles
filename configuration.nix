@@ -143,6 +143,7 @@
     python3
     ripgrep
     rustc
+    starship
     stow
     stylua
     tmux
