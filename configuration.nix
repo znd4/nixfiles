@@ -86,6 +86,7 @@
   users.users.znd4 = {
     isNormalUser = true;
     description = "Zane Dufour";
+    shell = pkgs.fish;
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
       firefox
