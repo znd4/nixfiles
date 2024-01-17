@@ -147,7 +147,7 @@
     tmuxPlugins.tmux-thumbs
     tmuxPlugins.pain-control
     tmuxPlugins.sensible
-    tmuxPlugins.catpuccin
+    tmuxPlugins.catppuccin
     stow
     stylua
     tmux
