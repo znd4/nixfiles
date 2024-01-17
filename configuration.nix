@@ -153,8 +153,10 @@
     tmux
     unzip
     usbutils
+    victor-mono
     wget
     zig
+    zoxide
     zsh
 
     (vivaldi.override {
