@@ -144,6 +144,10 @@
     ripgrep
     rustc
     starship
+    tmuxPlugins.tmux-thumbs
+    tmuxPlugins.pain-control
+    tmuxPlugins.sensible
+    tmuxPlugins.catpuccin
     stow
     stylua
     tmux
