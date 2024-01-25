@@ -144,7 +144,9 @@
     python3
     ripgrep
     rustc
+    skim
     starship
+    thefuck
     tmuxPlugins.tmux-thumbs
     tmuxPlugins.pain-control
     tmuxPlugins.sensible
