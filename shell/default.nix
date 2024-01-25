@@ -10,10 +10,7 @@
   };
   programs.fish.enable = lib.mkDefault true;
   programs.starship.enable = true;
-  programs.skim = {
-    enable = true;
-    fuzzyCompletion = true;
-  };
+  programs.skim.fuzzyCompletion = true;
 
 
   programs.neovim = {
@@ -96,6 +93,7 @@
     python3
     ripgrep
     rustc
+    skim
     stow
     stylua
     thefuck
