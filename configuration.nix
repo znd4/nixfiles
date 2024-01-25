@@ -142,6 +142,7 @@
     nodejs
     opam
     python3
+    python-launcher
     ripgrep
     rustc
     skim
