@@ -156,8 +156,6 @@
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
 
-  services.open-fprintd.enable = true;
-  services.python-validity.enable = true;
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];

@@ -12,7 +12,12 @@
     , nixpkgs
     , home-manager
     , ...
-    }: {
+    } @ inputs:
+
+    let
+      stateVersion = "23.11";
+    in
+    {
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
@@ -23,7 +28,7 @@
       homeConfigurations = {
         "znd4@nixos" = home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
-          extraSpecialArgs = { inherit inputs outputs; username="znd4" };
+          extraSpecialArgs = { inherit inputs; outputs = self; username = "znd4"; stateVersion = stateVersion; };
           modules = [
             ./home-manager/home.nix
           ];
