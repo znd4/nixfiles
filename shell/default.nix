@@ -1,5 +1,8 @@
 { lib, config, pkgs, ... }: {
 
+  programs.direnv = {
+    enable = true;
+  };
   programs.tmux = {
     enable = true;
     plugins = with pkgs.tmuxPlugins; [ tmux-thumbs pain-control sensible catppuccin ];
@@ -7,6 +10,10 @@
   };
   programs.fish.enable = lib.mkDefault true;
   programs.starship.enable = true;
+  programs.skim = {
+    enable = true;
+    fuzzyCompletion = true;
+  };
 
 
   programs.neovim = {
@@ -70,10 +77,32 @@
 
   };
   environment.systemPackages = with pkgs; [
+    asdf
+    bat
     broot
+    cargo
     delta
+    fd
+    gcc
     gh
+    gnumake
+    go
+    htop
     just
     lazygit
+    nodejs
+    opam
+    python-launcher
+    python3
+    ripgrep
+    rustc
+    stow
+    stylua
+    thefuck
+    unzip
+    wget
+    zig
+    zoxide
+    zsh
   ];
 }

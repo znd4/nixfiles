@@ -122,33 +122,9 @@
   environment.systemPackages = with pkgs; [
     _1password
     #appimageTools
-    asdf
-    bat
-    cargo
-    direnv
-    fd
-    gcc
-    gnumake
-    go
-    htop
     logseq
-    nodejs
-    opam
-    python3
-    python-launcher
-    ripgrep
-    rustc
-    skim
-    thefuck
-    stow
-    stylua
-    unzip
     usbutils
     victor-mono
-    wget
-    zig
-    zoxide
-    zsh
 
     (vivaldi.override {
       proprietaryCodecs = true;
@@ -173,7 +149,7 @@
     polkitPolicyOwners = [ "znd4" ];
   };
   programs.fish.enable = lib.mkForce true;
-  programs.neovim.enable = true;
+  programs.neovim.enable = lib.mkForce true;
 
   # List services that you want to enable:
 
