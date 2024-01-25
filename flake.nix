@@ -19,7 +19,7 @@
         system = "x86_64-linux";
         specialArgs = {
           inherit inputs; outputs = self;
-          stateVersion = stateVersion;
+          stateVersion = "23.11";
           username = "znd4";
         };
         modules = [
