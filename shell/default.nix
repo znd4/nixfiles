@@ -1,4 +1,4 @@
-{ lib, config, pkgs, ... }: {
+{ lib, config, pkgs, inputs, ... }: {
 
   programs.direnv = {
     enable = true;
@@ -6,7 +6,6 @@
   programs.fish.enable = lib.mkDefault true;
   programs.starship.enable = true;
   programs.skim.fuzzyCompletion = true;
-  programs.home-manager.enable = true;
 
 
   programs.neovim = {
@@ -19,6 +18,7 @@
   };
 
   environment.systemPackages = with pkgs; [
+    inputs.home-manager.packages.${pkgs.system}.default
     asdf
     bat
     broot
