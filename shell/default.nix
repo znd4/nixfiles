@@ -5,4 +5,5 @@
     plugins = with pkgs.tmuxPlugins; [ tmux-thumbs pain-control sensible catppuccin ];
   };
   programs.fish.enable = lib.mkDefault true;
+  programs.starship.enable = true;
 }

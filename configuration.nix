@@ -146,7 +146,6 @@
     ripgrep
     rustc
     skim
-    starship
     thefuck
     stow
     stylua
