@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ lib, config, pkgs, ... }:
 
 {
   imports =
@@ -180,7 +180,7 @@
     # require enabling PolKit integration on some desktop environments (e.g. Plasma).
     polkitPolicyOwners = [ "znd4" ];
   };
-  programs.fish.enable = true;
+  programs.fish.enable = lib.mkForce true;
   programs.neovim.enable = true;
 
   # List services that you want to enable:
@@ -206,3 +206,4 @@
   system.stateVersion = "23.11"; # Did you read the comment?
 
 }
+
