@@ -62,52 +62,29 @@
   programs.home-manager.enable = true;
   programs.git = {
     enable = true;
-    config = {
-
+    delta = {
+      enable = true;
+    };
+    aliases = {
+      a = "add";
+      pl = "pull";
+      c = "commit";
+      cm = "commit";
+      co = "checkout";
+      ck = "checkout";
+      s = "status";
+      ps = "push";
+      d = "diff";
+    };
+    userName = "Zane Dufour";
+    userEmail = "zane@znd4.dev";
+    extraConfig = {
+      # interactive = {
+      #   diffFilter = "delta --color-only";
+      # };
       init.defaultBranch = "main";
-      user = {
-        name = "Zane Dufour";
-        email = "zane@znd4.dev";
-      };
       push.autoSetupRemote = true;
       pull.rebase = false;
-
-
-      alias = {
-        a = "add";
-        pl = "pull";
-        c = "commit";
-        cm = "commit";
-        co = "checkout";
-        ck = "checkout";
-        s = "status";
-        ps = "push";
-        d = "diff";
-      };
-
-      # delta configuration
-
-      core = {
-        pager = "delta";
-      };
-      interactive = {
-        diffFilter = "delta --color-only";
-      };
-      delta = {
-        pager = "less";
-        navigate = true;
-        light = false;
-        side-by-side = true;
-      };
-      pager = {
-        diff = "delta";
-        log = "delta";
-        reflog = "delta";
-      };
-      diff = {
-        colorMoved = "default";
-        pager = "delta";
-      };
 
     };
 
