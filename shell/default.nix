@@ -7,6 +7,8 @@
   };
   programs.fish.enable = lib.mkDefault true;
   programs.starship.enable = true;
+
+
   programs.git = {
     enable = true;
     config = [
@@ -60,7 +62,8 @@
 
   };
   environment.systemPackages = with pkgs; [
-    gh
+    broot
     delta
+    gh
   ];
 }

@@ -124,11 +124,9 @@
     #appimageTools
     asdf
     bat
-    broot
     cargo
     direnv
     fd
-    fish
     gcc
     gnumake
     go
