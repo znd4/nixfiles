@@ -1,10 +1,6 @@
 {
-  inputs.nixos-06cb-009a-fingerprint-sensor = {
-    url = "github:ahbnr/nixos-06cb-009a-fingerprint-sensor";
-    inputs.nixpkgs.follows = "nixpkgs";
-  };
 
-  inputs.home-manager.url = "github:nix-community/home-manager/release-23.05";
+  inputs.home-manager.url = "github:nix-community/home-manager";
   inputs.home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
   outputs =
