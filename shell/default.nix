@@ -6,6 +6,7 @@
   programs.fish.enable = lib.mkDefault true;
   programs.starship.enable = true;
   programs.skim.fuzzyCompletion = true;
+  programs.home-manager.enable = true;
 
 
   programs.neovim = {
@@ -26,6 +27,7 @@
     fd
     gcc
     gh
+    git
     gnumake
     go
     htop
