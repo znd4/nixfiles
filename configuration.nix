@@ -131,10 +131,7 @@
     gnumake
     go
     htop
-    just
-    lazygit
     logseq
-    neovim
     nodejs
     opam
     python3
