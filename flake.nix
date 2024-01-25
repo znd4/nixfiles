@@ -3,40 +3,31 @@
     url = "github:ahbnr/nixos-06cb-009a-fingerprint-sensor";
     inputs.nixpkgs.follows = "nixpkgs";
   };
+
+  inputs.home-manager.url = "github:nix-community/home-manager/release-23.05";
+  inputs.home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
   outputs =
     { self
     , nixpkgs
-    , nixos-06cb-009a-fingerprint-sensor
-    ,
+    , home-manager
+    , ...
     }: {
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           ./configuration.nix
           ./shell
-          nixos-06cb-009a-fingerprint-sensor.nixosModules.open-fprintd
-          nixos-06cb-009a-fingerprint-sensor.nixosModules.python-validity
-          ({ pkgs, ... }: {
-            # fingerprint scanning for authentication
-            # (this makes it so that it prompts for a password first. If none is entered or an incorrect one is entered, it will ask for a fingerprint instead)
-            security.pam.services.sudo.text = ''
-              # Account management.
-              account required pam_unix.so
-          
-              # Authentication management.
-              auth sufficient pam_unix.so   likeauth try_first_pass nullok
-              auth sufficient ${nixos-06cb-009a-fingerprint-sensor.localPackages.fprintd-clients}/lib/security/pam_fprintd.so
-              auth required pam_deny.so
-          
-              # Password management.
-              password sufficient pam_unix.so nullok sha512
-          
-              # Session management.
-              session required pam_env.so conffile=/etc/pam/environment readenv=0
-              session required pam_unix.so
-            '';
-          })
         ];
+      };
+      homeConfigurations = {
+        "znd4@nixos" = home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.x86_64-linux;
+          extraSpecialArgs = { inherit inputs outputs; username="znd4" };
+          modules = [
+            ./home-manager/home.nix
+          ];
+        };
       };
     };
 }
