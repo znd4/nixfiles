@@ -13,6 +13,7 @@
         system = "x86_64-linux";
         modules = [
           ./configuration.nix
+          ./shell
           nixos-06cb-009a-fingerprint-sensor.nixosModules.open-fprintd
           nixos-06cb-009a-fingerprint-sensor.nixosModules.python-validity
           ({ pkgs, ... }: {

@@ -148,13 +148,8 @@
     skim
     starship
     thefuck
-    tmuxPlugins.tmux-thumbs
-    tmuxPlugins.pain-control
-    tmuxPlugins.sensible
-    tmuxPlugins.catppuccin
     stow
     stylua
-    tmux
     unzip
     usbutils
     victor-mono
@@ -186,7 +181,7 @@
     polkitPolicyOwners = [ "znd4" ];
   };
   programs.fish.enable = true;
-  programs.tmux.enable = true;
+  programs.neovim.enable = true;
 
   # List services that you want to enable:
 
