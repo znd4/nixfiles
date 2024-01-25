@@ -130,8 +130,6 @@
     fd
     fish
     gcc
-    gh
-    git
     gnumake
     go
     htop

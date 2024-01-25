@@ -6,4 +6,8 @@
   };
   programs.fish.enable = lib.mkDefault true;
   programs.starship.enable = true;
+  environment.systemPackages = with pkgs; [
+    gh
+    git
+  ];
 }
