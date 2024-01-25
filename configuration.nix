@@ -184,6 +184,8 @@
     # require enabling PolKit integration on some desktop environments (e.g. Plasma).
     polkitPolicyOwners = [ "znd4" ];
   };
+  programs.fish.enable = true;
+  programs.tmux.enable = true;
 
   # List services that you want to enable:
 
