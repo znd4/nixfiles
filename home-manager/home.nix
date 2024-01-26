@@ -55,11 +55,11 @@
   };
 
   xdg.configFile = {
-    "nvim" = {
+    "nvim/" = {
         source="${inputs.dotfiles}/xdg-config/.config/nvim";
         recursive=true;
     };
-    "fish" = {
+    "fish/" = {
         source="${inputs.dotfiles}/xdg-config/.config/fish";
         recursive=true;
     };
@@ -68,7 +68,7 @@
   };
 
   # Add stuff for your user as you see fit:
-  programs.neovim.enable = true;
+  # programs.neovim.enable = true;
   # home.packages = with pkgs; [ steam ];
 
   # Enable home-manager and git
