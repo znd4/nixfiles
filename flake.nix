@@ -4,7 +4,7 @@
   inputs.home-manager.inputs.nixpkgs.follows = "nixpkgs";
   inputs.dotfiles={
       flake=false;
-      url = "git+file:.?dir=dotfiles";
+      url = "path:./dotfiles";
   };
 
   outputs =
