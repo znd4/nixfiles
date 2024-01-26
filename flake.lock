@@ -3,19 +3,14 @@
     "dotfiles": {
       "flake": false,
       "locked": {
-        "dir": "dotfiles",
-        "lastModified": 1706247268,
-        "narHash": "sha256-Zbq0x68HX3ny0F9ecNdC+fxGDF3VvUB7Z+QfICvNotA=",
-        "ref": "refs/heads/main",
-        "rev": "8d44a3f22a56e2b1c4cc388cb1b8c60952055dd6",
-        "revCount": 53,
-        "type": "git",
-        "url": "file:.?dir=dotfiles"
+        "lastModified": 1,
+        "narHash": "sha256-Z3UUkV9nZWB/+hq0mDVdNNVl1duEh7eqCCxKJc2GYII=",
+        "path": "./dotfiles",
+        "type": "path"
       },
       "original": {
-        "dir": "dotfiles",
-        "type": "git",
-        "url": "file:.?dir=dotfiles"
+        "path": "./dotfiles",
+        "type": "path"
       }
     },
     "home-manager": {
