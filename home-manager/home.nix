@@ -66,6 +66,7 @@
     };
     "wezterm/wezterm.lua".source="${xdgConfig}/wezterm/wezterm.lua";
     "direnv/direnvrc".source = "${xdgConfig}/direnv/direnvrc";
+    "git/".source = "${xdgConfig}/git/";
   };
 
   # Add stuff for your user as you see fit:
@@ -74,35 +75,7 @@
 
   # Enable home-manager and git
   programs.home-manager.enable = true;
-  programs.git = {
-    enable = true;
-    delta = {
-      enable = true;
-    };
-    aliases = {
-      a = "add";
-      pl = "pull";
-      c = "commit";
-      cm = "commit";
-      co = "checkout";
-      ck = "checkout";
-      s = "status";
-      ps = "push";
-      d = "diff";
-    };
-    userName = "Zane Dufour";
-    userEmail = "zane@znd4.dev";
-    extraConfig = {
-      # interactive = {
-      #   diffFilter = "delta --color-only";
-      # };
-      init.defaultBranch = "main";
-      push.autoSetupRemote = true;
-      pull.rebase = false;
-
-    };
-
-  };
+  programs.git.enable = true;
   programs.tmux = {
     enable = true;
     plugins = with pkgs.tmuxPlugins; [ tmux-thumbs pain-control sensible catppuccin ];
