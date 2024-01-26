@@ -75,6 +75,7 @@
 
   # Enable home-manager and git
   programs.home-manager.enable = true;
+  programs.git.enable = false;
   programs.tmux = {
     enable = true;
     plugins = with pkgs.tmuxPlugins; [ tmux-thumbs pain-control sensible catppuccin ];
