@@ -57,11 +57,11 @@
   xdg.configFile = {
     "nvim/" = {
         source="${inputs.dotfiles}/xdg-config/.config/nvim/";
-        recursive=true;
+        #recursive=true;
     };
     "fish/" = {
         source="${inputs.dotfiles}/xdg-config/.config/fish/";
-        recursive=true;
+        #recursive=true;
     };
     "wezterm/wezterm.lua".source="${inputs.dotfiles}/xdg-config/.config/wezterm/wezterm.lua";
     "direnv/direnvrc".source = "${inputs.dotfiles}/xdg-config/.config/direnv/direnvrc";
