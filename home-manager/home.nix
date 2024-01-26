@@ -54,7 +54,7 @@
     homeDirectory = "/home/" + username;
   };
 
-  xdg.configFile = let xdgConfig = "${inputs.dotfiles}/dotfiles/xdg-config/.config";
+  xdg.configFile = let xdgConfig = "${inputs.dotfiles}/xdg-config/.config";
   in {
     "nvim/" = {
         source="${xdgConfig}/nvim/";
