@@ -1,0 +1,15 @@
+version: 3
+ssh: {}
+configSync:
+  parts: {}
+clickableLinks: {}
+accessibility: {}
+appearance: {}
+hacks: {}
+providerBlacklist: []
+commandBlacklist: []
+enableWelcomeTab: false
+pluginBlacklist: []
+profileDefaults:
+  ssh:
+    disableDynamicTitle: true

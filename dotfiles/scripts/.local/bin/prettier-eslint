@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+# call npx prettier-eslint with the same arguments as this script
+npx prettier-eslint "$@"

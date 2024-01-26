@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -xe
+cd "$(dirname "$0")"
+
+command -v brew || . ./install_homebrew.sh
+brew install just
+
+just link
+just bootstrap
+just pre-commit-install
