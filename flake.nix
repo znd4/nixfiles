@@ -2,7 +2,10 @@
 
   inputs.home-manager.url = "github:nix-community/home-manager";
   inputs.home-manager.inputs.nixpkgs.follows = "nixpkgs";
-  inputs.dotfiles.url = "git+file:.?dir=dotfiles";
+  inputs.dotfiles={
+      flake=false;
+      url = "git+file:.?dir=dotfiles";
+  };
 
   outputs =
     { self
