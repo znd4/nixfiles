@@ -54,6 +54,25 @@
     homeDirectory = "/home/" + username;
   };
 
+  xdg.configFile = {
+    nvim = {
+        source = ../dotfiles/xdg-config/.config/nvim;
+        target = nvim;
+    };
+    fish = { 
+        source = ../dotfiles/xdg-config/.config/fish;
+        target = fish;
+    };
+    wezterm = {
+        source = ../dotfiles/xdg-config/.config/wezterm/wezterm.lua;
+        target = wezterm/wezterm.lua;
+    };
+    direnv = {
+        source = ../dotfiles/xdg-config/.config/direnv/direnvrc;
+        target = direnv/direnvrc;
+    };
+  };
+
   # Add stuff for your user as you see fit:
   # programs.neovim.enable = true;
   # home.packages = with pkgs; [ steam ];
