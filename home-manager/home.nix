@@ -55,10 +55,10 @@
   };
 
   xdg.configFile = {
-    "nvim".source = "${dotfiles}/xdg-config/.config/nvim";
-    "fish".source = "${dotfiles}/xdg-config/.config/fish";
-    "wezterm/wezterm.lua".source="${dotfiles}/xdg-config/.config/wezterm/wezterm.lua";
-    "direnv/direnvrc".source = "${dotfiles}/xdg-config/.config/direnv/direnvrc";
+    "nvim".source = "${inputs.dotfiles}/xdg-config/.config/nvim";
+    "fish".source = "${inputs.dotfiles}/xdg-config/.config/fish";
+    "wezterm/wezterm.lua".source="${inputs.dotfiles}/xdg-config/.config/wezterm/wezterm.lua";
+    "direnv/direnvrc".source = "${inputs.dotfiles}/xdg-config/.config/direnv/direnvrc";
   };
 
   # Add stuff for your user as you see fit:
