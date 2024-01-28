@@ -54,19 +54,21 @@
     homeDirectory = "/home/" + username;
   };
 
-  xdg.configFile = let xdgConfig = "${inputs.dotfiles}/xdg-config/.config";
+  xdg.configFile = let 
+  dotConfig = "${inputs.dotfiles}/xdg-config/.config";
   in {
     "nvim/" = {
-        source="${xdgConfig}/nvim/";
+        source="${dotConfig}/nvim/";
         #recursive=true;
     };
     "fish/" = {
-        source="${xdgConfig}/fish/";
+        source="${dotConfig}/fish/";
         #recursive=true;
     };
-    "wezterm/wezterm.lua".source="${xdgConfig}/wezterm/wezterm.lua";
-    "direnv/direnvrc".source = "${xdgConfig}/direnv/direnvrc";
-    "git/".source = "${xdgConfig}/git/";
+    "starship.toml".source = "${dotConfig}/starship.toml";
+    "wezterm/wezterm.lua".source="${dotConfig}/wezterm/wezterm.lua";
+    "direnv/direnvrc".source = "${dotConfig}/direnv/direnvrc";
+    "git/".source = "${dotConfig}/git/";
   };
 
   # Add stuff for your user as you see fit:
