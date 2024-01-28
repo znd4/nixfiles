@@ -65,8 +65,8 @@
         source="${dotConfig}/fish/";
         #recursive=true;
     };
-    "starship.toml" = {source ="${dotConfig}/starship.toml";};
-    "wezterm/wezterm.lua".source = "${dotConfig}/wezterm/wezterm.lua";
+    "starship.toml".source = "${dotConfig}/starship.toml";
+    "wezterm/wezterm.lua".source="${dotConfig}/wezterm/wezterm.lua";
     "direnv/direnvrc".source = "${dotConfig}/direnv/direnvrc";
     "git/".source = "${dotConfig}/git/";
   };
