@@ -61,10 +61,7 @@
         source="${dotConfig}/nvim/";
         #recursive=true;
     };
-    "fish/" = {
-        source="${dotConfig}/fish/";
-        #recursive=true;
-    };
+    "fish/".source = "${inputs.dotfiles}/fish/.config/fish/";
     "starship.toml".source = "${dotConfig}/starship.toml";
     "wezterm/wezterm.lua".source="${dotConfig}/wezterm/wezterm.lua";
     "direnv/direnvrc".source = "${dotConfig}/direnv/direnvrc";
