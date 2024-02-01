@@ -74,12 +74,12 @@
 
   # Enable home-manager and git
   programs.home-manager.enable = true;
-  # programs.fish = {
-  #     enable = true;
-  #     interactiveShellInit = ''
-  #         fish_vi_keybindings
-  #     '';
-  # };
+  programs.fish = {
+      enable = true;
+      interactiveShellInit = ''
+          fish_vi_keybindings
+      '';
+  };
 
   programs.starship = {
       enable = true;
