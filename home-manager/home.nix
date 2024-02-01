@@ -87,7 +87,6 @@
   };
   programs.direnv = {
       enable = true;
-      enableFishIntegration = true;
   };
 
   programs.git.enable = false;
