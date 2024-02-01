@@ -61,8 +61,8 @@
         source="${dotConfig}/nvim/";
         #recursive=true;
     };
-    "fish/".source = "${inputs.dotfiles}/fish/.config/fish/";
-    "starship.toml".source = "${dotConfig}/starship.toml";
+    # "fish/".source = "${inputs.dotfiles}/fish/.config/fish/";
+    # "starship.toml".source = "${dotConfig}/starship.toml";
     "wezterm/wezterm.lua".source="${dotConfig}/wezterm/wezterm.lua";
     "direnv/direnvrc".source = "${dotConfig}/direnv/direnvrc";
     "git/".source = "${dotConfig}/git/";
@@ -74,6 +74,22 @@
 
   # Enable home-manager and git
   programs.home-manager.enable = true;
+  programs.fish = {
+      enable = true;
+      interactiveShellInit = ''
+          fish_vi_keybindings
+      '';
+  };
+
+  programs.starship = {
+      enable = true;
+      enableFishIntegration = true;
+  };
+  programs.direnv = {
+      enable = true;
+      enableFishIntegration = true;
+  };
+
   programs.git.enable = false;
   programs.tmux = {
     enable = true;
