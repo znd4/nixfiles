@@ -102,7 +102,9 @@
   programs.starship = {
       enable = true;
   };
+  programs.zoxide.enable = true;
   programs.direnv.enable = true;
+  programs.k9s.enable = true;
 
   programs.git.enable = false;
   programs.tmux = {
