@@ -98,7 +98,7 @@
   programs.tmux = {
     enable = true;
     plugins = with pkgs.tmuxPlugins; [ tmux-thumbs pain-control sensible catppuccin ];
-    shortcut = "screen-256color";
+    shortcut = "a";
   };
 
   # Nicely reload system units when changing configs
