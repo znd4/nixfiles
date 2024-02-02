@@ -70,7 +70,11 @@
 
   # Add stuff for your user as you see fit:
   # programs.neovim.enable = true;
-  home.packages = with pkgs; [ httpie appimage-run ];
+  home.packages = with pkgs; [
+    appimage-run
+    httpie
+    kubectl
+  ];
 
   # Enable home-manager and git
   programs.home-manager.enable = true;
