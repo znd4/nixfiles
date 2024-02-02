@@ -82,6 +82,14 @@
       #   src = pkgs.fetchFromGithub{owner="patrickf1"; repo="fzf.fish";};
       # }
       # ];
+      shellAbbrs = {
+          ky = "kubectl get -o yaml";
+      };
+      shellAliases = {
+          g = "git";
+          by = "bat -l yaml";
+          k = "kubectl";
+      };
       interactiveShellInit = ''
           fish_vi_key_bindings
       '';
@@ -90,9 +98,7 @@
   programs.starship = {
       enable = true;
   };
-  programs.direnv = {
-      enable = true;
-  };
+  programs.direnv.enable = true;
 
   programs.git.enable = false;
   programs.tmux = {
