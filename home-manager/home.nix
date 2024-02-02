@@ -76,8 +76,14 @@
   programs.home-manager.enable = true;
   programs.fish = {
       enable = true;
+      # plugins = [
+      # {
+      #     name = "fzf-fish";
+      #   src = pkgs.fetchFromGithub{owner="patrickf1"; repo="fzf.fish";};
+      # }
+      # ];
       interactiveShellInit = ''
-          fish_vi_keybindings
+          fish_vi_key_bindings
       '';
   };
 
