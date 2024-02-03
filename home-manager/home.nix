@@ -74,7 +74,7 @@
     appimage-run
     httpie
     kubectl
-    nixfmt-rfc-style
+    nixfmt
   ];
 
   # Enable home-manager and git
