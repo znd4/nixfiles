@@ -78,6 +78,7 @@
     ruff
   ];
 
+  programs.zsh.enable = true;
   # Enable home-manager and git
   programs.fzf = {
       enable=true;
