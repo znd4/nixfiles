@@ -75,6 +75,7 @@
     httpie
     kubectl
     nixfmt
+    ruff
   ];
 
   # Enable home-manager and git
