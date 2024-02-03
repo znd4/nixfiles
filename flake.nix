@@ -34,7 +34,7 @@
         {
           "znd4@nixos" = home-manager.lib.homeManagerConfiguration {
             pkgs = nixpkgs.legacyPackages.x86_64-linux;
-            extraSpecialArgs = { inherit inputs; outputs = self; username = "znd4"; stateVersion = "23.05"; };
+            extraSpecialArgs = { inherit inputs; outputs = self; username = "znd4"; stateVersion = "23.11"; };
             modules = [
               ./home-manager/home.nix
             ];
