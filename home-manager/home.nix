@@ -57,7 +57,10 @@
     "wezterm/wezterm.lua".source = "${dotConfig}/wezterm/wezterm.lua";
     # "direnv/direnvrc".source = "${dotConfig}/direnv/direnvrc";
     "direnv/direnvrc".text = builtins.readFile "${dotConfig}/direnv/direnvrc";
-    "git/".source = "${dotConfig}/git/";
+    "git/"={
+        recursive=true;
+        source = "${dotConfig}/git/";
+    };
   };
 
   # Add stuff for your user as you see fit:
