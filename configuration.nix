@@ -5,11 +5,10 @@
 { lib, config, pkgs, username, stateVersion, ... }:
 
 {
-  imports =
-    [
-      # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+  ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
@@ -17,7 +16,8 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  boot.initrd.luks.devices."luks-ccee3b9d-e376-4681-9cff-ac1bbcfb6840".device = "/dev/disk/by-uuid/ccee3b9d-e376-4681-9cff-ac1bbcfb6840";
+  boot.initrd.luks.devices."luks-ccee3b9d-e376-4681-9cff-ac1bbcfb6840".device =
+    "/dev/disk/by-uuid/ccee3b9d-e376-4681-9cff-ac1bbcfb6840";
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
@@ -52,6 +52,17 @@
   # Enable the KDE Plasma Desktop Environment.
   services.xserver.displayManager.sddm.enable = true;
   services.xserver.desktopManager.plasma5.enable = true;
+
+  virtualisation.podman = {
+
+    enable = true;
+
+    # Create a `docker` alias for podman, to use it as a drop-in replacement
+    dockerCompat = true;
+
+    # Required for containers under podman-compose to be able to talk to each other.
+    defaultNetwork.settings.dns_enabled = true;
+  };
 
   # Configure keymap in X11
   services.xserver = {
@@ -99,23 +110,21 @@
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
-  nixpkgs.config.permittedInsecurePackages = [
-    "electron-20.3.12"
-  ];
+  nixpkgs.config.permittedInsecurePackages = [ "electron-20.3.12" ];
   nixpkgs.overlays = [
-    (
-      final: prev: {
-        logseq = prev.logseq.overrideAttrs (oldAttrs: {
-          postFixup = ''
-            makeWrapper ${prev.electron_20}/bin/electron $out/bin/${oldAttrs.pname} \
-              --set "LOCAL_GIT_DIRECTORY" ${prev.git} \
-              --add-flags $out/share/${oldAttrs.pname}/resources/app \
-              --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations}}" \
-              --prefix LD_LIBRARY_PATH : "${prev.lib.makeLibraryPath [ prev.stdenv.cc.cc.lib ]}"
-          '';
-        });
-      }
-    )
+    (final: prev: {
+      logseq = prev.logseq.overrideAttrs (oldAttrs: {
+        postFixup = ''
+          makeWrapper ${prev.electron_20}/bin/electron $out/bin/${oldAttrs.pname} \
+            --set "LOCAL_GIT_DIRECTORY" ${prev.git} \
+            --add-flags $out/share/${oldAttrs.pname}/resources/app \
+            --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations}}" \
+            --prefix LD_LIBRARY_PATH : "${
+              prev.lib.makeLibraryPath [ prev.stdenv.cc.cc.lib ]
+            }"
+        '';
+      });
+    })
   ];
 
   # List packages installed in system profile. To search, run:
@@ -156,7 +165,6 @@
 
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
-
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
