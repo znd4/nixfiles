@@ -35,6 +35,7 @@
     lazygit
     nodejs
     opam
+    podman-compose
     python-launcher
     python3
     ripgrep
