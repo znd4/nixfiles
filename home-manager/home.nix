@@ -68,6 +68,7 @@
     kubectl
     nixfmt
     ruff
+    pre-commit
   ];
 
   programs.zsh.enable = true;
