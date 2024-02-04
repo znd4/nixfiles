@@ -110,6 +110,8 @@
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
+
+  # logseq
   nixpkgs.config.permittedInsecurePackages = [ "electron-20.3.12" ];
   nixpkgs.overlays = [
     (final: prev: {
