@@ -66,9 +66,10 @@
     appimage-run
     httpie
     kubectl
+    lua-language-server
     nixfmt
-    ruff
     pre-commit
+    ruff
   ];
 
   programs.zsh.enable = true;

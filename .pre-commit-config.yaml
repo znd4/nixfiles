@@ -3,6 +3,7 @@ repos:
     hooks:
       - id: nix-flake-lock-update-dotfiles
         name: Update flake.lock for dotfiles
-        entry: "nix flake lock --update"
+        entry: nix flake lock --update-input dotfiles
         language: system
+        pass_filenames: false
         files: dotfiles/
