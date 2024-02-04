@@ -81,7 +81,7 @@
     # ];
     shellAbbrs = { ky = "kubectl get -o yaml"; };
     shellAliases = {
-      nix = "NO_COLOR=1 nix";
+      nix = "NO_COLOR=1 command nix";
       g = "git";
       by = "bat -l yaml";
       k = "kubectl";
