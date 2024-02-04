@@ -68,9 +68,6 @@
     kubectl
     nixfmt
     ruff
-    (python3.withPackages (ps: with ps; [
-        pre-commit
-    ]))
   ];
 
   programs.zsh.enable = true;

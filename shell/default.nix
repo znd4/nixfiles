@@ -38,6 +38,9 @@
     podman-compose
     python-launcher
     python3
+    (python3.withPackages (ps: with ps; [
+        pre-commit
+    ]))
     ripgrep
     rustc
     skim
