@@ -68,19 +68,9 @@
     kubectl
     nixfmt
     ruff
-    python3.withPackages
-    (ps:
-      with ps; [
-        black
-        flake8
-        isort
-        mypy
-        pipx
-        poetry
+    (python3.withPackages (ps: with ps [
         pre-commit
-        pyright
-        python-language-server
-      ])
+    ]))
   ];
 
   programs.zsh.enable = true;
