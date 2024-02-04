@@ -68,7 +68,7 @@
     kubectl
     nixfmt
     ruff
-    (python3.withPackages (ps: with ps [
+    (python3.withPackages (ps: with ps; [
         pre-commit
     ]))
   ];
