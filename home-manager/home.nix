@@ -62,7 +62,26 @@
 
   # Add stuff for your user as you see fit:
   # programs.neovim.enable = true;
-  home.packages = with pkgs; [ appimage-run httpie kubectl nixfmt ruff ];
+  home.packages = with pkgs; [
+    appimage-run
+    httpie
+    kubectl
+    nixfmt
+    ruff
+    python3.withPackages
+    (ps:
+      with ps; [
+        black
+        flake8
+        isort
+        mypy
+        pipx
+        poetry
+        pre-commit
+        pyright
+        python-language-server
+      ])
+  ];
 
   programs.zsh.enable = true;
   # Enable home-manager and git

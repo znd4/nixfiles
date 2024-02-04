@@ -1,0 +1,8 @@
+repos:
+  - repo: local
+    hooks:
+      - id: nix-flake-lock-update-dotfiles
+        name: Update flake.lock for dotfiles
+        entry: "nix flake lock --update"
+        language: system
+        files: dotfiles/
