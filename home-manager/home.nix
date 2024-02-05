@@ -58,7 +58,7 @@
     # "direnv/direnvrc".source = "${dotConfig}/direnv/direnvrc";
     "direnv/direnvrc".text = builtins.readFile "${dotConfig}/direnv/direnvrc";
     "git/"={
-        recursive=true;
+        recursive=false;
         source = "${dotConfig}/git/";
     };
     # "git/stCommitMsg".source = "${dotConfig}/git/stCommitMsg";
