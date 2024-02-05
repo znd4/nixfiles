@@ -74,6 +74,7 @@
     nixfmt
     pre-commit
     ruff
+    (buildEnv { name = "myScripts"; paths = [ "${inputs.dotfiles}/scripts" ]; })
   ];
 
   programs.zsh.enable = true;
