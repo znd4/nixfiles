@@ -104,6 +104,7 @@
       firefox
       kate
       wezterm
+      discord
       #  thunderbird
     ];
   };
