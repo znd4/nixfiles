@@ -61,6 +61,7 @@
         recursive=true;
         source = "${dotConfig}/git/";
     };
+    "git/stCommitMsg".source = "${dotConfig}/git/stCommitMsg";
   };
 
   # Add stuff for your user as you see fit:
