@@ -57,11 +57,10 @@
     "wezterm/wezterm.lua".source = "${dotConfig}/wezterm/wezterm.lua";
     # "direnv/direnvrc".source = "${dotConfig}/direnv/direnvrc";
     "direnv/direnvrc".text = builtins.readFile "${dotConfig}/direnv/direnvrc";
-    "git/"={
-        recursive=false;
-        source = "${dotConfig}/git/";
+    "git/" = {
+      recursive = false;
+      source = "${dotConfig}/git/";
     };
-    # "git/stCommitMsg".source = "${dotConfig}/git/stCommitMsg";
   };
 
   # Add stuff for your user as you see fit:
@@ -74,7 +73,10 @@
     nixfmt
     pre-commit
     ruff
-    (buildEnv { name = "myScripts"; paths = [ "${inputs.dotfiles}/scripts/.local" ]; })
+    (buildEnv {
+      name = "myScripts";
+      paths = [ "${inputs.dotfiles}/scripts/.local" ];
+    })
   ];
 
   programs.zsh.enable = true;
