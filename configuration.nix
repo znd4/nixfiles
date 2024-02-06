@@ -138,6 +138,7 @@
     logseq
     usbutils
     victor-mono
+    xclip
 
     (vivaldi.override {
       proprietaryCodecs = true;
