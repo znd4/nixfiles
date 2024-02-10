@@ -14,5 +14,6 @@
       ];
       Restart = "always";
     };
+    Install = { WantedBy = "multi-user.target"; };
   };
 }
