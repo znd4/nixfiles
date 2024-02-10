@@ -6,8 +6,7 @@
 
 let
   machineConfigMap = { "t470" = ./machines/t470.nix; };
-  hardwareConfig = machineConfigMap.${machineName} or throw
-    "No hardware configuration defined for ${machineName}";
+  hardwareConfig = machineConfigMap.${machineName};
 in {
   imports = [
     # Include the results of the hardware scan.
