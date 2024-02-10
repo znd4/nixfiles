@@ -61,8 +61,7 @@ in {
     enable = true;
     keyboards = {
       "kmonad-keeb" = {
-        device = keyboardMap.${machineName} or throw
-          "No keyboard map defined for ${machineName}";
+        device = keyboardMap.${machineName};
         config = builtins.readFile
           "${inputs.dotfiles}/xdg-config/.config/kmonad/config.kbd";
       };
