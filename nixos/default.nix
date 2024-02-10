@@ -69,8 +69,6 @@ in {
     # Modify the following line if you copied nixos-module.nix elsewhere or if you want to use the derivation described above
     # package = import /pack/to/kmonad.nix;
   };
-  services.xserver.layout = "us";
-  services.xserver.xkbOptions = "compose:ralt";
 
   # Enable the KDE Plasma Desktop Environment.
   services.xserver.displayManager.sddm.enable = true;
@@ -88,9 +86,10 @@ in {
   };
 
   # Configure keymap in X11
-  services.xserver = {
-    xkb.layout = "us";
-    xkb.variant = "";
+  services.xserver.xkb = {
+    layout = "us";
+    variant = "";
+    options = "compose:ralt";
   };
 
   # Enable CUPS to print documents.
