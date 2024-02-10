@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ lib, inputs, pkgs, username, machineName, stateVersion, ... }:
+{ lib, inputs, pkgs, username, machineName, stateVersion, ... }@args:
 
 let
   machineConfigMap = { "t470" = ./machines/t470.nix; };
