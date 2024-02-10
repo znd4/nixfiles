@@ -67,12 +67,12 @@
   # programs.neovim.enable = true;
   home.packages = with pkgs; [
     appimage-run
-    httpie
     kubectl
     lua-language-server
     nixfmt
     pre-commit
     ruff
+    xh
     (buildEnv {
       name = "myScripts";
       paths = [ "${inputs.dotfiles}/scripts/.local" ];
