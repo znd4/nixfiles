@@ -23,7 +23,7 @@
           username = "znd4";
           machineName = "t470";
         };
-        modules = [ ./configuration.nix ./shell ];
+        modules = [ ./nixos ./shell ];
       };
       homeConfigurations = let
         # TODO - define closure that accepts username and system as arguments

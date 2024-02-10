@@ -4,10 +4,14 @@
 
 { lib, inputs, pkgs, username, machineName, stateVersion, ... }:
 
-{
+let
+  machineConfigMap = { "t470" = ./machines/t470.nix; };
+  hardwareConfig = machineConfigMap.${machineName} or throw
+    "No hardware configuration defined for ${machineName}";
+in {
   imports = [
     # Include the results of the hardware scan.
-    ./hardware-configuration.nix
+    hardwareConfig
     "${inputs.kmonad}/nix/nixos-module.nix"
   ];
 
@@ -114,12 +118,19 @@
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
+  # for kmonad
+  users.groups.uinput = { };
+  services.udev.extraRules = ''
+    # KMonad user access to /dev/uinput
+    KERNEL=="uinput", MODE="0660", GROUP="uinput", OPTIONS+="static_node=uinput"
+  '';
+
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.${username} = {
     isNormalUser = true;
     description = "Zane Dufour";
     shell = pkgs.fish;
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "input" "uinput" ];
     packages = with pkgs; [
       clipboard-jh
       firefox
@@ -160,6 +171,8 @@
     usbutils
     victor-mono
     xclip
+
+    (import ./pkgs/kmonad.nix)
 
     (vivaldi.override {
       proprietaryCodecs = true;
