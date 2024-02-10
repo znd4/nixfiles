@@ -14,7 +14,7 @@
       ];
       Restart = "always";
     };
-    Install = { WantedBy = "multi-user.target"; };
+    Install = { WantedBy = [ "multi-user.target" ]; };
     Unit = { Description = "kmonad"; };
   };
 }
