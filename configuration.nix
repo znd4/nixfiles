@@ -2,12 +2,13 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ lib, config, pkgs, username, stateVersion, ... }:
+{ lib, inputs, pkgs, username, machineName, stateVersion, ... }:
 
 {
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
+    "${inputs.kmonad}/nix/nixos-module.nix"
   ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -48,6 +49,26 @@
 
   # Enable the X11 windowing system.
   services.xserver.enable = true;
+
+  services.kmonad = let
+    keyboardMap = {
+      "t470" = "/dev/input/by-path/platform-i8042-serio-0-event-kbd";
+    };
+  in {
+    enable = true;
+    keyboards = {
+      "kmonad-keeb" = {
+        device = keyboardMap.${machineName} or throw
+          "No keyboard map defined for ${machineName}";
+        config = builtins.readFile
+          "${inputs.dotfiles}/xdg-config/.config/kmonad/config.kbd";
+      };
+    };
+    # Modify the following line if you copied nixos-module.nix elsewhere or if you want to use the derivation described above
+    # package = import /pack/to/kmonad.nix;
+  };
+  services.xserver.layout = "us";
+  services.xserver.xkbOptions = "compose:ralt";
 
   # Enable the KDE Plasma Desktop Environment.
   services.xserver.displayManager.sddm.enable = true;
