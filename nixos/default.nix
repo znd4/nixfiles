@@ -157,7 +157,7 @@ in {
     victor-mono
     xclip
 
-    (import ./pkgs/kmonad.nix)
+    kmonad
 
     (vivaldi.override {
       proprietaryCodecs = true;
