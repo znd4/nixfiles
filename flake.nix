@@ -66,7 +66,7 @@
             username = "znd4";
             stateVersion = "23.11";
           };
-          modules = [ ./home-manager/home.nix ];
+          modules = [ ./home-manager/nixos.nix ];
         };
       };
     };
