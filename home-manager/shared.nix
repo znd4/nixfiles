@@ -66,6 +66,7 @@
     kubectl
     lazygit
     lua-language-server
+    neovim
     neovim-remote
     nixfmt
     nodejs
@@ -86,9 +87,7 @@
     zig
     zoxide
     zsh
-    (python3.withPackages (ps: with ps; [
-        pre-commit
-    ]))
+    (python3.withPackages (ps: with ps; [ pre-commit ]))
     (buildEnv {
       name = "myScripts";
       paths = [ "${inputs.dotfiles}/scripts/.local" ];
