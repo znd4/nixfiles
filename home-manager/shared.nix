@@ -30,7 +30,6 @@
   };
   home.username = username;
 
-
   xdg.configFile = let dotConfig = "${inputs.dotfiles}/xdg-config/.config";
   in {
     "nvim/" = {
@@ -54,6 +53,7 @@
     appimage-run
     kubectl
     lua-language-server
+    neovim-remote
     nixfmt
     pre-commit
     ruff
