@@ -23,7 +23,6 @@
         work = darwin.lib.darwinSystem {
           system = "aarch64-darwin";
           modules = [
-            ./shell
             ./darwin
             # Inline set home-manager to invocation of (import ./home-manager/darwin.nix)
             home-manager.darwinModules.home-manager

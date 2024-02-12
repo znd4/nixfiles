@@ -1,10 +1,5 @@
 { lib, config, pkgs, inputs, ... }: {
 
-  programs.fish.enable = lib.mkDefault true;
-  programs.starship.enable = true;
-  programs.skim.fuzzyCompletion = true;
-
-
   programs.neovim = {
     enable = true;
     defaultEditor = true;

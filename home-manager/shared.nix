@@ -96,6 +96,10 @@
     })
   ];
 
+  programs.skim = {
+    enable = true;
+    fuzzyCompletion = true;
+  };
   programs.zsh.enable = true;
   # Enable home-manager and git
   programs.fzf = {
