@@ -10,7 +10,10 @@
     flake = false;
     url = "path:./dotfiles";
   };
-  inputs.kmonad.url = "github:kmonad/kmonad";
+  inputs.kmonad = {
+    url = "github:kmonad/kmonad";
+    flake = false;
+  };
   # inputs.kmonad.inputs.nixpkgs.follows = "nixpkgs";
 
   outputs = { self, nixpkgs, home-manager, darwin, ... }@inputs:
@@ -20,9 +23,9 @@
         work = darwin.lib.darwinSystem {
           system = "aarch64-darwin";
           modules = [
-            ./shell 
-            ./darwin 
-# Inline set home-manager to invocation of (import ./home-manager/darwin.nix)
+            ./shell
+            ./darwin
+            # Inline set home-manager to invocation of (import ./home-manager/darwin.nix)
             home-manager.darwinModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
