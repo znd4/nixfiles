@@ -1,8 +1,5 @@
 { lib, config, pkgs, inputs, ... }: {
 
-  programs.direnv = {
-    enable = true;
-  };
   programs.fish.enable = lib.mkDefault true;
   programs.starship.enable = true;
   programs.skim.fuzzyCompletion = true;
