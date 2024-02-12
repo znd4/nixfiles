@@ -10,8 +10,12 @@
     # inputs.nix-colors.homeManagerModules.default
 
     # You can also split up your configuration and import pieces of it here:
-    ./shared.nix
+    (args: (import ./shared.nix) (args // {
+      inherit inputs;
+      inherit username;
+      inherit stateVersion;
+      inherit pkgs;
+    }))
   ];
-  home.homeDirectory = "/Users/" + username;
   home.stateVersion = stateVersion;
 }

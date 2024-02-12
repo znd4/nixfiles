@@ -27,8 +27,8 @@
             # Inline set home-manager to invocation of (import ./home-manager/darwin.nix)
             home-manager.darwinModules.home-manager
             {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
+              # home-manager.useGlobalPkgs = true;
+              # home-manager.useUserPackages = true;
               home-manager.users.dufourz = (import ./home-manager/darwin.nix) {
                 inherit inputs;
                 username = "dufourz";
