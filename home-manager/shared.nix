@@ -73,7 +73,6 @@
     podman-compose
     pre-commit
     python-launcher
-    python3
     ripgrep
     ruff
     rustc
