@@ -13,4 +13,5 @@
     ./shared.nix
   ];
   home.homeDirectory = "/Users/" + username;
+  home.stateVersion = stateVersion;
 }
