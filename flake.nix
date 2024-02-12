@@ -29,7 +29,8 @@
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
-              home-manager.users.dufourz ={...}: (import ./home-manager/darwin.nix) {
+              home-manager.users.dufourz = {...}: (import ./home-manager/darwin.nix) {
+                ...;
                 inherit inputs;
                 username = "dufourz";
                 stateVersion = "23.11";
