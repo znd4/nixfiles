@@ -4,4 +4,5 @@
     home = "/Users/${username}";
     isHidden = false;
   };
+  services.nix-daemon.enable = true;
 }
