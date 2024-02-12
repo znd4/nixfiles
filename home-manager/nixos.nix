@@ -13,6 +13,9 @@
   ];
   # TODO: Set your username
   home.homeDirectory = "/home/" + username;
+  home.packages = with pkgs; [
+      appimage-run
+  ];
   # Nicely reload system units when changing configs
   systemd.user.startServices = "sd-switch";
 }

@@ -50,14 +50,46 @@
   # Add stuff for your user as you see fit:
   # programs.neovim.enable = true;
   home.packages = with pkgs; [
-    appimage-run
+    asdf
+    bat
+    broot
+    cargo
+    delta
+    fd
+    gcc
+    gh
+    git
+    gnumake
+    go
+    htop
+    just
     kubectl
+    lazygit
     lua-language-server
     neovim-remote
     nixfmt
+    nodejs
+    opam
+    podman-compose
     pre-commit
+    python-launcher
+    python3
+    ripgrep
     ruff
+    rustc
+    skim
+    stow
+    stylua
+    thefuck
+    unzip
+    wget
     xh
+    zig
+    zoxide
+    zsh
+    (python3.withPackages (ps: with ps; [
+        pre-commit
+    ]))
     (buildEnv {
       name = "myScripts";
       paths = [ "${inputs.dotfiles}/scripts/.local" ];
