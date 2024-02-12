@@ -1,2 +1,5 @@
-indent_style = spaces
+[*]
+indent_style = space
+
+[*.nix]
 indent_size = 2
