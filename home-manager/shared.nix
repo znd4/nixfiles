@@ -96,10 +96,7 @@
     })
   ];
 
-  programs.skim = {
-    enable = true;
-    fuzzyCompletion = true;
-  };
+  programs.skim.enable = true;
   programs.zsh.enable = true;
   # Enable home-manager and git
   programs.fzf = {
@@ -145,9 +142,6 @@
     ];
     shortcut = "a";
   };
-
-  # Nicely reload system units when changing configs
-  systemd.user.startServices = "sd-switch";
 
   # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
   home.stateVersion = stateVersion;
