@@ -12,12 +12,13 @@
       script = lib.strings.escapeShellArgs [
         "kmonad"
         "--log-level=debug"
+
         (pkgs.writeTextFile {
           name = "kmonad-config-with-header.kbd";
           text = ''
             (defcfg
               input (iokit-name)
-              output (kext)
+              output (dext)
               fallthrough true
             )
             ${builtins.readFile
