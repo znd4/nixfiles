@@ -28,7 +28,8 @@
       path = [ pkgs.kmonad ];
       serviceConfig = {
         UserName = "root";
-        # KeepAlive = true;
+        Debug = true;
+        KeepAlive = true;
       };
     };
   };
