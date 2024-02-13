@@ -196,7 +196,7 @@
   -------------------------------------------------------------------------- |#
 
 (defsrc
-  esc  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12  home end  ins  del
+  esc  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12  
   grv  1    2    3    4    5    6    7    8    9    0    -     =    bspc
   tab  q    w    e    r    t    y    u    i    o    p    [     ]    \
   caps a    s    d    f    g    h    j    k    l    ;    '          ret
@@ -301,7 +301,7 @@
 
 
 (deflayer qwerty
-  esc   f1   f2    f3    f4    f5   f6   f7    f8    f9    f10   f11  f12  home end  ins  del
+  esc   f1   f2    f3    f4    f5   f6   f7    f8    f9    f10   f11  f12  
   grv   1    2     3     4     5    6    7     8     9     0     -    =    bspc
   tab   q    w     e     r     t    y    u     i     o     p     [    ]    \
   @xcp  a    @sctl @dalt @fgui g    h    @jgui @kalt @lctl @mvmt '    ret
@@ -327,7 +327,7 @@
 ;; Movement layer
 
 (deflayer movement
-  _    _    _    _    _    _    _    _    _    _     _    _    _    _    _    _    _
+  _    _    _    _    _    _    _    _    _    _     _    _    _
   _    _    _    _    _    _    _    _    _    _     _    _    _    _
   _    _    _    _    _    _    _    _    _    _     _    _    _    _
   _    _    _    _    _    _    left down up   right _    _    _
@@ -353,7 +353,7 @@
   -------------------------------------------------------------------------- |#
 
 (deflayer numbers
-  _    _    _    _    _    _    _    _    _    _     _    _    _    _    _    _    _
+  _    _    _    _    _    _    _    _    _    _     _    _    _
   _    _    _    _    _    _    _    _    _    _     _    _    _    _
   _    !    @    #    $    %    ^    &    *    _     _    _    _    _
   _    1    2    3    4    5    6    7    8    9     0    _    _
@@ -363,7 +363,7 @@
 )
 
 (deflayer raise
-  _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    _    _    _    _    _    _    _    _    _    _    _    _
   _    _    _    _    _    _    _    _    _    _    _    _    _    _
   _    f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  _    _    _
   _    _    {    [    \(   _    _    \)   ]    }    _    _    _

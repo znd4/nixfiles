@@ -15,6 +15,7 @@
         (pkgs.writeTextFile {
           name = "kmonad-config-with-header.kbd";
           text = ''
+            ;; comment at beginning
             (defcfg
               input (iokit-name)
               output (dext)
