@@ -10,9 +10,9 @@
   launchd.user.agents = {
     kmonad = {
       script = lib.strings.escapeShellArgs [
-        "kmonad"
-        "--log-level=debug"
-
+        # "kmonad"
+        # "--log-level=debug"
+        "cat"
         (pkgs.writeTextFile {
           name = "kmonad-config-with-header.kbd";
           text = ''
@@ -29,6 +29,7 @@
       path = [ pkgs.kmonad ];
       serviceConfig = {
         UserName = "root";
+        StandardOutPath = "/tmp/kmonad.log";
         Debug = true;
         KeepAlive = true;
       };
