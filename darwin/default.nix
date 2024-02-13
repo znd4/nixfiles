@@ -10,9 +10,8 @@
   launchd.user.agents = {
     kmonad = {
       script = lib.strings.escapeShellArgs [
-        # "kmonad"
-        # "--log-level=debug"
-        "cat"
+        "kmonad"
+        "--log-level=debug"
         (pkgs.writeTextFile {
           name = "kmonad-config-with-header.kbd";
           text = ''
