@@ -54,6 +54,7 @@
     bat
     broot
     cargo
+    clipboard-jh
     delta
     fd
     gcc
