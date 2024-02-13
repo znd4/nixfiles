@@ -1,19 +1,23 @@
 {
+  inputs = {
+    home-manager.url = "github:nix-community/home-manager";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-  inputs.home-manager.url = "github:nix-community/home-manager";
-  inputs.home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    darwin.url = "github:LnL7/nix-darwin";
+    darwin.inputs.nixpkgs.follows = "nixpkgs";
 
-  inputs.darwin.url = "github:LnL7/nix-darwin";
-  inputs.darwin.inputs.nixpkgs.follows = "nixpkgs";
+    kmonad.url = "git+https://github.com/kmonad/kmonad?submodules=1&dir=nix";
 
-  inputs.dotfiles = {
-    flake = false;
-    url = "path:./dotfiles";
+    dotfiles = {
+      flake = false;
+      url = "path:./dotfiles";
+    };
   };
-  inputs.kmonad = {
-    url = "github:kmonad/kmonad";
-    flake = false;
-  };
+
+  # inputs.kmonad = {
+  #   url = "github:kmonad/kmonad";
+  #   flake = false;
+  # };
   # inputs.kmonad.inputs.nixpkgs.follows = "nixpkgs";
 
   outputs = { self, nixpkgs, home-manager, darwin, ... }@inputs:

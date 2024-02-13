@@ -12,6 +12,7 @@
 
       # You can also add overlays exported from other flakes:
       # neovim-nightly-overlay.overlays.default
+      inputs.kmonad.overlays.default
 
       # Or define it inline, for example:
       # (final: prev: {
@@ -50,6 +51,7 @@
   # Add stuff for your user as you see fit:
   # programs.neovim.enable = true;
   home.packages = with pkgs; [
+    kmonad
     asdf
     bat
     broot
