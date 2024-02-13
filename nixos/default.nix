@@ -11,7 +11,7 @@ in {
   imports = [
     # Include the results of the hardware scan.
     hardwareConfig
-    "${inputs.kmonad}/nix/nixos-module.nix"
+    inputs.kmonad.nixosModules.default
   ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
