@@ -491,6 +491,7 @@ require("lazy").setup({
   },
 }, {
   concurrency = 20,
+  lockfile = vim.fn.stdpath("cache") .. "/treesitter",
   install = {
     colorscheme = { "tokyonight" },
   },
