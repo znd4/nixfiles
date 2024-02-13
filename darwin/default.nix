@@ -11,12 +11,23 @@
     kmonad = {
       script = lib.strings.escapeShellArgs [
         "kmonad"
-        "${inputs.dotfiles}/xdg-config/.config/kmonad/config.kbd"
+        (pkgs.writeTextFile {
+          name = "kmonad-config-with-header.kbd";
+          text = ''
+            (defcfg
+              input (iokit-name)
+              output (kext)
+              fallthrough true
+            )
+            ${builtins.readFile
+            "${inputs.dotfiles}/xdg-config/.config/kmonad/config.kbd"}
+          '';
+        })
       ];
       path = [ pkgs.kmonad ];
       serviceConfig = {
         UserName = "root";
-        KeepAlive = true;
+        # KeepAlive = true;
       };
     };
   };

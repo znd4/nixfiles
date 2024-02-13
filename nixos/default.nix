@@ -11,7 +11,7 @@ in {
   imports = [
     # Include the results of the hardware scan.
     hardwareConfig
-    inputs.kmonad.nixosModules.default
+    ./modules
   ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -52,23 +52,6 @@ in {
 
   # Enable the X11 windowing system.
   services.xserver.enable = true;
-
-  services.kmonad = let
-    keyboardMap = {
-      "t470" = "/dev/input/by-path/platform-i8042-serio-0-event-kbd";
-    };
-  in {
-    enable = true;
-    keyboards = {
-      "kmonad-keeb" = {
-        device = keyboardMap.${machineName};
-        config = builtins.readFile
-          "${inputs.dotfiles}/xdg-config/.config/kmonad/config.kbd";
-      };
-    };
-    # Modify the following line if you copied nixos-module.nix elsewhere or if you want to use the derivation described above
-    # package = import /pack/to/kmonad.nix;
-  };
 
   # Enable the KDE Plasma Desktop Environment.
   services.xserver.displayManager.sddm.enable = true;
@@ -120,13 +103,6 @@ in {
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
-  # for kmonad
-  users.groups.uinput = { };
-  services.udev.extraRules = ''
-    # KMonad user access to /dev/uinput
-    KERNEL=="uinput", MODE="0660", GROUP="uinput", OPTIONS+="static_node=uinput"
-  '';
-
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.${username} = {
     isNormalUser = true;
@@ -159,8 +135,6 @@ in {
     usbutils
     victor-mono
     xclip
-
-    # kmonad
 
     (vivaldi.override {
       proprietaryCodecs = true;
