@@ -29,6 +29,8 @@
       allowUnfreePredicate = _: true;
     };
   };
+
+  home.sessionVariables = { EDITOR = "nvim"; };
   home.username = username;
 
   xdg.configFile = let dotConfig = "${inputs.dotfiles}/xdg-config/.config";
@@ -54,7 +56,6 @@
   };
 
   # Add stuff for your user as you see fit:
-  # programs.neovim.enable = true;
   home.packages = with pkgs; [
     kmonad
     asdf
