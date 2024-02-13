@@ -10,20 +10,25 @@
   launchd.user.agents = {
     kmonad = {
       script = lib.strings.escapeShellArgs [
-        "kmonad"
-        "--log-level=debug"
-        (pkgs.writeTextFile {
-          name = "kmonad-config-with-header.kbd";
-          text = ''
-            (defcfg
-              input (iokit-name)
-              output (kext)
-              fallthrough true
-            )
-            ${builtins.readFile
-            "${inputs.dotfiles}/xdg-config/.config/kmonad/config.kbd"}
-          '';
-        })
+        "bash"
+        "-x"
+        "-c"
+        (lib.strings.escapeShellArgs [
+          "kmonad"
+          "--log-level=debug"
+          (pkgs.writeTextFile {
+            name = "kmonad-config-with-header.kbd";
+            text = ''
+              (defcfg
+               input (iokit-name)
+               output (kext)
+               fallthrough true
+              )
+              ${builtins.readFile
+              "${inputs.dotfiles}/xdg-config/.config/kmonad/config.kbd"}
+            '';
+          })
+        ])
       ];
       path = [ pkgs.kmonad ];
       serviceConfig = {
