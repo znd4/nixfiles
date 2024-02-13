@@ -7,7 +7,7 @@
   nix.settings.experimental-features = "nix-command flakes";
   services.nix-daemon.enable = true;
   nixpkgs.overlays = [ inputs.kmonad.overlays.default ];
-  launchd.agents = {
+  launchd.user.agents = {
     kmonad = {
       script = lib.strings.escapeShellArgs [
         "kmonad"
