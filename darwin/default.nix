@@ -27,6 +27,7 @@
       ];
       path = [ pkgs.kmonad ];
       serviceConfig = {
+        Disable = true;
         UserName = "root";
         StandardOutPath = "/tmp/kmonad.log";
         Debug = true;
