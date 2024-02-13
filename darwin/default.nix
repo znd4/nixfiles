@@ -11,6 +11,7 @@
     kmonad = {
       script = lib.strings.escapeShellArgs [
         "kmonad"
+        "--log-level=info"
         (pkgs.writeTextFile {
           name = "kmonad-config-with-header.kbd";
           text = ''
