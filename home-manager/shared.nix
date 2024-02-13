@@ -48,7 +48,10 @@
     };
   };
 
-  programs.git.lfs.enable = true;
+  programs.git = {
+    enable = true;
+    lfs.enable = true;
+  };
 
   # Add stuff for your user as you see fit:
   # programs.neovim.enable = true;
@@ -134,7 +137,6 @@
   programs.direnv.enable = true;
   programs.k9s.enable = true;
 
-  programs.git.enable = false;
   programs.tmux = {
     enable = true;
     plugins = with pkgs.tmuxPlugins; [
