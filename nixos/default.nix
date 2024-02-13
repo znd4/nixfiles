@@ -112,7 +112,6 @@ in {
     packages = with pkgs; [
       clipboard-jh
       firefox
-      kate
       wezterm
       discord
       #  thunderbird
