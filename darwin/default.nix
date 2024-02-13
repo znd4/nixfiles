@@ -14,7 +14,10 @@
         "${inputs.dotfiles}/xdg-config/.config/kmonad/config.kbd"
       ];
       path = [ pkgs.kmonad ];
-      serviceConfig = { UserName = "root"; };
+      serviceConfig = {
+        UserName = "root";
+        KeepAlive = true;
+      };
     };
   };
 }
