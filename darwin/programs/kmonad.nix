@@ -20,7 +20,7 @@ in {
   };
   environment.systemPackages = with pkgs; [
     kmonad
-    (lib.writeScript "km" ''
+    (writeScript "km" ''
       #!${pkgs.stdenv.shell}
       kmonad ${kmonadConfig}
     '')
