@@ -62,6 +62,8 @@
   home.packages = with pkgs; [
     # kmonad
     asdf
+    awscli2
+    awsume
     bat
     broot
     cargo
