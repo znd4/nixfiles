@@ -28,7 +28,6 @@
           system = "aarch64-darwin";
           modules = [
             ./darwin
-            ./darwin/programs/kmonad.nix
             # Inline set home-manager to invocation of (import ./home-manager/darwin.nix)
             home-manager.darwinModules.home-manager
             {

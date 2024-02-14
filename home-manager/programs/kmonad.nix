@@ -1,4 +1,4 @@
-{ lib, pkgs, inputs, username, ... }:
+{ pkgs, inputs, ... }:
 let
   kmonadConfig = (pkgs.writeTextFile {
     name = "kmonad-config-with-header.kbd";
@@ -15,14 +15,13 @@ let
   });
 in {
   nixpkgs.overlays = [ inputs.kmonad.overlays.default ];
-  environment.shellAliases = {
-    km = lib.escapeShellArgs [ "kmonad" kmonadConfig ];
-  };
-  environment.systemPackages = with pkgs; [
+  home.packages = with pkgs; [
     kmonad
-    (writeScript "km" ''
-      #!${pkgs.stdenv.shell}
-      kmonad ${kmonadConfig}
+    (writeShellScriptBin "km" ''
+      #!/usr/bin/env bash
+      kmonad --config ${kmonadConfig}
     '')
+
   ];
+
 }

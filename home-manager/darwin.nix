@@ -18,6 +18,7 @@
         inherit stateVersion;
         inherit pkgs;
       }))
+    ./programs/kmonad.nix
   ];
   home.packages = with pkgs; [ python311Packages.supervisor ];
   home.stateVersion = stateVersion;
