@@ -33,11 +33,6 @@
             {
               # home-manager.useGlobalPkgs = true;
               # home-manager.useUserPackages = true;
-              _module.args = {
-                inherit inputs;
-                username = "dufourz";
-                stateVersion = "23.11";
-              };
               home-manager.users.dufourz = (import ./home-manager/darwin.nix) {
                 inherit inputs;
                 username = "dufourz";

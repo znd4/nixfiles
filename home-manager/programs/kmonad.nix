@@ -19,7 +19,7 @@ in {
     kmonad
     (writeShellScriptBin "km" ''
       #!/usr/bin/env bash
-      kmonad --config ${kmonadConfig}
+      kmonad ${kmonadConfig}
     '')
 
   ];
