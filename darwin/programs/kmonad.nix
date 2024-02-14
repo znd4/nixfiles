@@ -18,5 +18,11 @@ in {
   environment.shellAliases = {
     km = lib.escapeShellArgs [ "kmonad" kmonadConfig ];
   };
-  environment.systemPackages = with pkgs; [ kmonad ];
+  environment.systemPackages = with pkgs; [
+    kmonad
+    (lib.writeScript "km" ''
+      #!${pkgs.stdenv.shell}
+      kmonad ${kmonadConfig}
+    '')
+  ];
 }
