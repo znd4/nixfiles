@@ -44,9 +44,18 @@
     "wezterm/wezterm.lua".source = "${dotConfig}/wezterm/wezterm.lua";
     # "direnv/direnvrc".source = "${dotConfig}/direnv/direnvrc";
     "direnv/direnvrc".text = builtins.readFile "${dotConfig}/direnv/direnvrc";
-    "fish/conf.d/".source = "${dotConfig}/fish/conf.d/";
-    "fish/completions/".source = "${dotConfig}/fish/completions/";
-    "fish/functions/".source = "${dotConfig}/fish/functions/";
+    "fish/conf.d/" = {
+      source = "${dotConfig}/fish/conf.d/";
+      recursive = true;
+    };
+    "fish/completions/" = {
+      source = "${dotConfig}/fish/completions/";
+      recursive = true;
+    };
+    "fish/functions/" = {
+      source = "${dotConfig}/fish/functions/";
+      recursive = true;
+    };
     "git/" = {
       recursive = false;
       source = "${dotConfig}/git/";
