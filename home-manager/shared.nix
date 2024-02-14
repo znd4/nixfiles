@@ -127,6 +127,7 @@
       g = "git";
       by = "bat -l yaml";
       k = "kubectl";
+      vi = "nvim";
     };
     interactiveShellInit = ''
       fish_vi_key_bindings
