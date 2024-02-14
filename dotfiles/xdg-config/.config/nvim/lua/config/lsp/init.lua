@@ -16,6 +16,7 @@ local ensure_installed = {
   "rust_analyzer",
   "sqlls",
   "taplo",
+  "terraformls",
   "texlab",
   "tsserver",
   "yamlls",
