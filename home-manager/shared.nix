@@ -41,26 +41,27 @@
         name = dir + "/" + fp;
         value = { source = "${dotConfig}/${dir}/${fp}"; };
       }) (builtins.attrNames (builtins.readDir "${dotConfig}/" + dir)));
-  in lib.attrsets.recursiveUpdate (getFiles "fish/conf.d") {
-    "nvim/" = {
-      source = "${dotConfig}/nvim/";
-      #recursive=true;
-    };
-    # "fish/"={source= "${inputs.dotfiles}/fish/.config/fish/"; enable=false;};
-    "starship.toml".source = "${dotConfig}/starship.toml";
-    "wezterm/wezterm.lua".source = "${dotConfig}/wezterm/wezterm.lua";
-    # "direnv/direnvrc".source = "${dotConfig}/direnv/direnvrc";
-    "direnv/direnvrc".text = builtins.readFile "${dotConfig}/direnv/direnvrc";
+  in lib.foldl' lib.attrsets.recursiveUpdate { } [
+    (getFiles "fish/conf.d")
+    (getFiles "fish/completions")
+    (getFiles "fish/functions")
+    {
+      "nvim/" = {
+        source = "${dotConfig}/nvim/";
+        #recursive=true;
+      };
+      # "fish/"={source= "${inputs.dotfiles}/fish/.config/fish/"; enable=false;};
+      "starship.toml".source = "${dotConfig}/starship.toml";
+      "wezterm/wezterm.lua".source = "${dotConfig}/wezterm/wezterm.lua";
+      # "direnv/direnvrc".source = "${dotConfig}/direnv/direnvrc";
+      "direnv/direnvrc".text = builtins.readFile "${dotConfig}/direnv/direnvrc";
 
-    "fish/conf.d/".source = "${dotConfig}/fish/conf.d/";
-    "fish/completions/".source = "${dotConfig}/fish/completions/";
-    "fish/functions/".source = "${dotConfig}/fish/functions/";
-
-    "git/" = {
-      recursive = false;
-      source = "${dotConfig}/git/";
-    };
-  };
+      "git/" = {
+        recursive = false;
+        source = "${dotConfig}/git/";
+      };
+    }
+  ];
 
   programs.git = {
     enable = true;
