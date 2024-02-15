@@ -11,7 +11,7 @@ return {
       function()
         require("oil").open()
       end,
-      "Open parent directory",
+      desc = "Open parent directory in oil",
     },
   },
   -- Optional dependencies
