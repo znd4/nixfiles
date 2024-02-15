@@ -31,7 +31,6 @@
   };
 
   home.sessionVariables = { EDITOR = "nvim"; };
-  home.sessionPath = [ "$HOME/homebrew/bin" ];
   home.username = username;
 
   xdg.configFile = let

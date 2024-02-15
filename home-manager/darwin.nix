@@ -25,6 +25,7 @@
       }))
     ./programs/kmonad.nix
   ];
+  home.sessionPath = [ "/Users/${username}/homebrew/bin" ];
   home.packages = with pkgs; [ python311Packages.supervisor ];
   home.stateVersion = stateVersion;
 }
