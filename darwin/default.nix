@@ -6,12 +6,10 @@
   };
   nix.settings.experimental-features = "nix-command flakes";
   services.nix-daemon.enable = true;
-  nixpkgs.overlays = [ inputs.kmonad.overlays.default ];
-  environment.systemPackages = with pkgs; [
-    fish
-    zsh
-    git
-  ];
-  environment.loginShell = "fish --login";
+  homebrew = {
+    brewPrefix = "/Users/${username}/homebrew/bin";
+    enable = true;
+    brews = [ "1password-cli" ];
+  };
   # environment.postBuild 
 }

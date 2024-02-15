@@ -31,10 +31,17 @@
   };
 
   home.sessionVariables = { EDITOR = "nvim"; };
+  home.sessionPath = [ "$HOME/homebrew/bin" ];
   home.username = username;
 
-  xdg.configFile = let dotConfig = "${inputs.dotfiles}/xdg-config/.config";
-  in {
+  xdg.configFile = let
+    dotConfig = "${inputs.dotfiles}/xdg-config/.config";
+    getFiles = dir:
+      builtins.listToAttrs (map (fp: {
+        name = dir + "/" + fp;
+        value = { source = "${dotConfig}/${dir}/${fp}"; };
+      }) (builtins.attrNames (builtins.readDir "${dotConfig}/" + dir)));
+  in lib.attrsets.recursiveUpdate (getFiles "fish/conf.d") {
     "nvim/" = {
       source = "${dotConfig}/nvim/";
       #recursive=true;
@@ -44,9 +51,11 @@
     "wezterm/wezterm.lua".source = "${dotConfig}/wezterm/wezterm.lua";
     # "direnv/direnvrc".source = "${dotConfig}/direnv/direnvrc";
     "direnv/direnvrc".text = builtins.readFile "${dotConfig}/direnv/direnvrc";
+
     "fish/conf.d/".source = "${dotConfig}/fish/conf.d/";
     "fish/completions/".source = "${dotConfig}/fish/completions/";
     "fish/functions/".source = "${dotConfig}/fish/functions/";
+
     "git/" = {
       recursive = false;
       source = "${dotConfig}/git/";
