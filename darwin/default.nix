@@ -9,7 +9,7 @@
   homebrew = {
     brewPrefix = "/Users/${username}/homebrew/bin";
     enable = true;
-    brews = [ "1password-cli" ];
+    casks = [ "1password-cli" ];
   };
   # environment.postBuild 
 }
