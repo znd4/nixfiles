@@ -103,6 +103,7 @@
     skim
     stow
     stylua
+    terragrunt
     thefuck
     unzip
     wget
