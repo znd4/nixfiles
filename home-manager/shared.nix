@@ -39,12 +39,12 @@
     getFiles = dir:
       builtins.listToAttrs (map (fp: {
         name = dir + "/" + fp;
-        value = { source = "${dotConfig}/${dir}/${fp}"; };
-      }) (builtins.attrNames (builtins.readDir "${dotConfig}/" + dir)));
+        value = { source = "${dir}/${fp}"; };
+      }) (builtins.attrNames (builtins.readDir dir)));
   in lib.foldl' lib.attrsets.recursiveUpdate { } [
-    (getFiles "fish/conf.d")
-    (getFiles "fish/completions")
-    (getFiles "fish/functions")
+    (getFiles "${inputs.dotfiles}/fish/.config/fish/conf.d")
+    (getFiles "${inputs.dotfiles}/fish/.config/fish/completions")
+    (getFiles "${inputs.dotfiles}/fish/.config/fish/functions")
     {
       "nvim/" = {
         source = "${dotConfig}/nvim/";
