@@ -46,7 +46,7 @@ vim.on_key(function(char)
 end, vim.api.nvim_create_namespace("auto_hlsearch"))
 
 local function escape()
-  require("notify").dismiss()
+  require("notify").dismiss({ silent = true })
   -- check if location window is open
   if vim.fn.winnr("$") > 1 then
     print("closing location window")
