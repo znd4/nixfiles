@@ -36,15 +36,15 @@
 
   xdg.configFile = let
     dotConfig = "${inputs.dotfiles}/xdg-config/.config";
-    getFiles = dir:
+    getFiles = dir: prefix:
       builtins.listToAttrs (map (fp: {
         name = dir + "/" + fp;
-        value = { source = "${inputs.dotfiles}/fish/.config/${dir}/${fp}"; };
-      }) (builtins.attrNames (builtins.readDir dir)));
+        value = { source = "${prefix}/${dir}/${fp}"; };
+      }) (builtins.attrNames (builtins.readDir "${prefix}/${dir}")));
   in lib.foldl' lib.attrsets.recursiveUpdate { } [
-    (getFiles "fish/conf.d")
-    (getFiles "fish/completions")
-    (getFiles "fish/functions")
+    (getFiles "fish/conf.d" "${inputs.dotfiles}/fish/.config")
+    (getFiles "fish/completions" "${inputs.dotfiles}/fish/.config")
+    (getFiles "fish/functions" "${inputs.dotfiles}/fish/.config")
     {
       "nvim/" = {
         source = "${dotConfig}/nvim/";
