@@ -157,10 +157,11 @@
   programs.tmux = {
     enable = true;
     plugins = with pkgs.tmuxPlugins; [
-      tmux-thumbs
+      catppuccin
       pain-control
       sensible
-      catppuccin
+      tmux-fzf
+      tmux-thumbs
     ];
     shortcut = "a";
   };
