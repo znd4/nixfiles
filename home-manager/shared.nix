@@ -1,6 +1,6 @@
 # This is your home-manager configuration file
 # Use this to configure your home environment (it replaces ~/.config/nixpkgs/home.nix)
-{ inputs, username, lib, config, pkgs, stateVersion, ... }: {
+{ inputs, username, lib, config, pkgs, system, stateVersion, ... }: {
 
   nixpkgs = {
     # You can add overlays here
@@ -188,11 +188,7 @@
 
       # allow passthrough (e.g. for iterm image protocol)
       set-option -g allow-passthrough on
-    '';
 
-    extraConfigBeforePlugins = ''
-      set -g @sessionx-bind 'o'
-      set -g @thumbs-command 'echo -n {} | cb copy && tmux display-message "Copied to clipboard"'
     '';
 
     plugins = with pkgs.tmuxPlugins; [
@@ -201,7 +197,24 @@
       pain-control
       sensible
       tmux-fzf
-      tmux-thumbs
+      {
+        plugin = tmux-thumbs;
+        extraConfig = ''
+          set -g @thumbs-command 'echo -n {} | cb copy && tmux display-message "Copied to clipboard"'
+        '';
+        enable = true;
+      }
+      {
+        plugin = mkTmuxPlugin {
+          pluginName = "sessionx";
+          version = "latest";
+          src = "${inputs.tmux-sessionx}";
+          # enable = true;
+        };
+        extraConfig = ''
+          set -g @sessionx-bind 'o'
+        '';
+      }
     ];
     shortcut = "a";
   };

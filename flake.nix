@@ -6,6 +6,10 @@
       url = "github:joshmedeski/sesh";
       flake = false;
     };
+    tmux-sessionx = {
+      url = "github:omerxx/tmux-sessionx";
+      flake = false;
+    };
 
     darwin.url = "github:LnL7/nix-darwin";
     darwin.inputs.nixpkgs.follows = "nixpkgs";
@@ -71,6 +75,7 @@
             inherit inputs;
             outputs = self;
             username = "znd4";
+            system = "x86_64-linux";
             stateVersion = "23.11";
           };
           modules = [ ./home-manager/nixos.nix ];

@@ -1,5 +1,5 @@
 default:
     sudo nixos-rebuild switch --flake .
 
-darwin:
-    nix run nix-darwin -- switch --show-trace --flake ".#work"
+darwin *args:
+    nix run nix-darwin -- switch --flake ".#work" {{ args }}
