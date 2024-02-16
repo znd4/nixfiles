@@ -101,6 +101,12 @@
     ruff
     rustc
     skim
+    (buildGoModule {
+      src = "${inputs.sesh}";
+      name = "sesh";
+      vendorHash = "sha256-zt1/gE4bVj+3yr9n0kT2FMYMEmiooy3k1lQ77rN6sTk=";
+    })
+
     stow
     stylua
     terragrunt
@@ -156,6 +162,13 @@
 
   programs.tmux = {
     enable = true;
+    keyMode = "vi";
+    mouse = true;
+    shell = "${pkgs.fish}/bin/fish";
+    terminal = "screen-256color";
+    tmuxinator.enable = true;
+    tmuxp.enable = true;
+
     plugins = with pkgs.tmuxPlugins; [
       battery
       catppuccin

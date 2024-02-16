@@ -111,7 +111,24 @@
         "dotfiles": "dotfiles",
         "home-manager": "home-manager",
         "kmonad": "kmonad",
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs_2",
+        "sesh": "sesh"
+      }
+    },
+    "sesh": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1707334455,
+        "narHash": "sha256-8gn4YdKHurPbPuJ+AeCB7x9IDxTtHGpYUZCKlSdujcs=",
+        "owner": "joshmedeski",
+        "repo": "sesh",
+        "rev": "be2badd29206f66803b76b62b23f6f5e05befe08",
+        "type": "github"
+      },
+      "original": {
+        "owner": "joshmedeski",
+        "repo": "sesh",
+        "type": "github"
       }
     }
   },

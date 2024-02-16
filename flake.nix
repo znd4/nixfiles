@@ -2,6 +2,10 @@
   inputs = {
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    sesh = {
+      url = "github:joshmedeski/sesh";
+      flake = false;
+    };
 
     darwin.url = "github:LnL7/nix-darwin";
     darwin.inputs.nixpkgs.follows = "nixpkgs";
