@@ -161,6 +161,7 @@
   programs.k9s.enable = true;
 
   programs.tmux = {
+    disableConfirmationPrompt = true;
     enable = true;
     keyMode = "vi";
     mouse = true;
