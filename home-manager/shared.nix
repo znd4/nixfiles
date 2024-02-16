@@ -157,6 +157,7 @@
   programs.tmux = {
     enable = true;
     plugins = with pkgs.tmuxPlugins; [
+      battery
       catppuccin
       pain-control
       sensible
