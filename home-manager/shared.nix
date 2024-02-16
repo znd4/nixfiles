@@ -101,6 +101,11 @@
     ruff
     rustc
     skim
+    (buildGoModule {
+      src = "${inputs.sesh}";
+      name = "sesh";
+    })
+
     stow
     stylua
     terragrunt
