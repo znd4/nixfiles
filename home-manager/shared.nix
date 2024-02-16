@@ -163,12 +163,37 @@
   programs.tmux = {
     disableConfirmationPrompt = true;
     enable = true;
+    historyLimit = 10000;
     keyMode = "vi";
     mouse = true;
     shell = "${pkgs.fish}/bin/fish";
     terminal = "screen-256color";
     tmuxinator.enable = true;
     tmuxp.enable = true;
+    extraConfig = ''
+      # vi mode
+      bind P paste-buffer
+      bind-key -T copy-mode-vi v send-keys -X begin-selection
+      unbind -T copy-mode-vi Enter
+      bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel 'cb copy'
+      bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'cb copy'
+      bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel 'cb copy'
+
+      unbind r
+      bind r source-file ~/.config/tmux/tmux.conf \; display "Reloaded ~/.tmux.conf"
+
+      # Turn the mouse on, but without copy mode dragging
+      unbind -n MouseDrag1Pane
+      unbind -Tcopy-mode MouseDrag1Pane
+
+      # allow passthrough (e.g. for iterm image protocol)
+      set-option -g allow-passthrough on
+    '';
+
+    extraConfigBeforePlugins = ''
+      set -g @sessionx-bind 'o'
+      set -g @thumbs-command 'echo -n {} | cb copy && tmux display-message "Copied to clipboard"'
+    '';
 
     plugins = with pkgs.tmuxPlugins; [
       battery
