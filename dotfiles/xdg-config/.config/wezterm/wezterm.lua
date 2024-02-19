@@ -1,9 +1,25 @@
 local wezterm = require("wezterm")
 
+local function isMacOS()
+  local f, err = io.popen("uname -s", "r")
+  if f then
+    local uname = f:read("*l")
+    f:close()
+    return uname == "Darwin"
+  else
+    -- Handle the case where `uname` is not available (e.g., on Windows)
+    -- `err` can be logged or used for further error handling
+    return false
+  end
+end
+
 wezterm.on("gui-startup", function(cmd)
   local tab, pane, window = wezterm.mux.spawn_window(cmd or {})
   local gui_window = window:gui_window()
-  gui_window:perform_action(wezterm.action.ToggleFullScreen, pane)
+  -- don't fullscreen on OSX / Darwin
+  if not isMacOS() then
+    gui_window:perform_action(wezterm.action.ToggleFullScreen, pane)
+  end
 end)
 
 local function which(cmd)
