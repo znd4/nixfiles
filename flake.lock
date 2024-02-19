@@ -164,7 +164,7 @@
         "kmonad": "kmonad",
         "nixpkgs": "nixpkgs_2",
         "sesh": "sesh",
-        "tmux-sessionx": "tmux-sessionx"
+        "sessionx": "sessionx"
       }
     },
     "sesh": {
@@ -183,7 +183,7 @@
         "type": "github"
       }
     },
-    "tmux-sessionx": {
+    "sessionx": {
       "inputs": {
         "flake-parts": "flake-parts",
         "nixpkgs": "nixpkgs_3"
