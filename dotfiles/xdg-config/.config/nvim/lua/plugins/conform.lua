@@ -7,15 +7,16 @@ return {
   },
   config = {
     formatters_by_ft = {
-      python = { "ruff_format" },
       fish = { "fish_indent" },
-      lua = { "stylua" },
-      just = { "just" },
       go = { "gofumpt" },
-      yaml = { prettier },
+      javascript = { prettier },
       json = { prettier },
       jsonnet = { "jsonnetfmt" },
-      javascript = { prettier },
+      just = { "just" },
+      lua = { "stylua" },
+      markdown = { prettier },
+      python = { "ruff_format" },
+      yaml = { prettier },
       -- we've got marksman now
       -- markdown = { prettier },
     },
