@@ -123,6 +123,7 @@
       terragrunt
       thefuck
       unzip
+      vale
       wget
       xh
       zig
