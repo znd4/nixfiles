@@ -68,62 +68,67 @@
   };
 
   # Add stuff for your user as you see fit:
-  home.packages = with pkgs; [
-    # kmonad
-    inputs.sessionx.packages.${system}.default
-    asdf
-    awscli2
-    awsume
-    bat
-    broot
-    cargo
-    clipboard-jh
-    delta
-    fd
-    gcc
-    gh
-    git
-    gnumake
-    go
-    htop
-    just
-    kubectl
-    lazygit
-    lua-language-server
-    neovim
-    neovim-remote
-    nixfmt
-    nodejs
-    opam
-    podman-compose
-    pre-commit
-    python-launcher
-    ripgrep
-    ruff
-    rustc
-    skim
-    (buildGoModule {
-      src = "${inputs.sesh}";
-      name = "sesh";
-      vendorHash = "sha256-zt1/gE4bVj+3yr9n0kT2FMYMEmiooy3k1lQ77rN6sTk=";
-    })
-
-    stow
-    stylua
-    terragrunt
-    thefuck
-    unzip
-    wget
-    xh
-    zig
-    zoxide
-    zsh
-    (python3.withPackages (ps: with ps; [ pre-commit ]))
-    (buildEnv {
-      name = "myScripts";
-      paths = [ "${inputs.dotfiles}/scripts/.local" ];
-    })
-  ];
+  home.packages = with pkgs;
+    let
+      sessionx = inputs.sessionx.packages.${system}.default;
+      sesh = (buildGoModule {
+        src = "${inputs.sesh}";
+        name = "sesh";
+        vendorHash = "sha256-zt1/gE4bVj+3yr9n0kT2FMYMEmiooy3k1lQ77rN6sTk=";
+      });
+      personal_python = (python3.withPackages (ps: with ps; [ pre-commit ]));
+      personal_scripts = (buildEnv {
+        name = "myScripts";
+        paths = [ "${inputs.dotfiles}/scripts/.local" ];
+      });
+    in [
+      # kmonad
+      asdf
+      awscli2
+      awsume
+      bat
+      broot
+      cargo
+      clipboard-jh
+      delta
+      fd
+      gcc
+      gh
+      git
+      gnumake
+      go
+      htop
+      just
+      kubectl
+      lazygit
+      lua-language-server
+      neovim
+      neovim-remote
+      nixfmt
+      nodejs
+      opam
+      personal_python
+      personal_scripts
+      podman-compose
+      pre-commit
+      python-launcher
+      ripgrep
+      ruff
+      rustc
+      sesh
+      sessionx
+      skim
+      stow
+      stylua
+      terragrunt
+      thefuck
+      unzip
+      wget
+      xh
+      zig
+      zoxide
+      zsh
+    ];
 
   programs.skim.enable = true;
   programs.zsh.enable = true;
