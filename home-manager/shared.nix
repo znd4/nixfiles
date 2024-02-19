@@ -70,6 +70,7 @@
   # Add stuff for your user as you see fit:
   home.packages = with pkgs; [
     # kmonad
+    inputs.sessionx.packages.${system}.default
     asdf
     awscli2
     awsume
@@ -171,6 +172,16 @@
     tmuxinator.enable = true;
     tmuxp.enable = true;
     extraConfig = ''
+      bind-key "T" run-shell "sesh connect $(
+        sesh list -tz | fzf-tmux -p 55%,60% \
+        		--no-sort --border-label ' sesh ' --prompt '⚡  ' \
+        		--header '  ^a all ^t tmux ^x zoxide ^f find' \
+        		--bind 'tab:down,btab:up' \
+        		--bind 'ctrl-a:change-prompt(⚡  )+reload(sesh list)' \
+        		--bind 'ctrl-t:change-prompt(🪟  )+reload(sesh list -t)' \
+        		--bind 'ctrl-x:change-prompt(📁  )+reload(sesh list -z)' \
+        		--bind 'ctrl-f:change-prompt(🔎  )+reload(fd -H -d 2 -t d -E .Trash . ~)'
+      )"
       # vi mode
       bind P paste-buffer
       bind-key -T copy-mode-vi v send-keys -X begin-selection
@@ -188,7 +199,6 @@
 
       # allow passthrough (e.g. for iterm image protocol)
       set-option -g allow-passthrough on
-
     '';
 
     plugins = with pkgs.tmuxPlugins; [
@@ -202,15 +212,9 @@
         extraConfig = ''
           set -g @thumbs-command 'echo -n {} | cb copy && tmux display-message "Copied to clipboard"'
         '';
-        enable = true;
       }
       {
-        plugin = mkTmuxPlugin {
-          pluginName = "sessionx";
-          version = "latest";
-          src = "${inputs.tmux-sessionx}";
-          # enable = true;
-        };
+        plugin = inputs.sessionx.packages.${system}.default;
         extraConfig = ''
           set -g @sessionx-bind 'o'
         '';

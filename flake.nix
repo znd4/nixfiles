@@ -6,9 +6,9 @@
       url = "github:joshmedeski/sesh";
       flake = false;
     };
-    tmux-sessionx = {
+    sessionx = {
       url = "github:omerxx/tmux-sessionx";
-      flake = false;
+      flake = true;
     };
 
     darwin.url = "github:LnL7/nix-darwin";
