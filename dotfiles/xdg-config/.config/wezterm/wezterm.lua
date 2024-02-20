@@ -75,7 +75,7 @@ local tmux_prog = {
   "--login",
   "--interactive",
   "-c",
-  "SHELL=$(which fish) tmux new -Asdotfiles",
+  "SHELL=$(which fish) tmux new -Asnixfiles",
 }
 config.default_prog = tmux_prog
 
