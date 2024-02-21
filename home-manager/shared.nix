@@ -84,6 +84,7 @@
       });
     in [
       # kmonad
+      age
       asdf
       awscli2
       awsume
