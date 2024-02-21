@@ -66,6 +66,7 @@
     enable = true;
     lfs.enable = true;
   };
+  programs.ssh = { enable = true; };
 
   # Add stuff for your user as you see fit:
   home.packages = with pkgs;
@@ -118,6 +119,7 @@
       sesh
       sessionx
       skim
+      sops
       stow
       stylua
       terragrunt
