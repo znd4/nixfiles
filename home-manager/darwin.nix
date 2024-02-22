@@ -21,6 +21,8 @@
     ./shared.nix
     ./programs/kmonad.nix
   ];
+  home.file.".1password/agent.sock".source = config.lib.file.mkOutOfStoreSymlink
+    "/Users/${username}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
   home.sessionPath = [ "/Users/${username}/homebrew/bin" ];
   home.packages = with pkgs; [ python311Packages.supervisor ];
   home.stateVersion = stateVersion;

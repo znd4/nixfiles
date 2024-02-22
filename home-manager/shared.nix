@@ -1,6 +1,14 @@
 # This is your home-manager configuration file
 # Use this to configure your home environment (it replaces ~/.config/nixpkgs/home.nix)
-{ inputs, username, lib, config, pkgs, system, stateVersion, ... }: {
+{ inputs, username, lib, config, pkgs, system, stateVersion, ... }:
+let
+  keys = {
+    "github.com" =
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK/h+Xryj2IAg8rJEOm/STdq2AMRxUT43eaCy+sKFgP/";
+    "github.vwusa.com" =
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGrW5KfbTc+SEm6fuml324V/BHOFZfmCageDA5xBuxFV";
+  };
+in {
 
   nixpkgs = {
     # You can add overlays here
@@ -30,7 +38,10 @@
     };
   };
 
-  home.sessionVariables = { EDITOR = "nvim"; };
+  home.sessionVariables = {
+    EDITOR = "nvim";
+    SSH_AUTH_SOCK = "${config.home}/.1password/agent.sock";
+  };
   home.username = username;
 
   xdg.configFile = let
@@ -55,18 +66,94 @@
       # "direnv/direnvrc".source = "${dotConfig}/direnv/direnvrc";
       "direnv/direnvrc".text = builtins.readFile "${dotConfig}/direnv/direnvrc";
 
-      "git/" = {
-        recursive = false;
-        source = "${dotConfig}/git/";
-      };
     }
   ];
 
   programs.git = {
     enable = true;
     lfs.enable = true;
+    signing.enableByDefault = true;
+
+    userName = "Zane Dufour";
+    userEmail = "zane@znd4.dev";
+    delta.enable = true;
+    extraConfig = {
+      user.signingKey = keys."github.com";
+      commit.template = pkgs.writeTextFile {
+        name = "commit-template";
+        contents = builtins.readFile
+          "${inputs.dotfiles}/xdg-config/.config/git/stcommitMsg";
+      };
+      commit.gpgSign = true;
+      gpg.format = "ssh";
+      push.autoSetupRemote = true;
+      pull.rebase = false;
+      url = {
+        "ssh://git@git2.company.com".insteadOf = "https://git2.company.com";
+        "ssh://git@git.company.com".insteadOf =
+          "https://git.company.com";
+        "https://github.com".insteadOf = "github:";
+        "ssh://git@github.com".insteadOf = "https://github.com";
+      };
+    };
+    aliases = {
+      a = "add";
+      pl = "pull";
+      c = "commit";
+      cm = "commit";
+      co = "checkout";
+      s = "status";
+      ps = "push";
+      d = "diff";
+      cedit = "config --global --edit";
+      undo-last-commit = "reset HEAD~1";
+      config-edit = "config --global --edit";
+      new-branch = "checkout -b";
+      conflicted = "!nvim +Conflicted";
+      cb = "branch --show-current";
+      root = "!pwd";
+      findall = ''
+        !f() { echo -e "
+        Found in refs:
+        "; git for-each-ref refs/ | grep $1; echo -e "
+        Found in commit messages:
+        "; git log --all --oneline --grep="$1"; echo -e "
+        Found in commit contents:
+        "; git log --all --oneline -S "$1"; }; f'';
+    };
+    includes = [{
+      condition = "gitdir:${config.home}/Work";
+      contents = {
+        user = {
+          name = "Zane Dufour";
+          email = "extern.zane.dufour@vw.com";
+          signingKey = keys."github.vwusa.com";
+        };
+      };
+    }];
   };
-  programs.ssh = { enable = true; };
+  programs.ssh = {
+    enable = true;
+    extraConfig = ''
+      Host *
+        IdentityAgent ${config.home}/.1password/agent.sock
+    '';
+    matchBlocks = let
+      vw_id_rsa = pkgs.writeTextFile {
+        name = "vw_id_rsa";
+        contents = keys."github.vwusa.com";
+      };
+    in {
+      "git2.company.com" = {
+        identitiesOnly = true;
+        identityFile = vw_id_rsa;
+      };
+      "git.company.com" = {
+        identitiesOnly = true;
+        identityFile = vw_id_rsa;
+      };
+    };
+  };
 
   # Add stuff for your user as you see fit:
   home.packages = with pkgs;
