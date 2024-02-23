@@ -127,20 +127,17 @@ in {
   };
   programs.ssh = {
     enable = true;
-    extraConfig = ''
-      Host *
-        IdentityAgent ${config.home.homeDirectory}/.1password/agent.sock
-    '';
     matchBlocks = let
       vw_config = {
         identitiesOnly = true;
         identityFile =
-          "${pkgs.writeText "vw_id_rsa" keys."git.company.com"}";
+          "${pkgs.writeText "vw_id_rsa.pub" keys."git.company.com"}";
       };
     in {
       "github.com" = {
         identitiesOnly = true;
-        identityFile = "${pkgs.writeText "github_id_rsa" keys."github.com"}";
+        identityFile =
+          "${pkgs.writeText "github_id_rsa.pub" keys."github.com"}";
       };
       "git2.company.com" = vw_config;
       "git.company.com" = vw_config;
