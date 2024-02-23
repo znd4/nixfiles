@@ -83,8 +83,10 @@ in {
       pull.rebase = false;
       url = {
         "ssh://git@git2.company.com".insteadOf = "https://git2.company.com";
-        "ssh://git@git.company.com".insteadOf =
-          "https://git.company.com";
+        # "ssh://git@git.company.com".insteadOf =
+        #   "https://git.company.com";
+        "https://git.company.com/".insteadOf =
+          [ "ssh://git@git2.company.com/" "git@git.company.com:" ];
         "https://github.com".insteadOf = "github:";
         "ssh://git@github.com".insteadOf = "https://github.com";
       };
