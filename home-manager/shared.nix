@@ -40,7 +40,7 @@ in {
 
   home.sessionVariables = {
     EDITOR = "nvim";
-    SSH_AUTH_SOCK = "${config.home}/.1password/agent.sock";
+    SSH_AUTH_SOCK = "${config.home.homeDirectory}/.1password/agent.sock";
   };
   home.username = username;
 
@@ -122,7 +122,7 @@ in {
         "; git log --all --oneline -S "$1"; }; f'';
     };
     includes = [{
-      condition = "gitdir:${config.home}/Work";
+      condition = "gitdir:${config.home.homeDirectory}/Work";
       contents = {
         user = {
           name = "Zane Dufour";
@@ -136,7 +136,7 @@ in {
     enable = true;
     extraConfig = ''
       Host *
-        IdentityAgent ${config.home}/.1password/agent.sock
+        IdentityAgent ${config.home.homeDirectory}/.1password/agent.sock
     '';
     matchBlocks = let
       vw_id_rsa = pkgs.writeTextFile {
