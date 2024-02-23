@@ -5,7 +5,7 @@ return {
       show_hidden = true,
     },
   },
-  event = "LazyDone",
+  event = "VeryLazy",
   keys = {
     {
       "-",
