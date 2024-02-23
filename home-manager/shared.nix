@@ -4,8 +4,8 @@
 let
   keys = {
     "github.com" =
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK/h+Xryj2IAg8rJEOm/STdq2AMRxUT43eaCy+sKFgP/";
-    "github.vwusa.com" =
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHkoZGPqvCciloARGk9/rgPdjCFI2JmsYbgboEv98RKc";
+    "git.company.com" =
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGrW5KfbTc+SEm6fuml324V/BHOFZfmCageDA5xBuxFV";
   };
 in {
@@ -38,10 +38,7 @@ in {
     };
   };
 
-  home.sessionVariables = {
-    EDITOR = "nvim";
-    SSH_AUTH_SOCK = "${config.home.homeDirectory}/.1password/agent.sock";
-  };
+  home.sessionVariables = { EDITOR = "nvim"; };
   home.username = username;
 
   xdg.configFile = let
@@ -123,7 +120,7 @@ in {
         user = {
           name = "Zane Dufour";
           email = "extern.zane.dufour@vw.com";
-          signingKey = keys."github.vwusa.com";
+          signingKey = keys."git.company.com";
         };
       };
     }];
@@ -135,25 +132,18 @@ in {
         IdentityAgent ${config.home.homeDirectory}/.1password/agent.sock
     '';
     matchBlocks = let
-      vw_id_rsa = "${config.home.homeDirectory}/.ssh/vw_id_rsa.pub";
-      _ = pkgs.writeTextFile {
-        name = "vw_id_rsa";
-        text = keys."github.vwusa.com";
-        destination = vw_id_rsa;
+      vw_config = {
+        identitiesOnly = true;
+        identityFile =
+          "${pkgs.writeText "vw_id_rsa" keys."git.company.com"}";
       };
     in {
       "github.com" = {
         identitiesOnly = true;
         identityFile = "${pkgs.writeText "github_id_rsa" keys."github.com"}";
       };
-      "git2.company.com" = {
-        identitiesOnly = true;
-        identityFile = vw_id_rsa;
-      };
-      "git.company.com" = {
-        identitiesOnly = true;
-        identityFile = vw_id_rsa;
-      };
+      "git2.company.com" = vw_config;
+      "git.company.com" = vw_config;
     };
   };
 

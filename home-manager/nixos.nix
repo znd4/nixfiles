@@ -1,4 +1,3 @@
-
 { inputs, username, lib, config, pkgs, stateVersion, ... }: {
   # You can import other home-manager modules here
   imports = [
@@ -11,11 +10,10 @@
     # You can also split up your configuration and import pieces of it here:
     ./shared.nix
   ];
-  # TODO: Set your username
   home.homeDirectory = "/home/" + username;
-  home.packages = with pkgs; [
-      appimage-run
-  ];
+  home.sessionVariables.SSH_AUTH_SOCK =
+    "/home/${username}/.1password/agent.sock";
+  home.packages = with pkgs; [ appimage-run ];
   # Nicely reload system units when changing configs
   systemd.user.startServices = "sd-switch";
 }
