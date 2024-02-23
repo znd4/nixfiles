@@ -72,18 +72,14 @@ in {
   programs.git = {
     enable = true;
     lfs.enable = true;
-    signing.enableByDefault = true;
 
     userName = "Zane Dufour";
     userEmail = "zane@znd4.dev";
     delta.enable = true;
     extraConfig = {
       user.signingKey = keys."github.com";
-      commit.template = pkgs.writeTextFile {
-        name = "commit-template";
-        contents = builtins.readFile
-          "${inputs.dotfiles}/xdg-config/.config/git/stcommitMsg";
-      };
+      commit.template = "${pkgs.writeText "commit-template" (builtins.readFile
+        "${inputs.dotfiles}/xdg-config/.config/git/stcommitMsg")}";
       commit.gpgSign = true;
       gpg.format = "ssh";
       push.autoSetupRemote = true;
@@ -139,11 +135,17 @@ in {
         IdentityAgent ${config.home.homeDirectory}/.1password/agent.sock
     '';
     matchBlocks = let
-      vw_id_rsa = pkgs.writeTextFile {
+      vw_id_rsa = "${config.home.homeDirectory}/.ssh/vw_id_rsa.pub";
+      _ = pkgs.writeTextFile {
         name = "vw_id_rsa";
-        contents = keys."github.vwusa.com";
+        text = keys."github.vwusa.com";
+        destination = vw_id_rsa;
       };
     in {
+      "github.com" = {
+        identitiesOnly = true;
+        identityFile = "${pkgs.writeText "github_id_rsa" keys."github.com"}";
+      };
       "git2.company.com" = {
         identitiesOnly = true;
         identityFile = vw_id_rsa;
