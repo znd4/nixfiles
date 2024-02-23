@@ -5,6 +5,7 @@ return {
       show_hidden = true,
     },
   },
+  event = "LazyDone",
   keys = {
     {
       "-",
