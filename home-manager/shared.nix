@@ -76,7 +76,7 @@ in {
     extraConfig = {
       user.signingKey = keys."github.com";
       commit.template = "${pkgs.writeText "commit-template" (builtins.readFile
-        "${inputs.dotfiles}/xdg-config/.config/git/stcommitMsg")}";
+        "${inputs.dotfiles}/xdg-config/.config/git/stCommitMsg")}";
       commit.gpgSign = true;
       gpg.format = "ssh";
       push.autoSetupRemote = true;
