@@ -201,6 +201,7 @@ in {
       sops
       stow
       stylua
+      talosctl
       terragrunt
       thefuck
       unzip
