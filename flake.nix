@@ -31,6 +31,10 @@
   outputs = { self, nixpkgs, home-manager, darwin, ... }@inputs:
 
     {
+      keys = {
+        "github.com" =
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHkoZGPqvCciloARGk9/rgPdjCFI2JmsYbgboEv98RKc github.com key";
+      };
       darwinConfigurations = {
         work = darwin.lib.darwinSystem {
           system = "aarch64-darwin";
@@ -43,6 +47,7 @@
               # home-manager.useUserPackages = true;
               home-manager.users.dufourz = (import ./home-manager/darwin.nix) {
                 inherit inputs;
+                keys = self.keys;
                 username = "dufourz";
                 stateVersion = "23.11";
               };
@@ -66,6 +71,7 @@
         };
         modules = [ ./nixos ./shell ];
       };
+      homeModules = { shared = (import ./home-manager/shared.nix); };
       homeConfigurations = let
         # TODO - define closure that accepts username and system as arguments
       in {
@@ -73,9 +79,9 @@
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = {
             inherit inputs;
-            outputs = self;
             username = "znd4";
             system = "x86_64-linux";
+            keys = self.keys;
             stateVersion = "23.11";
           };
           modules = [ ./home-manager/nixos.nix ];

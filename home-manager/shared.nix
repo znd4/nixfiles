@@ -1,6 +1,6 @@
 # This is your home-manager configuration file
 # Use this to configure your home environment (it replaces ~/.config/nixpkgs/home.nix)
-{ inputs, username, lib, config, pkgs, system, stateVersion, ... }:
+{ inputs, username, lib, config, pkgs, system, stateVersion, keys, ... }:
 let
   shellAliases = {
     nix = "NO_COLOR=1 command nix";
@@ -10,12 +10,6 @@ let
     by = "bat -l yaml";
     k = "kubectl";
     vi = "nvim";
-  };
-  keys = {
-    "github.com" =
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHkoZGPqvCciloARGk9/rgPdjCFI2JmsYbgboEv98RKc";
-    "git.company.com" =
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGrW5KfbTc+SEm6fuml324V/BHOFZfmCageDA5xBuxFV";
   };
 in {
 
@@ -125,33 +119,16 @@ in {
         Found in commit contents:
         "; git log --all --oneline -S "$1"; }; f'';
     };
-    includes = [{
-      condition = "gitdir:${config.home.homeDirectory}/Work";
-      contents = {
-        user = {
-          name = "Zane Dufour";
-          email = "extern.zane.dufour@vw.com";
-          signingKey = keys."git.company.com";
-        };
-      };
-    }];
   };
   programs.ssh = {
+    addKeysToAgent = "confirm";
     enable = true;
-    matchBlocks = let
-      vw_config = {
-        identitiesOnly = true;
-        identityFile =
-          "${pkgs.writeText "vw_id_rsa.pub" keys."git.company.com"}";
-      };
-    in {
+    matchBlocks = {
       "github.com" = {
         identitiesOnly = true;
         identityFile =
           "${pkgs.writeText "github_id_rsa.pub" keys."github.com"}";
       };
-      "git2.company.com" = vw_config;
-      "git.company.com" = vw_config;
     };
   };
 
