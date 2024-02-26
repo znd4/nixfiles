@@ -95,6 +95,7 @@ return {
     require("ts_context_commentstring").setup({})
   end,
   dependencies = {
+    "nushell/tree-sitter-nu",
     "nvim-treesitter/nvim-treesitter-textobjects",
     "JoosepAlviste/nvim-ts-context-commentstring",
   },
