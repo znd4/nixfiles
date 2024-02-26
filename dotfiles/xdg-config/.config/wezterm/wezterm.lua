@@ -75,7 +75,7 @@ local tmux_prog = {
   "--login",
   "--interactive",
   "-c",
-  "SHELL=$(which fish) tmux new -Asnixfiles",
+  "SHELL=$(which fish) sesh connect $(sesh list | sk)",
 }
 config.default_prog = tmux_prog
 
