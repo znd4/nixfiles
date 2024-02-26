@@ -2,6 +2,15 @@
 # Use this to configure your home environment (it replaces ~/.config/nixpkgs/home.nix)
 { inputs, username, lib, config, pkgs, system, stateVersion, ... }:
 let
+  shellAliases = {
+    nix = "NO_COLOR=1 command nix";
+    bathelp = "bat -l help";
+    bh = "bat -l help";
+    g = "git";
+    by = "bat -l yaml";
+    k = "kubectl";
+    vi = "nvim";
+  };
   keys = {
     "github.com" =
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHkoZGPqvCciloARGk9/rgPdjCFI2JmsYbgboEv98RKc";
@@ -76,7 +85,7 @@ in {
     extraConfig = {
       user.signingKey = keys."github.com";
       commit.template = "${pkgs.writeText "commit-template" (builtins.readFile
-        "${inputs.dotfiles}/xdg-config/.config/git/stcommitMsg")}";
+        "${inputs.dotfiles}/xdg-config/.config/git/stCommitMsg")}";
       commit.gpgSign = true;
       gpg.format = "ssh";
       push.autoSetupRemote = true;
@@ -201,6 +210,7 @@ in {
       sops
       stow
       stylua
+      talosctl
       terragrunt
       thefuck
       unzip
@@ -220,6 +230,10 @@ in {
     tmux.enableShellIntegration = true;
   };
   programs.home-manager.enable = true;
+  programs.nushell = {
+    shellAliases = shellAliases;
+    enable = true;
+  };
   programs.fish = {
     enable = true;
     # plugins = [
@@ -229,15 +243,7 @@ in {
     # }
     # ];
     shellAbbrs = { ky = "kubectl get -o yaml"; };
-    shellAliases = {
-      nix = "NO_COLOR=1 command nix";
-      bathelp = "bat -l help";
-      bh = "bat -l help";
-      g = "git";
-      by = "bat -l yaml";
-      k = "kubectl";
-      vi = "nvim";
-    };
+    shellAliases = shellAliases;
     interactiveShellInit = ''
       fish_vi_key_bindings
     '';
