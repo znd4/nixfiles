@@ -39,7 +39,7 @@
         work = darwin.lib.darwinSystem {
           system = "aarch64-darwin";
           modules = [
-            ./darwin
+            ./darwin/default.nix
             # Inline set home-manager to invocation of (import ./home-manager/darwin.nix)
             home-manager.darwinModules.home-manager
             {
@@ -56,7 +56,7 @@
           specialArgs = {
             inherit inputs;
             username = "dufourz";
-            stateVersion = "23.11";
+            stateVersion = "4";
           };
         };
       };
