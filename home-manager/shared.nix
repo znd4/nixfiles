@@ -163,6 +163,7 @@ in {
       git
       gnumake
       go
+      google-cloud-sdk
       htop
       just
       kubectl
