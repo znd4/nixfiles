@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1707707289,
-        "narHash": "sha256-YuDt/eSTXMEHv8jS8BEZJgqCcG8Tr3cyqaZjJFXZHsw=",
+        "lastModified": 1709001452,
+        "narHash": "sha256-FnZ54wkil54hKvr1irdKic1TE27lHQI9dKQmOJRrtlU=",
         "owner": "LnL7",
         "repo": "nix-darwin",
-        "rev": "44f50a5ecaab72a61d5fd8e5c5717bc4bf9c25dd",
+        "rev": "6c06334f0843c7300d1678726bb607ce526f6b36",
         "type": "github"
       },
       "original": {
@@ -24,7 +24,7 @@
       "flake": false,
       "locked": {
         "lastModified": 1,
-        "narHash": "sha256-GTjko/fwQ0Cz70HcGx8Q4vTbl02u4pSe6S2DBOG45ow=",
+        "narHash": "sha256-A8rIgG6JqzXc9Yfz5E9+2yjU/MahFNXdkjG90ENVU2k=",
         "path": "./dotfiles",
         "type": "path"
       },
@@ -57,11 +57,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1708031129,
-        "narHash": "sha256-EH20hJfNnc1/ODdDVat9B7aKm0B95L3YtkIRwKLvQG8=",
+        "lastModified": 1708988456,
+        "narHash": "sha256-RCz7Xe64tN2zgWk+MVHkzg224znwqknJ1RnB7rVqUWw=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "3d6791b3897b526c82920a2ab5f61d71985b3cf8",
+        "rev": "1d085ea4444d26aa52297758b333b449b2aa6fca",
         "type": "github"
       },
       "original": {
@@ -128,11 +128,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1708001613,
-        "narHash": "sha256-woOmAXW05XnqlLn7dKzCkRAEOSOdA/Z2ndVvKcjid94=",
+        "lastModified": 1709003655,
+        "narHash": "sha256-pmrAvOIwgmol5BVJ8Gr3OIVbJySzULgsdBpHVjNJqv0=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "085589047343aad800c4d305cf7b98e8a3d51ae2",
+        "rev": "860a2c5921f100906d8c711d29a5f62bc283b588",
         "type": "github"
       },
       "original": {
@@ -170,11 +170,11 @@
     "sesh": {
       "flake": false,
       "locked": {
-        "lastModified": 1707334455,
-        "narHash": "sha256-8gn4YdKHurPbPuJ+AeCB7x9IDxTtHGpYUZCKlSdujcs=",
+        "lastModified": 1709057161,
+        "narHash": "sha256-zcX5W/qUGefNj4B2tLrhj8fE9Y/BH/TL/UtN0B1XinU=",
         "owner": "joshmedeski",
         "repo": "sesh",
-        "rev": "be2badd29206f66803b76b62b23f6f5e05befe08",
+        "rev": "fc2671da5fe5316b115d4963ab155c58b69c9cac",
         "type": "github"
       },
       "original": {
