@@ -18,7 +18,10 @@
     brewPrefix = "/Users/${username}/homebrew/bin";
     enable = true;
     casks = [ "1password-cli" ];
-    brews = [{ name = "theseal/ssh-askpass/ssh-askpass"; }];
+    brews = [{
+      name = "theseal/ssh-askpass/ssh-askpass";
+      start_service = true;
+    }];
   };
   # environment.postBuild 
 }
