@@ -4,7 +4,9 @@
     home = "/Users/${username}";
     isHidden = false;
   };
-  system.stateVersion = 4;
+  # TODO: add fonts.fonts
+  # fonts.fonts = with pkgs; [];
+  system.stateVersion = stateVersion;
   nix.settings.experimental-features = "nix-command flakes";
 
   services.nix-daemon.enable = true;

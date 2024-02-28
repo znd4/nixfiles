@@ -35,28 +35,46 @@
         "github.com" =
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHkoZGPqvCciloARGk9/rgPdjCFI2JmsYbgboEv98RKc github.com key";
       };
+      darwinModules = [
+        ./darwin/default.nix
+        # Inline set home-manager to invocation of (import ./home-manager/darwin.nix)
+        home-manager.darwinModules.home-manager
+        ({inputs, keys, username, hmStateVersion, ...}: {
+# home-manager.useGlobalPkgs = true;
+# home-manager.useUserPackages = true;
+         home-manager.users.dufourz = (import ./home-manager/darwin.nix) {
+         inherit inputs keys username;
+         stateVersion = hmStateVersion;
+         };
+         })
+      ];
+      # darwinModules.default =
+      #   { pkgs, username, inputs, keys, stateVersion, hmStateVersion, ... }: {
+      #     imports = [
+      #       ((import ./darwin/default.nix) {
+      #         inherit pkgs username inputs keys stateVersion;
+      #       })
+      #       home-manager.darwinModules.home-manager
+      #       {
+      #         home-manager.users.${username} =
+      #           (import ./home-manager/darwin.nix) {
+      #             inherit inputs keys username;
+      #             stateVersion = hmStateVersion;
+      #           };
+      #       }
+      #     ];
+      #   };
+
       darwinConfigurations = {
         work = darwin.lib.darwinSystem {
           system = "aarch64-darwin";
-          modules = [
-            ./darwin/default.nix
-            # Inline set home-manager to invocation of (import ./home-manager/darwin.nix)
-            home-manager.darwinModules.home-manager
-            {
-              # home-manager.useGlobalPkgs = true;
-              # home-manager.useUserPackages = true;
-              home-manager.users.dufourz = (import ./home-manager/darwin.nix) {
-                inherit inputs;
-                keys = self.keys;
-                username = "dufourz";
-                stateVersion = "23.11";
-              };
-            }
-          ];
+          modules = self.darwinModules;
           specialArgs = {
             inherit inputs;
+            hmStateVersion = "23.11";
+            keys = self.keys;
             username = "dufourz";
-            stateVersion = "4";
+            stateVersion = 4;
           };
         };
       };
