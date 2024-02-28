@@ -20,8 +20,6 @@ in {
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  boot.initrd.luks.devices."luks-ccee3b9d-e376-4681-9cff-ac1bbcfb6840".device =
-    "/dev/disk/by-uuid/ccee3b9d-e376-4681-9cff-ac1bbcfb6840";
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
@@ -51,11 +49,16 @@ in {
   };
 
   # Enable the X11 windowing system.
-  services.xserver.enable = true;
-
-  # Enable the KDE Plasma Desktop Environment.
-  services.xserver.displayManager.sddm.enable = true;
-  services.xserver.desktopManager.plasma5.enable = true;
+  services.xserver = {
+    enable = true;
+    xkb = {
+      layout = "us";
+      variant = "";
+      options = "compose:ralt";
+    };
+    displayManager.sddm.enable = true;
+    desktopManager.plasma5.enable = true;
+  };
 
   virtualisation.podman = {
 
@@ -69,11 +72,6 @@ in {
   };
 
   # Configure keymap in X11
-  services.xserver.xkb = {
-    layout = "us";
-    variant = "";
-    options = "compose:ralt";
-  };
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
