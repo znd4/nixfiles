@@ -48,23 +48,6 @@
          };
          })
       ];
-      # darwinModules.default =
-      #   { pkgs, username, inputs, keys, stateVersion, hmStateVersion, ... }: {
-      #     imports = [
-      #       ((import ./darwin/default.nix) {
-      #         inherit pkgs username inputs keys stateVersion;
-      #       })
-      #       home-manager.darwinModules.home-manager
-      #       {
-      #         home-manager.users.${username} =
-      #           (import ./home-manager/darwin.nix) {
-      #             inherit inputs keys username;
-      #             stateVersion = hmStateVersion;
-      #           };
-      #       }
-      #     ];
-      #   };
-
       darwinConfigurations = {
         work = darwin.lib.darwinSystem {
           system = "aarch64-darwin";

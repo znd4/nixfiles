@@ -78,6 +78,7 @@ in {
     delta.enable = true;
     extraConfig = {
       user.signingKey = keys."github.com";
+      init.defaultBranch = "main";
       commit.template = "${pkgs.writeText "commit-template" (builtins.readFile
         "${inputs.dotfiles}/xdg-config/.config/git/stCommitMsg")}";
       commit.gpgSign = true;
