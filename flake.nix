@@ -48,17 +48,26 @@
          };
          })
       ];
-      darwinConfigurations = {
-        work = darwin.lib.darwinSystem {
-          system = "aarch64-darwin";
-          modules = self.darwinModules;
-          specialArgs = {
-            inherit inputs;
-            hmStateVersion = "23.11";
-            keys = self.keys;
-            username = "dufourz";
-            stateVersion = 4;
-          };
+      darwinConfigFactory = { system, modules ? [], specialArgs, ... }:
+        assert specialArgs ? inputs;
+        assert specialArgs ? keys;
+        assert specialArgs ? username;
+        assert specialArgs ? hmStateVersion;
+        darwin.lib.darwinSystem {
+          system = system;
+          modules = modules ++ self.darwinModules;
+          specialArgs = specialArgs;
+        };
+      darwinConfigurations.work = self.darwinConfigFactory {
+        inherit inputs;
+        system = "aarch64-darwin";
+        modules = [];
+        specialArgs = {
+          inherit inputs;
+          hmStateVersion = "23.11";
+          keys = self.keys;
+          username = "dufourz";
+          stateVersion = 4;
         };
       };
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
