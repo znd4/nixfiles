@@ -75,8 +75,19 @@ in {
 
     userName = "Zane Dufour";
     userEmail = "zane@znd4.dev";
-    delta.enable = true;
+    delta = {
+      enable = true;
+      options = {
+        pager = "less";
+
+      };
+    };
     extraConfig = {
+      pager = {
+        diff = "delta";
+        log = "delta";
+        reflog = "delta";
+      };
       user.signingKey = keys."github.com";
       init.defaultBranch = "main";
       commit.template = "${pkgs.writeText "commit-template" (builtins.readFile
