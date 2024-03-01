@@ -117,7 +117,6 @@ require("lazy").setup({
   --     },
   -- },
 
-  { "tpope/vim-fugitive", dependencies = { "tpope/vim-rhubarb" } },
   "wsdjeg/vim-fetch",
   {
     "kdheepak/lazygit.nvim",

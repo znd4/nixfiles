@@ -32,10 +32,6 @@ vimp.nnoremap("<leader>xl", factory(vim.cmd.TroubleToggle, "loclist"))
 vimp.nnoremap("<leader>nf", vim.cmd.NvimTreeFocus)
 vimp.nnoremap("<leader>nt", vim.cmd.NvimTreeToggle)
 
-vimp.nnoremap("<leader>gp", factory(vim.cmd.Git, "pull"))
-vimp.nnoremap("<leader>gP", factory(vim.cmd.Git, "push"))
-vimp.nnoremap("<leader>gc", factory(vim.cmd.Git, "commit"))
-
 vim.on_key(function(char)
   if vim.fn.mode() == "n" then
     local new_hlsearch = vim.tbl_contains({ "<CR>", "n", "N", "*", "#", "?", "/" }, vim.fn.keytrans(char))
