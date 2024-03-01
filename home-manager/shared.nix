@@ -75,9 +75,21 @@ in {
 
     userName = "Zane Dufour";
     userEmail = "zane@znd4.dev";
-    delta.enable = true;
+    delta = {
+      enable = true;
+      options = {
+        pager = "less";
+
+      };
+    };
     extraConfig = {
+      pager = {
+        diff = "delta";
+        log = "delta";
+        reflog = "delta";
+      };
       user.signingKey = keys."github.com";
+      init.defaultBranch = "main";
       commit.template = "${pkgs.writeText "commit-template" (builtins.readFile
         "${inputs.dotfiles}/xdg-config/.config/git/stCommitMsg")}";
       commit.gpgSign = true;
@@ -85,13 +97,11 @@ in {
       push.autoSetupRemote = true;
       pull.rebase = false;
       url = {
-        "ssh://git@git2.company.com".insteadOf = "https://git2.company.com";
-        # "ssh://git@git.company.com".insteadOf =
-        #   "https://git.company.com";
-        "https://git.company.com/".insteadOf =
-          [ "ssh://git@git2.company.com/" "git@git.company.com:" ];
-        "https://github.com".insteadOf = "github:";
-        "ssh://git@github.com".insteadOf = "https://github.com";
+        "ssh://git@git2.company.com/".insteadOf = "https://git2.company.com/";
+        "ssh://git@git.company.com/".insteadOf =
+          "https://git.company.com/";
+        "ssh://git@github.com/".insteadOf =
+          [ "https://github.com/" "github:" "gh:" ];
       };
     };
     aliases = {

@@ -42,29 +42,39 @@
         "github.com" =
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHkoZGPqvCciloARGk9/rgPdjCFI2JmsYbgboEv98RKc github.com key";
       };
-      darwinConfigurations = {
-        work = darwin.lib.darwinSystem {
-          system = "aarch64-darwin";
-          modules = [
-            ./darwin/default.nix
-            # Inline set home-manager to invocation of (import ./home-manager/darwin.nix)
-            home-manager.darwinModules.home-manager
-            {
-              # home-manager.useGlobalPkgs = true;
-              # home-manager.useUserPackages = true;
-              home-manager.users.dufourz = (import ./home-manager/darwin.nix) {
-                inherit inputs;
-                keys = self.keys;
-                username = "dufourz";
-                stateVersion = "23.11";
-              };
-            }
-          ];
-          specialArgs = {
-            inherit inputs;
-            username = "dufourz";
-            stateVersion = "4";
-          };
+      darwinModules = [
+        ./darwin/default.nix
+        # Inline set home-manager to invocation of (import ./home-manager/darwin.nix)
+        home-manager.darwinModules.home-manager
+        ({inputs, keys, username, hmStateVersion, ...}: {
+# home-manager.useGlobalPkgs = true;
+# home-manager.useUserPackages = true;
+         home-manager.users.dufourz = (import ./home-manager/darwin.nix) {
+         inherit inputs keys username;
+         stateVersion = hmStateVersion;
+         };
+         })
+      ];
+      darwinConfigFactory = { system, modules ? [], specialArgs, ... }:
+        assert specialArgs ? inputs;
+        assert specialArgs ? keys;
+        assert specialArgs ? username;
+        assert specialArgs ? hmStateVersion;
+        darwin.lib.darwinSystem {
+          system = system;
+          modules = modules ++ self.darwinModules;
+          specialArgs = specialArgs;
+        };
+      darwinConfigurations.work = self.darwinConfigFactory {
+        inherit inputs;
+        system = "aarch64-darwin";
+        modules = [];
+        specialArgs = {
+          inherit inputs;
+          hmStateVersion = "23.11";
+          keys = self.keys;
+          username = "dufourz";
+          stateVersion = 4;
         };
       };
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
