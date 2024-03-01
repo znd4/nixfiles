@@ -3,7 +3,7 @@ return {
   dependencies = { "nvim-tree/nvim-web-devicons" },
   opts = {
     sections = {
-      lualine_a = {
+      lualine_c = {
         {
           "filename",
           path = 1, -- relative path
