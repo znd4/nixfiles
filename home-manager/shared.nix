@@ -271,6 +271,9 @@ in {
       bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'cb copy'
       bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel 'cb copy'
 
+      bind j run-shell 'popuptmux'
+
+
       unbind r
       bind r source-file ~/.config/tmux/tmux.conf \; display "Reloaded ~/.tmux.conf"
 
@@ -286,7 +289,7 @@ in {
           detach-client
       } {
           set -gF '@last_session_name' '#S'
-          popup -d '#{pane_current_path}' -xC -yC -w70% -h70% -KER 'tmux new -A -s floating'
+          popup -d '#{pane_current_path}' -xC -yC -w70% -h70% -ER 'tmux new -A -s floating'
       }
 
       bind ! if-shell -F '#{!=:#{session_name},floating}' {
