@@ -74,10 +74,11 @@ local config = function()
     },
   })
   telescope.load_extension("hop")
+  telescope.load_extension("file_browser")
 end
 return {
   "nvim-telescope/telescope.nvim",
-  dependencies = { "nvim-lua/plenary.nvim" },
+  dependencies = { "nvim-lua/plenary.nvim", "nvim-telescope/telescope-file-browser.nvim" },
   init = function()
     local vimp = require("vimp")
     local builtin = require("telescope.builtin")
@@ -95,6 +96,10 @@ return {
       leader .. "ff",
       delayed("telescope.builtin", "find_files"),
       desc = "Telescope find files",
+    },
+    {
+      leader .. "fs",
+      delayed(vim.cmd.Telescope, "file_browser"),
     },
     {
       leader .. "fg",
