@@ -1,5 +1,16 @@
-{ inputs, username, stateVersion, keys }:
-{ lib, config, pkgs, ... }: {
+{
+  inputs,
+  username,
+  stateVersion,
+  keys,
+}:
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
+{
   # You can import other home-manager modules here
   _module.args = {
     inherit inputs;
@@ -20,8 +31,7 @@
     ./shared.nix
     ./programs/kmonad.nix
   ];
-  home.sessionVariables.SSH_AUTH_SOCK =
-    "/Users/${username}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+  home.sessionVariables.SSH_AUTH_SOCK = "/Users/${username}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
   home.sessionPath = [ "/Users/${username}/homebrew/bin" ];
   home.packages = with pkgs; [ python311Packages.supervisor ];
   home.stateVersion = stateVersion;
@@ -45,5 +55,4 @@
   #   "git2.company.com" = vw_config;
   #   "git.company.com" = vw_config;
   # };
-
 }
