@@ -6,7 +6,6 @@
   lib,
   config,
   pkgs,
-  system,
   stateVersion,
   keys,
   ...
@@ -24,9 +23,9 @@ let
 in
 {
   imports = [     (
-      if lib.strings.hasSuffix "darwin" system then
+      if lib.strings.hasSuffix "darwin" pkgs.system then
         ./darwin
-      else if lib.strings.hasSuffix "linux" system then
+      else if lib.strings.hasSuffix "linux" pkgs.system then
         ./nixos
       else
         throw "Unsupported system"

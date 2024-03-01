@@ -3,8 +3,6 @@
   username,
   stateVersion,
   keys,
-  lib,
-  config,
   pkgs,
   ...}:
 {
@@ -19,10 +17,8 @@
 _module.args = {
   inherit inputs;
   inherit keys;
-  inherit stateVersion;
   inherit username;
 # inherit pkgs;
-  system = "aarch64-darwin";
 };
 home.sessionVariables.SSH_AUTH_SOCK = "/Users/${username}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
 home.sessionPath = [ "/Users/${username}/homebrew/bin" ];
