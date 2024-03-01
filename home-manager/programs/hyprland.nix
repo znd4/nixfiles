@@ -28,7 +28,7 @@ in
     package = hyprland;
     systemd.enable = true;
     xwayland.enable = true;
-    plugins = [ inputs.bemenu.packages.${pkgs.system}.default ];
+    plugins = [  ];
     settings = {
 
       monitor = [

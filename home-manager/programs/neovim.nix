@@ -34,15 +34,15 @@ let
 in
 {
   home.packages = with pkgs; [
-    ripgrep
     fd
     lua-language-server
-    rust-analyzer-unwrapped
+    neovim-remote
+    ripgrep
     ruff
+    rust-analyzer-unwrapped
   ];
   programs.neovim = {
     enable = true;
-    package = pkgs.neovim-nightly;
     vimAlias = true;
     withNodeJs = true;
     withPython3 = true;

@@ -23,7 +23,16 @@ let
   };
 in
 {
-  imports = [ ./programs/tmux.nix ];
+  imports = [     (
+      if lib.strings.hasSuffix "darwin" system then
+        ./darwin
+      else if lib.strings.hasSuffix "linux" system then
+        ./nixos
+      else
+        throw "Unsupported system"
+    )
+    ./programs
+ ];
 
   nixpkgs = {
     # You can add overlays here
@@ -208,8 +217,6 @@ in
       kubectl
       lazygit
       lua-language-server
-      neovim
-      neovim-remote
       nixfmt
       nodejs
       opam
@@ -221,6 +228,7 @@ in
       ripgrep
       ruff
       rustc
+      sd
       sesh
       sessionx
       skim

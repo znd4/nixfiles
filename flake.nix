@@ -49,7 +49,7 @@
         "github.com" = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHkoZGPqvCciloARGk9/rgPdjCFI2JmsYbgboEv98RKc github.com key";
       };
       darwinModules = [
-        ./darwin/default.nix
+        ./darwin
         # Inline set home-manager to invocation of (import ./home-manager/darwin.nix)
         home-manager.darwinModules.home-manager
         (
@@ -63,9 +63,13 @@
           {
             # home-manager.useGlobalPkgs = true;
             # home-manager.useUserPackages = true;
-            home-manager.users.dufourz = (import ./home-manager/darwin.nix) {
-              inherit inputs keys username;
-              stateVersion = hmStateVersion;
+            home-manager.users.dufourz = {
+              imports = [
+                ./home-manager/default.nix
+              ];
+              _modules.args = {
+                inherit inputs keys username hmStateVersion;
+              };
             };
           }
         )
@@ -127,7 +131,7 @@
             keys = self.keys;
             stateVersion = "23.11";
           };
-          modules = [ ./home-manager/nixos.nix ];
+          modules = [ ./home-manager/default.nix ];
         };
       };
     };
