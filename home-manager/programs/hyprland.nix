@@ -11,7 +11,8 @@ let
   playerctl = "${pkgs.playerctl}/bin/playerctl";
   brightnessctl = "${pkgs.brightnessctl}/bin/brightnessctl";
   pactl = "${pkgs.pulseaudio}/bin/pactl";
-in {
+in
+{
   # xdg.desktopEntries."org.gnome.Settings" = {
   #   name = "Settings";
   #   comment = "Gnome Control Center";
@@ -69,72 +70,90 @@ in {
         workspace_swipe_numbered = true;
       };
 
-      windowrule = let f = regex: "float, ^(${regex})$";
-      in [
-        (f "org.gnome.Calculator")
-        (f "org.gnome.Nautilus")
-        (f "pavucontrol")
-        (f "nm-connection-editor")
-        (f "blueberry.py")
-        (f "org.gnome.Settings")
-        (f "org.gnome.design.Palette")
-        (f "Color Picker")
-        (f "xdg-desktop-portal")
-        (f "xdg-desktop-portal-gnome")
-        (f "transmission-gtk")
-        # "workspace 7, title:Spotify"
-      ];
+      windowrule =
+        let
+          f = regex: "float, ^(${regex})$";
+        in
+        [
+          (f "org.gnome.Calculator")
+          (f "org.gnome.Nautilus")
+          (f "pavucontrol")
+          (f "nm-connection-editor")
+          (f "blueberry.py")
+          (f "org.gnome.Settings")
+          (f "org.gnome.design.Palette")
+          (f "Color Picker")
+          (f "xdg-desktop-portal")
+          (f "xdg-desktop-portal-gnome")
+          (f "transmission-gtk")
+          # "workspace 7, title:Spotify"
+        ];
 
-      bind = let
-        binding = mod: cmd: key: arg: "${mod}, ${key}, ${cmd}, ${arg}";
-        mvfocus = binding "SUPER" "movefocus";
-        ws = binding "SUPER" "workspace";
-        resizeactive = binding "SUPER CTRL" "resizeactive";
-        mvactive = binding "SUPER ALT" "moveactive";
-        mvtows = binding "SUPER SHIFT" "movetoworkspace";
-        e = "exec, ags -b hypr";
-        arr = [ 1 2 3 4 5 6 7 8 9 ];
-      in [
-        "CTRL SHIFT, R,  ${e} quit; ags -b hypr"
-        "SUPER, R,       ${e} -t applauncher"
-        "SUPER, Tab,     ${e} -t overview"
-        ",XF86PowerOff,  ${e} -r 'powermenu.shutdown()'"
-        ",XF86Launch4,   ${e} -r 'recorder.start()'"
-        ",Print,         ${e} -r 'recorder.screenshot()'"
-        "SHIFT,Print,    ${e} -r 'recorder.screenshot(true)'"
-        "SUPER, Return, exec, xterm" # xterm is a symlink, not actually xterm
-        "SUPER, W, exec, firefox"
-        "SUPER, E, exec, wezterm -e lf"
+      bind =
+        let
+          binding =
+            mod: cmd: key: arg:
+            "${mod}, ${key}, ${cmd}, ${arg}";
+          mvfocus = binding "SUPER" "movefocus";
+          ws = binding "SUPER" "workspace";
+          resizeactive = binding "SUPER CTRL" "resizeactive";
+          mvactive = binding "SUPER ALT" "moveactive";
+          mvtows = binding "SUPER SHIFT" "movetoworkspace";
+          e = "exec, ags -b hypr";
+          arr = [
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+          ];
+        in
+        [
+          "CTRL SHIFT, R,  ${e} quit; ags -b hypr"
+          "SUPER, R,       ${e} -t applauncher"
+          "SUPER, Tab,     ${e} -t overview"
+          ",XF86PowerOff,  ${e} -r 'powermenu.shutdown()'"
+          ",XF86Launch4,   ${e} -r 'recorder.start()'"
+          ",Print,         ${e} -r 'recorder.screenshot()'"
+          "SHIFT,Print,    ${e} -r 'recorder.screenshot(true)'"
+          "SUPER, Return, exec, xterm" # xterm is a symlink, not actually xterm
+          "SUPER, W, exec, firefox"
+          "SUPER, E, exec, wezterm -e lf"
 
-        # youtube
-        ", XF86Launch1,  exec, ${yt}"
+          # youtube
+          ", XF86Launch1,  exec, ${yt}"
 
-        "ALT, Tab, focuscurrentorlast"
-        "CTRL ALT, Delete, exit"
-        "ALT, Q, killactive"
-        "SUPER, F, togglefloating"
-        "SUPER, G, fullscreen"
-        "SUPER, O, fakefullscreen"
-        "SUPER, P, togglesplit"
+          "ALT, Tab, focuscurrentorlast"
+          "CTRL ALT, Delete, exit"
+          "ALT, Q, killactive"
+          "SUPER, F, togglefloating"
+          "SUPER, G, fullscreen"
+          "SUPER, O, fakefullscreen"
+          "SUPER, P, togglesplit"
 
-        (mvfocus "k" "u")
-        (mvfocus "j" "d")
-        (mvfocus "l" "r")
-        (mvfocus "h" "l")
-        (ws "left" "e-1")
-        (ws "right" "e+1")
-        (mvtows "left" "e-1")
-        (mvtows "right" "e+1")
-        (resizeactive "k" "0 -20")
-        (resizeactive "j" "0 20")
-        (resizeactive "l" "20 0")
-        (resizeactive "h" "-20 0")
-        (mvactive "k" "0 -20")
-        (mvactive "j" "0 20")
-        (mvactive "l" "20 0")
-        (mvactive "h" "-20 0")
-      ] ++ (map (i: ws (toString i) (toString i)) arr)
-      ++ (map (i: mvtows (toString i) (toString i)) arr);
+          (mvfocus "k" "u")
+          (mvfocus "j" "d")
+          (mvfocus "l" "r")
+          (mvfocus "h" "l")
+          (ws "left" "e-1")
+          (ws "right" "e+1")
+          (mvtows "left" "e-1")
+          (mvtows "right" "e+1")
+          (resizeactive "k" "0 -20")
+          (resizeactive "j" "0 20")
+          (resizeactive "l" "20 0")
+          (resizeactive "h" "-20 0")
+          (mvactive "k" "0 -20")
+          (mvactive "j" "0 20")
+          (mvactive "l" "20 0")
+          (mvactive "h" "-20 0")
+        ]
+        ++ (map (i: ws (toString i) (toString i)) arr)
+        ++ (map (i: mvtows (toString i) (toString i)) arr);
 
       bindle = [
         ",XF86MonBrightnessUp,   exec, ${brightnessctl} set +5%"
@@ -154,8 +173,10 @@ in {
         ",XF86AudioMicMute, exec, ${pactl} set-source-mute @DEFAULT_SOURCE@ toggle"
       ];
 
-      bindm =
-        [ "SUPER, mouse:273, resizewindow" "SUPER, mouse:272, movewindow" ];
+      bindm = [
+        "SUPER, mouse:273, resizewindow"
+        "SUPER, mouse:272, movewindow"
+      ];
 
       decoration = {
         drop_shadow = "yes";
@@ -393,6 +414,5 @@ in {
       bindm = $mainMod, mouse:272, movewindow
       bindm = $mainMod, mouse:273, resizewindow
     '';
-
   };
 }

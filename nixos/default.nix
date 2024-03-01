@@ -2,23 +2,40 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ lib, inputs, pkgs, username, machineName, stateVersion, ... }@args:
+{
+  lib,
+  inputs,
+  pkgs,
+  username,
+  machineName,
+  stateVersion,
+  ...
+}@args:
 
 let
-  machineConfigMap = { "t470" = ./machines/t470.nix; };
+  machineConfigMap = {
+    "t470" = ./machines/t470.nix;
+  };
   hardwareConfig = machineConfigMap.${machineName};
-in {
+in
+{
   imports = [
     # Include the results of the hardware scan.
     hardwareConfig
     ./modules
   ];
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+
+  # font
+  fonts.packages = with pkgs; [ (nerdfonts.overrides { fonts = [ "VictorMono" ]; }) ];
 
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -49,16 +66,16 @@ in {
   };
 
   # Enable the X11 windowing system.
-  services.xserver = {
-    enable = true;
-    xkb = {
-      layout = "us";
-      variant = "";
-      options = "compose:ralt";
-    };
-    displayManager.sddm.enable = true;
-    desktopManager.plasma5.enable = true;
-  };
+  # services.xserver = {
+  #   enable = true;
+  #   xkb = {
+  #     layout = "us";
+  #     variant = "";
+  #     options = "compose:ralt";
+  #   };
+  #   displayManager.sddm.enable = true;
+  #   desktopManager.plasma5.enable = true;
+  # };
 
   virtualisation.podman = {
 
@@ -78,8 +95,7 @@ in {
 
   # bluetooth
   hardware.bluetooth.enable = true; # enables support for Bluetooth
-  hardware.bluetooth.powerOnBoot =
-    true; # powers up the default Bluetooth controller on boot
+  hardware.bluetooth.powerOnBoot = true; # powers up the default Bluetooth controller on boot
 
   # Enable sound with pipewire.
   sound.enable = true;
@@ -106,7 +122,12 @@ in {
     isNormalUser = true;
     description = "Zane Dufour";
     shell = pkgs.fish;
-    extraGroups = [ "networkmanager" "wheel" "input" "uinput" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "input"
+      "uinput"
+    ];
     packages = with pkgs; [
       clipboard-jh
       firefox
@@ -176,6 +197,4 @@ in {
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = stateVersion; # Did you read the comment?
-
 }
-

@@ -1,4 +1,11 @@
-{ lib, config, pkgs, inputs, ... }: {
+{
+  lib,
+  config,
+  pkgs,
+  inputs,
+  ...
+}:
+{
 
   programs.neovim = {
     enable = true;
@@ -9,7 +16,5 @@
     withNodeJs = true;
   };
 
-  environment.systemPackages = with pkgs; [
-    inputs.home-manager.packages.${pkgs.system}.default
-  ];
+  environment.systemPackages = with pkgs; [ inputs.home-manager.packages.${pkgs.system}.default ];
 }

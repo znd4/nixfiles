@@ -1,4 +1,12 @@
-{ pkgs, lib, inputs, username, stateVersion, ... }: {
+{
+  pkgs,
+  lib,
+  inputs,
+  username,
+  stateVersion,
+  ...
+}:
+{
   users.users.${username} = {
     name = "${username}";
     home = "/Users/${username}";
@@ -11,7 +19,9 @@
 
   services.nix-daemon.enable = true;
 
-  environment.variables = { SSH_ASKPASS = "ssh-askpass"; };
+  environment.variables = {
+    SSH_ASKPASS = "ssh-askpass";
+  };
 
   programs.fish.enable = true;
   programs.zsh.enable = true;

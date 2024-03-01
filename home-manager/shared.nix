@@ -1,6 +1,16 @@
 # This is your home-manager configuration file
 # Use this to configure your home environment (it replaces ~/.config/nixpkgs/home.nix)
-{ inputs, username, lib, config, pkgs, system, stateVersion, keys, ... }:
+{
+  inputs,
+  username,
+  lib,
+  config,
+  pkgs,
+  system,
+  stateVersion,
+  keys,
+  ...
+}:
 let
   shellAliases = {
     nix = "NO_COLOR=1 command nix";
@@ -11,7 +21,9 @@ let
     k = "kubectl";
     vi = "nvim";
   };
-in {
+in
+{
+  imports = [ ./programs/tmux.nix ];
 
   nixpkgs = {
     # You can add overlays here
@@ -41,33 +53,43 @@ in {
     };
   };
 
-  home.sessionVariables = { EDITOR = "nvim"; };
+  home.sessionVariables = {
+    EDITOR = "nvim";
+  };
   home.username = username;
 
-  xdg.configFile = let
-    dotConfig = "${inputs.dotfiles}/xdg-config/.config";
-    getFiles = dir: prefix:
-      builtins.listToAttrs (map (fp: {
-        name = dir + "/" + fp;
-        value = { source = "${prefix}/${dir}/${fp}"; };
-      }) (builtins.attrNames (builtins.readDir "${prefix}/${dir}")));
-  in lib.foldl' lib.attrsets.recursiveUpdate { } [
-    (getFiles "fish/conf.d" "${inputs.dotfiles}/fish/.config")
-    (getFiles "fish/completions" "${inputs.dotfiles}/fish/.config")
-    (getFiles "fish/functions" "${inputs.dotfiles}/fish/.config")
-    {
-      "nvim/" = {
-        source = "${dotConfig}/nvim/";
-        #recursive=true;
-      };
-      # "fish/"={source= "${inputs.dotfiles}/fish/.config/fish/"; enable=false;};
-      "starship.toml".source = "${dotConfig}/starship.toml";
-      "wezterm/wezterm.lua".source = "${dotConfig}/wezterm/wezterm.lua";
-      # "direnv/direnvrc".source = "${dotConfig}/direnv/direnvrc";
-      "direnv/direnvrc".text = builtins.readFile "${dotConfig}/direnv/direnvrc";
-
-    }
-  ];
+  xdg.configFile =
+    let
+      dotConfig = "${inputs.dotfiles}/xdg-config/.config";
+      getFiles =
+        dir: prefix:
+        builtins.listToAttrs (
+          map
+            (fp: {
+              name = dir + "/" + fp;
+              value = {
+                source = "${prefix}/${dir}/${fp}";
+              };
+            })
+            (builtins.attrNames (builtins.readDir "${prefix}/${dir}"))
+        );
+    in
+    lib.foldl' lib.attrsets.recursiveUpdate { } [
+      (getFiles "fish/conf.d" "${inputs.dotfiles}/fish/.config")
+      (getFiles "fish/completions" "${inputs.dotfiles}/fish/.config")
+      (getFiles "fish/functions" "${inputs.dotfiles}/fish/.config")
+      {
+        "nvim/" = {
+          source = "${dotConfig}/nvim/";
+          #recursive=true;
+        };
+        # "fish/"={source= "${inputs.dotfiles}/fish/.config/fish/"; enable=false;};
+        "starship.toml".source = "${dotConfig}/starship.toml";
+        "wezterm/wezterm.lua".source = "${dotConfig}/wezterm/wezterm.lua";
+        # "direnv/direnvrc".source = "${dotConfig}/direnv/direnvrc";
+        "direnv/direnvrc".text = builtins.readFile "${dotConfig}/direnv/direnvrc";
+      }
+    ];
 
   programs.git = {
     enable = true;
@@ -79,7 +101,6 @@ in {
       enable = true;
       options = {
         pager = "less";
-
       };
     };
     extraConfig = {
@@ -90,18 +111,21 @@ in {
       };
       user.signingKey = keys."github.com";
       init.defaultBranch = "main";
-      commit.template = "${pkgs.writeText "commit-template" (builtins.readFile
-        "${inputs.dotfiles}/xdg-config/.config/git/stCommitMsg")}";
+      commit.template = "${pkgs.writeText "commit-template" (
+        builtins.readFile "${inputs.dotfiles}/xdg-config/.config/git/stCommitMsg"
+      )}";
       commit.gpgSign = true;
       gpg.format = "ssh";
       push.autoSetupRemote = true;
       pull.rebase = false;
       url = {
         "ssh://git@git2.company.com/".insteadOf = "https://git2.company.com/";
-        "ssh://git@git.company.com/".insteadOf =
-          "https://git.company.com/";
-        "ssh://git@github.com/".insteadOf =
-          [ "https://github.com/" "github:" "gh:" ];
+        "ssh://git@git.company.com/".insteadOf = "https://git.company.com/";
+        "ssh://git@github.com/".insteadOf = [
+          "https://github.com/"
+          "github:"
+          "gh:"
+        ];
       };
     };
     aliases = {
@@ -136,27 +160,32 @@ in {
     matchBlocks = {
       "github.com" = {
         identitiesOnly = true;
-        identityFile =
-          "${pkgs.writeText "github_id_rsa.pub" keys."github.com"}";
+        identityFile = "${pkgs.writeText "github_id_rsa.pub" keys."github.com"}";
       };
     };
   };
 
   # Add stuff for your user as you see fit:
-  home.packages = with pkgs;
+  home.packages =
+    with pkgs;
     let
       sessionx = inputs.sessionx.packages.${system}.default;
-      sesh = (buildGoModule {
-        src = "${inputs.sesh}";
-        name = "sesh";
-        vendorHash = "sha256-zt1/gE4bVj+3yr9n0kT2FMYMEmiooy3k1lQ77rN6sTk=";
-      });
+      sesh = (
+        buildGoModule {
+          src = "${inputs.sesh}";
+          name = "sesh";
+          vendorHash = "sha256-zt1/gE4bVj+3yr9n0kT2FMYMEmiooy3k1lQ77rN6sTk=";
+        }
+      );
       personal_python = (python3.withPackages (ps: with ps; [ pre-commit ]));
-      personal_scripts = (buildEnv {
-        name = "myScripts";
-        paths = [ "${inputs.dotfiles}/scripts/.local" ];
-      });
-    in [
+      personal_scripts = (
+        buildEnv {
+          name = "myScripts";
+          paths = [ "${inputs.dotfiles}/scripts/.local" ];
+        }
+      );
+    in
+    [
       # kmonad
       age
       asdf
@@ -213,7 +242,9 @@ in {
   programs.skim.enable = true;
   programs.zsh.enable = true;
   # Enable home-manager and git
-  programs.fzf = { enable = true; };
+  programs.fzf = {
+    enable = true;
+  };
   programs.home-manager.enable = true;
   programs.nushell = {
     shellAliases = shellAliases;
@@ -227,14 +258,18 @@ in {
     #   src = pkgs.fetchFromGithub{owner="patrickf1"; repo="fzf.fish";};
     # }
     # ];
-    shellAbbrs = { ky = "kubectl get -o yaml"; };
+    shellAbbrs = {
+      ky = "kubectl get -o yaml";
+    };
     shellAliases = shellAliases;
     interactiveShellInit = ''
       fish_vi_key_bindings
     '';
   };
 
-  programs.starship = { enable = true; };
+  programs.starship = {
+    enable = true;
+  };
   programs.zoxide.enable = true;
   programs.direnv.enable = true;
   programs.k9s.enable = true;

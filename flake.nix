@@ -35,27 +35,48 @@
   # };
   # inputs.kmonad.inputs.nixpkgs.follows = "nixpkgs";
 
-  outputs = { self, nixpkgs, home-manager, darwin, ... }@inputs:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      home-manager,
+      darwin,
+      ...
+    }@inputs:
 
     {
       keys = {
-        "github.com" =
-          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHkoZGPqvCciloARGk9/rgPdjCFI2JmsYbgboEv98RKc github.com key";
+        "github.com" = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHkoZGPqvCciloARGk9/rgPdjCFI2JmsYbgboEv98RKc github.com key";
       };
       darwinModules = [
         ./darwin/default.nix
         # Inline set home-manager to invocation of (import ./home-manager/darwin.nix)
         home-manager.darwinModules.home-manager
-        ({inputs, keys, username, hmStateVersion, ...}: {
-# home-manager.useGlobalPkgs = true;
-# home-manager.useUserPackages = true;
-         home-manager.users.dufourz = (import ./home-manager/darwin.nix) {
-         inherit inputs keys username;
-         stateVersion = hmStateVersion;
-         };
-         })
+        (
+          {
+            inputs,
+            keys,
+            username,
+            hmStateVersion,
+            ...
+          }:
+          {
+            # home-manager.useGlobalPkgs = true;
+            # home-manager.useUserPackages = true;
+            home-manager.users.dufourz = (import ./home-manager/darwin.nix) {
+              inherit inputs keys username;
+              stateVersion = hmStateVersion;
+            };
+          }
+        )
       ];
-      darwinConfigFactory = { system, modules ? [], specialArgs, ... }:
+      darwinConfigFactory =
+        {
+          system,
+          modules ? [ ],
+          specialArgs,
+          ...
+        }:
         assert specialArgs ? inputs;
         assert specialArgs ? keys;
         assert specialArgs ? username;
@@ -68,7 +89,7 @@
       darwinConfigurations.work = self.darwinConfigFactory {
         inherit inputs;
         system = "aarch64-darwin";
-        modules = [];
+        modules = [ ];
         specialArgs = {
           inherit inputs;
           hmStateVersion = "23.11";
@@ -86,12 +107,17 @@
           username = "znd4";
           machineName = "t470";
         };
-        modules = [ ./nixos ./shell ];
+        modules = [
+          ./nixos
+          ./shell
+        ];
       };
-      homeModules = { shared = (import ./home-manager/shared.nix); };
-      homeConfigurations = let
-        # TODO - define closure that accepts username and system as arguments
-      in {
+      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt-rfc-style;
+      formatter.aarch64-darwin = nixpkgs.legacyPackages.aarch64-darwin.nixfmt-rfc-style;
+      homeModules = {
+        shared = (import ./home-manager/shared.nix);
+      };
+      homeConfigurations = {
         "znd4@nixos" = home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = {
