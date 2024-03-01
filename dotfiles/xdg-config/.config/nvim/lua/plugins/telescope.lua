@@ -99,7 +99,7 @@ return {
     },
     {
       leader .. "fa",
-      delayed(vim.cmd.Telescope, "file_browser"),
+      factory(vim.cmd.Telescope, "file_browser"),
       desc = "Telescope file browser",
     },
     {
