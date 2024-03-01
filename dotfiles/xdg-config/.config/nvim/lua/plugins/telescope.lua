@@ -98,8 +98,9 @@ return {
       desc = "Telescope find files",
     },
     {
-      leader .. "fs",
+      leader .. "fa",
       delayed(vim.cmd.Telescope, "file_browser"),
+      desc = "Telescope file browser",
     },
     {
       leader .. "fg",
