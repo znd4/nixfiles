@@ -10,7 +10,7 @@
   programs.hyprland = {
     enable = true;
     nvidiaPatches = true;
-    package = inputs.hyprland.packages.${pkgs.system}.hyprland;
+    package = inputs.hyprland.packages.${system}.hyprland;
     xwayland.enable = true;
   };
   environment.sessionVariables = {

@@ -1,7 +1,7 @@
-{ inputs, pkgs, ... }:
+{ inputs, pkgs, system, ... }:
 let
-  hyprland = inputs.hyprland.packages.${pkgs.system}.hyprland;
-  plugins = inputs.hyprland-plugins.packages.${pkgs.system};
+  hyprland = inputs.hyprland.packages.${system}.hyprland;
+  plugins = inputs.hyprland-plugins.packages.${system};
 
   yt = pkgs.writeShellScript "yt" ''
     notify-send "Opening video" "$(wl-paste)"

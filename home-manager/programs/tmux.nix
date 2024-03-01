@@ -1,6 +1,7 @@
 {
   pkgs,
   inputs,
+  system,
   ...
 }:
 
@@ -80,7 +81,7 @@
         '';
       }
       {
-        plugin = inputs.sessionx.packages.${pkgs.system}.default;
+        plugin = inputs.sessionx.packages.${system}.default;
         extraConfig = ''
           set -g @sessionx-bind 'o'
         '';

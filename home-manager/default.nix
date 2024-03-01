@@ -7,6 +7,7 @@
   config,
   pkgs,
   stateVersion,
+  system,
   keys,
   ...
 }:
@@ -22,11 +23,12 @@ let
   };
 in
 {
-  imports = [     (
-      if lib.strings.hasSuffix "darwin" pkgs.system then
-        ./darwin
-      else if lib.strings.hasSuffix "linux" pkgs.system then
-        ./nixos
+  imports = [     
+    (
+      if lib.strings.hasSuffix "darwin" system then
+        ./darwin/default.nix
+      else if lib.strings.hasSuffix "linux" system then
+        ./nixos/default.nix
       else
         throw "Unsupported system"
     )
@@ -54,6 +56,7 @@ in
     ];
     # Configure your nixpkgs instance
     config = {
+      my.configDir = "${config.xdg.configHome}/nixfiles";
       # Disable if you don't want unfree packages
       allowUnfree = true;
       # Workaround for https://github.com/nix-community/home-manager/issues/2942
@@ -87,10 +90,6 @@ in
       (getFiles "fish/completions" "${inputs.dotfiles}/fish/.config")
       (getFiles "fish/functions" "${inputs.dotfiles}/fish/.config")
       {
-        "nvim/" = {
-          source = "${dotConfig}/nvim/";
-          #recursive=true;
-        };
         # "fish/"={source= "${inputs.dotfiles}/fish/.config/fish/"; enable=false;};
         "starship.toml".source = "${dotConfig}/starship.toml";
         "wezterm/wezterm.lua".source = "${dotConfig}/wezterm/wezterm.lua";
