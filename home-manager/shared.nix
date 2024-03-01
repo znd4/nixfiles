@@ -280,6 +280,26 @@ in {
 
       # allow passthrough (e.g. for iterm image protocol)
       set-option -g allow-passthrough on
+
+      # floating pane
+      bind M-f if-shell -F '#{==:#{session_name},floating}' {
+          detach-client
+      } {
+          set -gF '@last_session_name' '#S'
+          popup -d '#{pane_current_path}' -xC -yC -w70% -h70% -KER 'tmux new -A -s floating'
+      }
+
+      bind ! if-shell -F '#{!=:#{session_name},floating}' {
+          break-pane
+      } {
+          run-shell 'bash -c "tmux break-pane -s floating -t \"$(tmux show -gvq '@last_session_name'):\""'
+      }
+
+      bind @ if-shell -F '#{!=:#{session_name},floating}' {
+          break-pane -d
+      } {
+          run-shell 'bash -c "tmux break-pane -d -s floating -t \"$(tmux show -gvq '@last_session_name'):\""'
+      }
     '';
 
     plugins = with pkgs.tmuxPlugins; [
