@@ -35,7 +35,7 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
 
   # font
-  fonts.packages = with pkgs; [ (nerdfonts.overrides { fonts = [ "VictorMono" ]; }) ];
+  fonts.packages = with pkgs; [ (nerdfonts.overrides { fonts = ["FiraCode" "VictorMono" ]; }) ];
 
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
