@@ -9,7 +9,6 @@ local ensure_installed = {
   "jsonls",
   "jsonnet_ls",
   "ltex",
-  "lua_ls",
   "marksman",
   "pyright",
   "nil_ls",
@@ -284,6 +283,7 @@ local gopls_settings = {
 }
 
 require("mason").setup({})
+
 require("mason-lspconfig").setup({
   ensure_installed = ensure_installed,
   handlers = {
