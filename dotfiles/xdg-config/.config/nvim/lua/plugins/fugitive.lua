@@ -3,9 +3,9 @@ return {
   dependencies = { "tpope/vim-rhubarb" },
   cmd = "G",
   keys = {
-    { "<leader>gp", ":G pull<CR>" },
-    { "<leader>gs", ":G<CR>" },
-    { "<leader>gP", ":G push<CR>" },
-    { "<leader>gc", ":G commit<CR>" },
+    { "<leader>gp", [[lua vim.cmd.G("pull")]] },
+    { "<leader>gs", [[lua vim.cmd.G()]] },
+    { "<leader>gP", [[lua vim.cmd.G("push")]] },
+    { "<leader>gc", [[lua vim.cmd.G("commit")]] },
   },
 }
