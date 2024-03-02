@@ -56,7 +56,6 @@ in
     ];
     # Configure your nixpkgs instance
     config = {
-      my.configDir = "${config.xdg.configHome}/nixfiles";
       # Disable if you don't want unfree packages
       allowUnfree = true;
       # Workaround for https://github.com/nix-community/home-manager/issues/2942

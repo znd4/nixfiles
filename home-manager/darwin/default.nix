@@ -1,6 +1,7 @@
 {
   inputs,
   username,
+  config,
   stateVersion,
   keys,
   pkgs,
@@ -21,7 +22,8 @@ _module.args = {
 # inherit pkgs;
 };
 home.sessionVariables.SSH_AUTH_SOCK = "/Users/${username}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
-home.sessionPath = [ "/Users/${username}/homebrew/bin" ];
+home.homeDirectory = "/Users/${username}";
+home.sessionPath = [ "${config.home.homeDirectory}/homebrew/bin" ];
 home.packages = with pkgs; [ python311Packages.supervisor ];
 home.stateVersion = stateVersion;
 # programs.git.includes = [{
