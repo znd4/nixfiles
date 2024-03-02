@@ -261,6 +261,9 @@ lsp_zero.configure("nil_ls", {
   },
 })
 
+local lua_opts = lsp_zero.nvim_lua_ls({ on_init = disableFormatting })
+lsp_zero.lua_ls.setup(lua_opts)
+
 local gopls_settings = {
   cmd = { "gopls" },
   settings = {
@@ -296,10 +299,6 @@ require("mason-lspconfig").setup({
     end,
     jsonnet_ls = function()
       require("lspconfig").jsonnet_ls.setup({})
-    end,
-    lua_ls = function()
-      local lua_opts = lsp_zero.nvim_lua_ls({ on_init = disableFormatting })
-      require("lspconfig").lua_ls.setup(lua_opts)
     end,
     pyright = function()
       require("lspconfig").pyright.setup({
