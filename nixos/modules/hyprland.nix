@@ -1,4 +1,9 @@
-{ inputs, pkgs, ... }:
+{
+  inputs,
+  pkgs,
+  system,
+  ...
+}:
 {
   nix.settings = {
     substituters = [ "https://hyprland.cachix.org" ];
@@ -9,7 +14,6 @@
 
   programs.hyprland = {
     enable = true;
-    nvidiaPatches = true;
     package = inputs.hyprland.packages.${system}.hyprland;
     xwayland.enable = true;
   };

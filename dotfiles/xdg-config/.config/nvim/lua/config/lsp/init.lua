@@ -262,7 +262,7 @@ lsp_zero.configure("nil_ls", {
 })
 
 local lua_opts = lsp_zero.nvim_lua_ls({ on_init = disableFormatting })
-lsp_zero.lua_ls.setup(lua_opts)
+lsp_zero.configure("lua_ls", lua_opts)
 
 local gopls_settings = {
   cmd = { "gopls" },

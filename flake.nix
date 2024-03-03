@@ -64,11 +64,14 @@
             # home-manager.useGlobalPkgs = true;
             # home-manager.useUserPackages = true;
             home-manager.users.dufourz = {
-              imports = [
-                ./home-manager/default.nix
-              ];
+              imports = [ ./home-manager/default.nix ];
               _modules.args = {
-                inherit inputs keys username hmStateVersion;
+                inherit
+                  inputs
+                  keys
+                  username
+                  hmStateVersion
+                  ;
               };
             };
           }
@@ -102,20 +105,25 @@
           stateVersion = 4;
         };
       };
-      nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = {
-          inherit inputs;
-          outputs = self;
-          stateVersion = "23.11";
-          username = "znd4";
-          machineName = "t470";
+      nixosConfigurations.nixos =
+        let
+          system = "x86_64-linux";
+        in
+        nixpkgs.lib.nixosSystem {
+          system = system;
+          specialArgs = {
+            inherit inputs;
+            system = system;
+            outputs = self;
+            stateVersion = "23.11";
+            username = "znd4";
+            machineName = "t470";
+          };
+          modules = [
+            ./nixos
+            ./shell
+          ];
         };
-        modules = [
-          ./nixos
-          ./shell
-        ];
-      };
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt-rfc-style;
       formatter.aarch64-darwin = nixpkgs.legacyPackages.aarch64-darwin.nixfmt-rfc-style;
       homeModules = {
