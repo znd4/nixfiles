@@ -48,13 +48,13 @@ lib.mkIf enabled {
     # ))
     # eww # https://github.com/elkowar/eww/
 
-    notificationDaemon # notifications
+    pkgs.${notificationDaemon} # notifications
 
     # file manager
-    fileManager
+    pkgs.${fileManager}
 
     # Wallpapers
-    wallpaperApp
+    pkgs.${wallpaperApp}
 
     # Brightness and audio controls
     pulseaudio

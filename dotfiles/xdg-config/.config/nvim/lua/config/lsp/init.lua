@@ -11,7 +11,6 @@ local ensure_installed = {
   "ltex",
   "marksman",
   "pyright",
-  "nil_ls",
   "rust_analyzer",
   "sqlls",
   "taplo",
