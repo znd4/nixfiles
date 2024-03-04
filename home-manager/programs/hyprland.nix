@@ -117,11 +117,6 @@ lib.mkIf
           "QT_QPA_PLATFORMTHEME,qt5ct" # change to qt6ct if you have that
         ];
 
-        general = {
-          layout = "dwindle";
-          resize_on_border = true;
-        };
-
         misc = {
           # disable_splash_rendering = true;
           # force_default_wallpaper = 1;
@@ -154,6 +149,10 @@ lib.mkIf
 
           layout = "dwindle";
 
+          # resize with mouse
+          resize_on_border = true;
+          extend_border_grab_area = 15;
+
           # Please see https://wiki.hyprland.org/Configuring/Tearing/ before you turn this on
           allow_tearing = false;
         };
@@ -165,10 +164,10 @@ lib.mkIf
 
           blur = {
             enabled = true;
-            size = 3;
-            passes = 1;
+            size = 8;
+            passes = 3;
 
-            vibrancy = 0.1696;
+            popups = true;
           };
 
           drop_shadow = true;
@@ -192,11 +191,6 @@ lib.mkIf
             "fade, 1, 7, default"
             "workspaces, 1, 6, default"
           ];
-        };
-
-        gestures = {
-          # See https://wiki.hyprland.org/Configuring/Variables/ for more
-          workspace_swipe = false;
         };
 
         # Example windowrule v1
@@ -345,38 +339,6 @@ lib.mkIf
           "SUPER, mouse:273, resizewindow"
           "SUPER, mouse:272, movewindow"
         ];
-
-        decoration = {
-          drop_shadow = "yes";
-          shadow_range = 8;
-          shadow_render_power = 2;
-          "col.shadow" = "rgba(00000044)";
-
-          dim_inactive = false;
-
-          blur = {
-            enabled = true;
-            size = 8;
-            passes = 3;
-            new_optimizations = "on";
-            noise = 1.0e-2;
-            contrast = 0.9;
-            brightness = 0.8;
-            popups = true;
-          };
-        };
-
-        animations = {
-          enabled = "yes";
-          bezier = "myBezier, 0.05, 0.9, 0.1, 1.05";
-          animation = [
-            "windows, 1, 5, myBezier"
-            "windowsOut, 1, 7, default, popin 80%"
-            "border, 1, 10, default"
-            "fade, 1, 7, default"
-            "workspaces, 1, 6, default"
-          ];
-        };
 
         plugin = {
           hyprbars = {
