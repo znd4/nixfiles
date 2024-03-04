@@ -3,6 +3,7 @@
   lib,
   inputs,
   username,
+  system,
   stateVersion,
   ...
 }:
@@ -14,11 +15,11 @@
   };
   # TODO: add fonts.fonts
   # fonts.fonts = with pkgs; [];
-  system.stateVersion = stateVersion;
   nix.settings.experimental-features = "nix-command flakes";
 
   services.nix-daemon.enable = true;
 
+  environment.systemPackages = with pkgs; [ inputs.home-manager.packages.${system}.default ];
   environment.variables = {
     SSH_ASKPASS = "ssh-askpass";
   };

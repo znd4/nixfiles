@@ -3,6 +3,7 @@
     hyprland.url = "github:hyprwm/Hyprland";
     hypridle.url = "github:hyprwm/hypridle";
     hyprlock.url = "github:hyprwm/hyprlock";
+    hyprland.inputs.nixpkgs.follows = "nixpkgs";
 
     hyprland-plugins = {
       url = "github:hyprwm/hyprland-plugins";
@@ -51,63 +52,34 @@
       keys = {
         "github.com" = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHkoZGPqvCciloARGk9/rgPdjCFI2JmsYbgboEv98RKc github.com key";
       };
-      darwinModules = [
-        ./darwin
-        # Inline set home-manager to invocation of (import ./home-manager/darwin.nix)
-        home-manager.darwinModules.home-manager
-        (
-          {
-            inputs,
-            keys,
-            username,
-            hmStateVersion,
-            ...
-          }:
-          {
-            # home-manager.useGlobalPkgs = true;
-            # home-manager.useUserPackages = true;
-            home-manager.users.dufourz = {
-              imports = [ ./home-manager/default.nix ];
-              _modules.args = {
-                inherit
-                  inputs
-                  keys
-                  username
-                  hmStateVersion
-                  ;
-              };
-            };
-          }
-        )
-      ];
-      darwinConfigFactory =
-        {
-          system,
-          modules ? [ ],
-          specialArgs,
-          ...
-        }:
-        assert specialArgs ? inputs;
-        assert specialArgs ? keys;
-        assert specialArgs ? username;
-        assert specialArgs ? hmStateVersion;
+      darwinModules = {
+        default = ./darwin;
+      };
+      darwinConfigurations.work =
+        let
+          system = "aarch64-darwin";
+          specialArgs = {
+            inherit inputs;
+            keys = self.keys;
+            username = "dufourz";
+            stateVersion = "23.11";
+            system = system;
+          };
+        in
         darwin.lib.darwinSystem {
+          inherit inputs;
           system = system;
-          modules = modules ++ self.darwinModules;
+          modules = [
+            self.darwinModules.default
+            {
+              # home-manager.useGlobalPkgs = true;
+              # home-manager.useUserPackages = true;
+
+              system.stateVersion = 4;
+            }
+          ];
           specialArgs = specialArgs;
         };
-      darwinConfigurations.work = self.darwinConfigFactory {
-        inherit inputs;
-        system = "aarch64-darwin";
-        modules = [ ];
-        specialArgs = {
-          inherit inputs;
-          hmStateVersion = "23.11";
-          keys = self.keys;
-          username = "dufourz";
-          stateVersion = 4;
-        };
-      };
       nixosConfigurations.nixos =
         let
           system = "x86_64-linux";
@@ -131,24 +103,33 @@
       formatter.aarch64-darwin = nixpkgs.legacyPackages.aarch64-darwin.nixfmt-rfc-style;
 
       homeModules = {
-        shared = (import ./home-manager/shared.nix);
+        default = ./home-manager;
       };
-      homeConfigurations = {
-        "znd4@nixos" =
-          let
-            system = "x86_64-linux";
-          in
-          home-manager.lib.homeManagerConfiguration {
-            pkgs = nixpkgs.legacyPackages.${system};
-            extraSpecialArgs = {
-              inherit inputs;
-              username = "znd4";
-              system = system;
-              keys = self.keys;
-              stateVersion = "23.11";
+      homeConfigurations =
+        let
+          mkConfig =
+            { system, username }:
+            home-manager.lib.homeManagerConfiguration {
+              pkgs = nixpkgs.legacyPackages.${system};
+              extraSpecialArgs = {
+                inherit inputs;
+                system = system;
+                username = username;
+                keys = self.keys;
+                stateVersion = "23.11";
+              };
+              modules = [ self.homeModules.default ];
             };
-            modules = [ ./home-manager/default.nix ];
+        in
+        {
+          "work" = mkConfig {
+            system = "aarch64-darwin";
+            username = "dufourz";
           };
-      };
+          "znd4@nixos" = mkConfig {
+            system = "x86_64-linux";
+            username = "znd4";
+          };
+        };
     };
 }

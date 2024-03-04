@@ -5,13 +5,14 @@
   username,
   lib,
   config,
+  osConfig,
   pkgs,
   stateVersion,
-  system,
   keys,
   ...
 }:
 let
+  system = pkgs.stdenv.system;
   shellAliases = {
     nix = "NO_COLOR=1 command nix";
     bathelp = "bat -l help";
@@ -23,17 +24,11 @@ let
   };
 in
 {
-  imports = [     
-    (
-      if lib.strings.hasSuffix "darwin" system then
-        ./darwin/default.nix
-      else if lib.strings.hasSuffix "linux" system then
-        ./nixos/default.nix
-      else
-        throw "Unsupported system"
-    )
+  imports = [
+    ./darwin
+    ./nixos
     ./programs
- ];
+  ];
 
   nixpkgs = {
     # You can add overlays here
@@ -74,14 +69,12 @@ in
       getFiles =
         dir: prefix:
         builtins.listToAttrs (
-          map
-            (fp: {
-              name = dir + "/" + fp;
-              value = {
-                source = "${prefix}/${dir}/${fp}";
-              };
-            })
-            (builtins.attrNames (builtins.readDir "${prefix}/${dir}"))
+          map (fp: {
+            name = dir + "/" + fp;
+            value = {
+              source = "${prefix}/${dir}/${fp}";
+            };
+          }) (builtins.attrNames (builtins.readDir "${prefix}/${dir}"))
         );
     in
     lib.foldl' lib.attrsets.recursiveUpdate { } [
