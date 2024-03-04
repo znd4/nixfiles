@@ -73,16 +73,15 @@ in
   };
 
   # Enable the X11 windowing system.
-  # services.xserver = {
-  #   enable = true;
-  #   xkb = {
-  #     layout = "us";
-  #     variant = "";
-  #     options = "compose:ralt";
-  #   };
-  #   displayManager.sddm.enable = true;
-  #   desktopManager.plasma5.enable = true;
-  # };
+  services.xserver = {
+    enable = true;
+    xkb = {
+      layout = "us";
+      variant = "";
+    };
+    displayManager.sddm.enable = true;
+    displayManager.startx.enable = true;
+  };
 
   virtualisation.podman = {
 
@@ -94,8 +93,6 @@ in
     # Required for containers under podman-compose to be able to talk to each other.
     defaultNetwork.settings.dns_enabled = true;
   };
-
-  # Configure keymap in X11
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -113,8 +110,9 @@ in
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
+    wireplumber.enable = true;
     # If you want to use JACK applications, uncomment this
-    #jack.enable = true;
+    jack.enable = true;
 
     # use the example session manager (no others are packaged yet so this is enabled by default,
     # no need to redefine it in your config for now)
