@@ -64,6 +64,9 @@ else
       brightnessctl
       playerctl
 
+      # for managing wifi
+      networkmanagerapplet
+
       # not sure if these are necessary
       # qt6
       # libsForQt5
@@ -109,6 +112,7 @@ else
       settings = {
 
         exec-once = [
+          "${pkgs.networkmanagerapplet}/bin/nm-applet --indicator & disown"
           wallpaperApp # # wallpaper
           "waybar" # menu bar
           notificationDaemon
