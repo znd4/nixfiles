@@ -242,7 +242,7 @@ lib.mkIf enabled {
           (f "org.gnome.design.Palette")
           (f "Color Picker")
           (f "xdg-desktop-portal")
-          (f "xdg-desktop-portal-gnome")
+          (f "xdg-desktop-portal-gtk")
           (f "transmission-gtk")
           # "workspace 7, title:Spotify"
         ];
