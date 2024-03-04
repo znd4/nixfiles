@@ -184,10 +184,6 @@ require("lazy").setup({
   },
 
   {
-    "folke/which-key.nvim",
-    config = true,
-  },
-  {
     "stevearc/dressing.nvim",
     config = {
       input = {

@@ -16,7 +16,10 @@
     "nvim/".source = "${inputs.dotfiles}/xdg-config/.config/nvim/";
     "nvim/".recursive = true;
   };
-  home.packages = with pkgs; [ neovim-remote ];
+  home.packages = with pkgs; [
+    neovim-remote
+    nil
+  ];
   programs.neovim = {
     enable = true;
     vimAlias = true;
@@ -26,7 +29,7 @@
       gcc
       isort
       lua-language-server
-      nil
+      # nil
       nixd
       prettierd
       ruff

@@ -134,17 +134,21 @@
         shared = (import ./home-manager/shared.nix);
       };
       homeConfigurations = {
-        "znd4@nixos" = home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.x86_64-linux;
-          extraSpecialArgs = {
-            inherit inputs;
-            username = "znd4";
+        "znd4@nixos" =
+          let
             system = "x86_64-linux";
-            keys = self.keys;
-            stateVersion = "23.11";
+          in
+          home-manager.lib.homeManagerConfiguration {
+            pkgs = nixpkgs.legacyPackages.${system};
+            extraSpecialArgs = {
+              inherit inputs;
+              username = "znd4";
+              system = system;
+              keys = self.keys;
+              stateVersion = "23.11";
+            };
+            modules = [ ./home-manager/default.nix ];
           };
-          modules = [ ./home-manager/default.nix ];
-        };
       };
     };
 }
