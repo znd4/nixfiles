@@ -55,31 +55,29 @@
       darwinModules = {
         default = ./darwin;
       };
-      darwinConfigurations.work =
-        let
-          system = "aarch64-darwin";
+      darwinFactory =
+        {
+          system ? "aarch64-darwin",
+          extraModules ? [ ],
+          username,
+          stateVersion,
+        }:
+        darwin.lib.darwinSystem {
+          system = system;
+          inherit inputs;
           specialArgs = {
             inherit inputs;
-            keys = self.keys;
-            username = "dufourz";
-            stateVersion = "23.11";
+            username = username;
+            stateVersion = stateVersion;
             system = system;
           };
-        in
-        darwin.lib.darwinSystem {
-          inherit inputs;
-          system = system;
-          modules = [
-            self.darwinModules.default
-            {
-              # home-manager.useGlobalPkgs = true;
-              # home-manager.useUserPackages = true;
-
-              system.stateVersion = 4;
-            }
-          ];
-          specialArgs = specialArgs;
+          modules = [ self.darwinModules.default ] ++ extraModules;
         };
+      darwinConfigurations.work = self.darwinFactory {
+        username = "dufourz";
+        stateVersion = 4;
+      };
+
       nixosConfigurations.nixos =
         let
           system = "x86_64-linux";
@@ -105,31 +103,36 @@
       homeModules = {
         default = ./home-manager;
       };
-      homeConfigurations =
-        let
-          mkConfig =
-            { system, username }:
-            home-manager.lib.homeManagerConfiguration {
-              pkgs = nixpkgs.legacyPackages.${system};
-              extraSpecialArgs = {
-                inherit inputs;
-                system = system;
-                username = username;
-                keys = self.keys;
-                stateVersion = "23.11";
-              };
-              modules = [ self.homeModules.default ];
-            };
-        in
+      homeConfigurationFactory =
         {
-          "work" = mkConfig {
-            system = "aarch64-darwin";
-            username = "dufourz";
+          system,
+          username,
+          keys ? self.keys,
+          stateVersion ? "23.11",
+          extraModules ? [ ],
+        }:
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.${system};
+          extraSpecialArgs = {
+            inherit
+              inputs
+              system
+              username
+              stateVersion
+              keys
+              ;
           };
-          "znd4@nixos" = mkConfig {
-            system = "x86_64-linux";
-            username = "znd4";
-          };
+          modules = [ self.homeModules.default ] ++ extraModules;
         };
+      homeConfigurations = {
+        "work" = self.homeConfigurationFactory {
+          system = "aarch64-darwin";
+          username = "dufourz";
+        };
+        "znd4@nixos" = self.homeConfigurationFactory {
+          system = "x86_64-linux";
+          username = "znd4";
+        };
+      };
     };
 }

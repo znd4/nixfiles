@@ -19,28 +19,14 @@ else
 
     );
 
+    targets.darwin.defaults = {
+      # https://macos-defaults.com/#%F0%9F%92%BB-list-of-commands
+      "com.apple.finder" = {
+        AppleShowAllFiles = true;
+      };
+    };
+
     home.sessionVariables.SSH_AUTH_SOCK = "/Users/${username}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
     home.homeDirectory = "/Users/${username}";
     home.sessionPath = [ "${config.home.homeDirectory}/homebrew/bin" ];
-    home.packages = with pkgs; [ python311Packages.supervisor ];
-    # programs.git.includes = [{
-    #   condition = "gitdir:${config.home.homeDirectory}/Work";
-    #   contents = {
-    #     user = {
-    #       name = "Zane Dufour";
-    #       email = "extern.zane.dufour@vw.com";
-    #       signingKey = keys."git.company.com";
-    #     };
-    #   };
-    # }];
-    # programs.ssh.matchBlocks = let
-    #   vw_config = {
-    #     identitiesOnly = true;
-    #     identityFile =
-    #       "${pkgs.writeText "vw_id_rsa.pub" keys."git.company.com"}";
-    #   };
-    # in {
-    #   "git2.company.com" = vw_config;
-    #   "git.company.com" = vw_config;
-    # };
   }
