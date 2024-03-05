@@ -1,3 +1,21 @@
+local delayed = function(module, method, ...)
+  local args = { ... }
+  return function()
+    local ok, lib = pcall(require, module)
+    if not ok then
+      -- error
+      vim.api.nvim_err_writeln("Error loading " .. module)
+      return
+    end
+    lib[method](unpack(args))
+  end
+end
+local factory = function(func, ...)
+  local args = { ... }
+  return function()
+    func(unpack(args))
+  end
+end
 return {
   "folke/which-key.nvim",
   event = "VeryLazy",
@@ -6,10 +24,16 @@ return {
     vim.o.timeoutlen = 300
     local wk = require("which-key")
     wk.register({
+      g = {
+        p = { vim.cmd.GPull, "Git Pull" },
+        P = { vim.cmd.GPush, "Git Push" },
+        c = { vim.cmd.GCommit, "Git Push" },
+        s = { vim.cmd.GStatus, "Git Status" },
+      },
       c = {
         name = "ChatGPT",
-        c = { "<cmd>ChatGPT<CR>", "ChatGPT" },
-        e = { "<cmd>ChatGPTEditWithInstruction<CR>", "Edit with instruction", mode = { "n", "v" } },
+        c = { vim.cmd.ChatGPT, "ChatGPT" },
+        e = { vim.cmd.ChatGPTEditWithInstruction, "Edit with instruction", mode = { "n", "v" } },
         g = { "<cmd>ChatGPTRun grammar_correction<CR>", "Grammar Correction", mode = { "n", "v" } },
         t = { "<cmd>ChatGPTRun translate<CR>", "Translate", mode = { "n", "v" } },
         k = { "<cmd>ChatGPTRun keywords<CR>", "Keywords", mode = { "n", "v" } },
