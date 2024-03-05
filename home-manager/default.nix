@@ -21,8 +21,8 @@ let
     by = "bat -l yaml";
     k = "kubectl";
     vi = "nvim";
-    openai="op plugin run -- openai";
-    gh="op plugin run -- gh";
+    openai = "op plugin run -- openai";
+    gh = lib.mkDefault "op plugin run -- gh";
   };
 in
 {
