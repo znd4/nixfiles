@@ -171,12 +171,12 @@ in
   programs.ssh = {
     addKeysToAgent = "confirm";
     enable = true;
-    matchBlocks = {
-      "github.com" = {
+    matchBlocks = lib.attrsets.mapAttrs (
+      name: value: {
         identitiesOnly = true;
-        identityFile = "${pkgs.writeText "github_id_rsa.pub" keys."github.com"}";
-      };
-    };
+        identityFile = "${pkgs.writeText "${name}_id_rsa.pub" value}";
+      }
+    );
   };
 
   # Add stuff for your user as you see fit:
