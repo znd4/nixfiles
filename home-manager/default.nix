@@ -222,7 +222,6 @@ in
       just
       kubectl
       lazygit
-      lua-language-server
       nixfmt
       nodejs
       opam
