@@ -171,12 +171,11 @@ in
   programs.ssh = {
     addKeysToAgent = "confirm";
     enable = true;
-    matchBlocks = lib.attrsets.mapAttrs (
-      (name: value: {
+    matchBlocks = (
+      lib.attrsets.mapAttrs (name: value: {
         identitiesOnly = true;
         identityFile = "${pkgs.writeText "${name}_id_rsa.pub" value}";
-      })
-        keys
+      }) keys
     );
   };
 
