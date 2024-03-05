@@ -58,6 +58,17 @@ in
     };
   };
 
+  programs.ripgrep = {
+    enable = true;
+    arguments = [ "--smart-case" ];
+  };
+  # programs.jujutsu.enable = true; # TODO - try this out
+  programs.thefuck.enable = true;
+  programs.awscli.enable = true;
+  programs.gh-dash.enable = true;
+  # programs.pyenv.enable = true;
+  programs.git-credential-oauth.enable = true;
+
   home.sessionVariables = {
     EDITOR = "nvim";
   };
@@ -90,6 +101,10 @@ in
       }
     ];
 
+  programs.wezterm = {
+    enable = true;
+  };
+
   programs.git = {
     enable = true;
     lfs.enable = true;
@@ -117,14 +132,16 @@ in
       gpg.format = "ssh";
       push.autoSetupRemote = true;
       pull.rebase = false;
+      credential.helper = [
+        "cache --timeout 7200"
+        "oauth"
+      ];
       url = {
-        "ssh://git@git2.company.com/".insteadOf = "https://git2.company.com/";
-        "ssh://git@git.company.com/".insteadOf = "https://git.company.com/";
-        "ssh://git@github.com/".insteadOf = [
-          "https://github.com/"
-          "github:"
-          "gh:"
-        ];
+        # "ssh://git@github.com/".insteadOf = [
+        #   "https://github.com/"
+        #   "github:"
+        #   "gh:"
+        # ];
       };
     };
     aliases = {
@@ -215,7 +232,6 @@ in
       podman-compose
       pre-commit
       python-launcher
-      ripgrep
       ruff
       rustc
       sd

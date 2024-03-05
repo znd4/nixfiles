@@ -16,10 +16,7 @@
     "nvim/".source = "${inputs.dotfiles}/xdg-config/.config/nvim/";
     "nvim/".recursive = true;
   };
-  home.packages = with pkgs; [
-    neovim-remote
-    nil
-  ];
+  home.packages = with pkgs; [ neovim-remote ];
   programs.neovim = {
     enable = true;
     vimAlias = true;
@@ -28,13 +25,11 @@
     extraPackages = with pkgs; [
       gcc
       isort
+      nil
       lua-language-server
       # nil
       nixd
       prettierd
-      ruff
-      rust-analyzer-unwrapped
-      ripgrep
       ruff
       rust-analyzer-unwrapped
     ];
