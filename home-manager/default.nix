@@ -172,10 +172,11 @@ in
     addKeysToAgent = "confirm";
     enable = true;
     matchBlocks = lib.attrsets.mapAttrs (
-      name: value: {
+      (name: value: {
         identitiesOnly = true;
         identityFile = "${pkgs.writeText "${name}_id_rsa.pub" value}";
-      }
+      })
+        keys
     );
   };
 
