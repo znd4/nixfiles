@@ -66,8 +66,6 @@ in
   programs.thefuck.enable = true;
   programs.awscli.enable = true;
   programs.gh-dash.enable = true;
-  # programs.pyenv.enable = true;
-  programs.git-credential-oauth.enable = true;
 
   home.sessionVariables = {
     EDITOR = "nvim";
@@ -216,6 +214,7 @@ in
       gcc
       gh
       git
+      git-credential-oauth
       gnumake
       go
       google-cloud-sdk
