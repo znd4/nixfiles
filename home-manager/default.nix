@@ -21,6 +21,8 @@ let
     by = "bat -l yaml";
     k = "kubectl";
     vi = "nvim";
+    openai="op plugin run -- openai";
+    gh="op plugin run -- gh";
   };
 in
 {
@@ -69,6 +71,7 @@ in
 
   home.sessionVariables = {
     EDITOR = "nvim";
+    OP_PLUGIN_ALIASES_SOURCED = 1;
   };
   home.username = username;
 
