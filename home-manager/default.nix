@@ -171,7 +171,7 @@ in
   programs.ssh = {
     addKeysToAgent = "confirm";
     enable = true;
-    matchBlocks = (
+    matchBlocks = lib.debug.traceSeq keys (
       lib.attrsets.mapAttrs (name: value: {
         identitiesOnly = true;
         identityFile = "${pkgs.writeText "${name}_id_rsa.pub" value}";
