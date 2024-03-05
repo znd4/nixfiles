@@ -25,10 +25,10 @@ return {
     local wk = require("which-key")
     wk.register({
       g = {
-        p = { vim.cmd.GPull, "Git Pull" },
-        P = { vim.cmd.GPush, "Git Push" },
-        c = { vim.cmd.GCommit, "Git Push" },
-        s = { vim.cmd.GStatus, "Git Status" },
+        p = { factory(vim.cmd.G, "pull"), "Git Pull" },
+        P = { factory(vim.cmd.G, "push"), "Git Push" },
+        c = { factory(vim.cmd.G, "commit"), "Git Commit" },
+        s = { vim.cmd.G, "Open Git (fugitive)" },
       },
       c = {
         name = "ChatGPT",
