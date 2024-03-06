@@ -125,7 +125,7 @@ else
           wallpaperApp # # wallpaper
           "waybar" # menu bar
           notificationDaemon
-          terminal # terminal (e.g. wezterm)
+          # terminal # terminal (e.g. wezterm)
           "wl-clip-persist --clipboard both"
         ];
 
@@ -220,10 +220,10 @@ else
           "suppressevent maximize, class:.*" # You'll probably like this.
 
           # Automatically send wezterm to scratch workspace
-          "float, class:^${terminal}$"
-          "workspace special:${terminal}, class:^${terminal}$"
-          "size 99% 50%, class:^${terminal}$"
-          "move 0.5% 0%, class:^${terminal}$"
+          # "float, class:^${terminal}$"
+          # "workspace special:${terminal}, class:^${terminal}$"
+          # "size 99% 50%, class:^${terminal}$"
+          # "move 0.5% 0%, class:^${terminal}$"
         ];
 
         misc = {
@@ -287,7 +287,7 @@ else
           [
             "CTRL ALT, F, togglespecialworkspace, ${terminal}"
             "SUPER, grave, togglespecialworkspace, ${terminal}"
-            "SUPER, Return, exec, xterm" # xterm is a symlink, not actually xterm
+            "SUPER, Return, exec, ${terminal}" # xterm is a symlink, not actually xterm
             "ALT, G, exec, vivaldi"
             "${mainMod}, E, exec, ${fileManager}"
             "${mainMod}, R, exec, ${menu}"
