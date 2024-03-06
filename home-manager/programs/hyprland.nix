@@ -299,7 +299,7 @@ else
             "${mainMod}, P, togglesplit"
             "${mainMod}, E, pseudo"
 
-            "${mainMod}, L, exec, hyprlock"
+            "CTRL SUPER, Q, exec, hyprlock"
 
             # Scroll through existing workspaces with mainMod + scroll
             "${mainMod}, mouse_down, workspace, e+1"
