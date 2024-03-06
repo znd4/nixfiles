@@ -34,6 +34,7 @@ else
       inputs.hypridle.homeManagerModules.default
       inputs.hyprlock.homeManagerModules.default
     ];
+    services.gnome-keyring.enable = true;
     services.hypridle = {
       # https://github.com/hyprwm/hypridle/blob/main/nix/hm-module.nix
       enable = true;
@@ -125,6 +126,7 @@ else
           "waybar" # menu bar
           notificationDaemon
           terminal # terminal (e.g. wezterm)
+          "wl-clip-persist --clipboard both"
         ];
 
         monitor = [ ",preferred,auto,auto" ];
