@@ -72,6 +72,10 @@ else
       # qt6
       # libsForQt5
 
+      # clipboard
+      wl-clipboard
+      wl-clip-persist
+
       # https://wiki.hyprland.org/Useful-Utilities/Must-have/#authentication-agent
       polkit-kde-agent
 
