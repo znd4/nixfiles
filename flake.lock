@@ -24,7 +24,7 @@
       "flake": false,
       "locked": {
         "lastModified": 1,
-        "narHash": "sha256-e0lgbIK6M5i9EkSnY52Jix1Hv+aU1CDguR2HAzZQEWY=",
+        "narHash": "sha256-NwYjxWiPhj4WJPDmiehvSjqy3szMIWvvpaH3yMumlRU=",
         "path": "./dotfiles",
         "type": "path"
       },
@@ -102,11 +102,11 @@
         "xdph": "xdph"
       },
       "locked": {
-        "lastModified": 1709738818,
-        "narHash": "sha256-6X13i1Qc44mqSKj42snymJLtjVF8TnNGeTpLICWWerw=",
+        "lastModified": 1709748899,
+        "narHash": "sha256-fk2IXzEIVn3a0mGFymCS5WbOePjDBJy8D5R2hol5WHA=",
         "owner": "hyprwm",
         "repo": "Hyprland",
-        "rev": "669ea8a373f6d365c16ab40a82953f2e52faa765",
+        "rev": "8e2a62e53bf51e8b4ae719d0e46797b0a26eeb22",
         "type": "github"
       },
       "original": {
