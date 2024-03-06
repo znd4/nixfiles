@@ -13,7 +13,14 @@
     isHidden = false;
   };
   # TODO: add fonts.fonts
-  # fonts.fonts = with pkgs; [];
+  fonts.fonts = with pkgs; [
+    (nerdfonts.override {
+      fonts = [
+        "FiraCode"
+        "VictorMono"
+      ];
+    })
+  ];
   nix.settings.experimental-features = "nix-command flakes";
 
   system.stateVersion = stateVersion;
