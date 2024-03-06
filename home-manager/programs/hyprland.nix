@@ -45,6 +45,21 @@ else
       enable = true;
     };
 
+    gtk = {
+      enable = true;
+      theme = {
+        # https://github.com/Fausto-Korpsvart/Tokyo-Night-GTK-Theme/tree/master
+        package = pkgs.tokyo-night-gtk;
+        # https://github.com/Fausto-Korpsvart/Tokyo-Night-GTK-Theme/tree/master/themes
+        name = "Tokyonight-Dark-BL";
+      };
+      iconTheme = {
+        package = pkgs.tokyo-night-gtk;
+        # https://github.com/Fausto-Korpsvart/Tokyo-Night-GTK-Theme/tree/master/icons
+        name = "Tokyonight-Dark";
+      };
+    };
+
     home.packages = with pkgs; [
       # menu bars
       waybar
