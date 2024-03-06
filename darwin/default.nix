@@ -12,7 +12,6 @@
     home = "/Users/${username}";
     isHidden = false;
   };
-  # TODO: add fonts.fonts
   fonts.fonts = with pkgs; [
     (nerdfonts.override {
       fonts = [

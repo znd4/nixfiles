@@ -24,6 +24,9 @@ let
     openai = "op plugin run -- openai";
     gh = lib.mkDefault "op plugin run -- gh";
   };
+  fishAliases = {
+    awsume = "source (pyenv which awsume.fish)";
+  };
 in
 {
   imports = [
@@ -206,7 +209,6 @@ in
       # kmonad
       age
       asdf
-      awscli2
       awsume
       bat
       broot
@@ -278,7 +280,7 @@ in
     shellAbbrs = {
       ky = "kubectl get -o yaml";
     };
-    shellAliases = shellAliases;
+    shellAliases = shellAliases // fishAliases;
     interactiveShellInit = ''
       fish_vi_key_bindings
     '';
