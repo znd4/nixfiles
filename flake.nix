@@ -1,5 +1,7 @@
 {
   inputs = {
+    nixpkgs.url = "nixpkgs/nixos-unstable";
+
     hyprland.url = "github:hyprwm/Hyprland";
     hypridle.url = "github:hyprwm/hypridle";
     hyprlock.url = "github:hyprwm/hyprlock";
