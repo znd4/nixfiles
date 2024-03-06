@@ -72,11 +72,6 @@ else
       # qt6
       # libsForQt5
 
-      # clipboard
-      cliphist
-      wl-clipboard
-      wl-clipboard-history
-
       # https://wiki.hyprland.org/Useful-Utilities/Must-have/#authentication-agent
       polkit-kde-agent
 
@@ -90,6 +85,9 @@ else
       fuzzel
       tofi
     ];
+
+    # enable clipboard support
+    services.copyq.enable = true;
 
     systemd.user.services.polkit-agent-helper-1 = {
       Unit = {
@@ -123,9 +121,6 @@ else
           "waybar" # menu bar
           notificationDaemon
           terminal # terminal (e.g. wezterm)
-          "wl-clipboard-history -t"
-          "wl-paste --watch cliphist store"
-          "rm ${config.home.homeDirectory}/.cache/cliphist/db"
         ];
 
         monitor = [ ",preferred,auto,auto" ];
