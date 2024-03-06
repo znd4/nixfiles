@@ -159,8 +159,8 @@ else
           layout = "dwindle";
 
           # resize with mouse
-          resize_on_border = true;
-          extend_border_grab_area = 15;
+          # resize_on_border = true;
+          # extend_border_grab_area = 15;
 
           # Please see https://wiki.hyprland.org/Configuring/Tearing/ before you turn this on
           allow_tearing = false;
