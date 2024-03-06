@@ -1,6 +1,7 @@
 {
-  lib,
+  config,
   inputs,
+  lib,
   pkgs,
   system,
   ...
@@ -71,6 +72,11 @@ else
       # qt6
       # libsForQt5
 
+      # clipboard
+      cliphist
+      wl-clipboard
+      wl-clipboard-history
+
       # https://wiki.hyprland.org/Useful-Utilities/Must-have/#authentication-agent
       polkit-kde-agent
 
@@ -117,6 +123,9 @@ else
           "waybar" # menu bar
           notificationDaemon
           terminal # terminal (e.g. wezterm)
+          "wl-clipboard-history -t"
+          "wl-paste --watch cliphist store"
+          "rm ${config.home.homeDirectory}/.cache/cliphist/db"
         ];
 
         monitor = [ ",preferred,auto,auto" ];
@@ -138,7 +147,7 @@ else
           # kb_model =
           # kb_options =
           # kb_rules =
-          follow_mouse = 1;
+          # follow_mouse = 1;
           touchpad = {
             natural_scroll = false;
             disable_while_typing = true;
@@ -169,7 +178,7 @@ else
         decoration = {
           # See https://wiki.hyprland.org/Configuring/Variables/ for more
 
-          rounding = 10;
+          rounding = 5;
 
           blur = {
             enabled = true;
@@ -242,13 +251,8 @@ else
             f = regex: "float, ^(${regex})$";
           in
           [
-            (f "org.gnome.Calculator")
-            (f "org.gnome.Nautilus")
             (f "pavucontrol")
             (f "nm-connection-editor")
-            (f "blueberry.py")
-            (f "org.gnome.Settings")
-            (f "org.gnome.design.Palette")
             (f "Color Picker")
             (f "xdg-desktop-portal")
             (f "xdg-desktop-portal-gtk")
@@ -334,8 +338,9 @@ else
           [
             ",XF86MonBrightnessUp,   exec, ${brightnessctl} set +5%"
             ",XF86MonBrightnessDown, exec, ${brightnessctl} set  5%-"
-            ",XF86KbdBrightnessUp,   exec, ${brightnessctl} -d asus::kbd_backlight set +1"
-            ",XF86KbdBrightnessDown, exec, ${brightnessctl} -d asus::kbd_backlight set  1-"
+            # keyboard backlight
+            # ",XF86KbdBrightnessUp,   exec, ${brightnessctl} -d asus::kbd_backlight set +1"
+            # ",XF86KbdBrightnessDown, exec, ${brightnessctl} -d asus::kbd_backlight set  1-"
             ",XF86AudioRaiseVolume,  exec, ${pactl} set-sink-volume @DEFAULT_SINK@ +5%"
             ",XF86AudioLowerVolume,  exec, ${pactl} set-sink-volume @DEFAULT_SINK@ -5%"
           ];
