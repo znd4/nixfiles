@@ -96,7 +96,7 @@ else
       };
       Service = {
         Type = "simple";
-        ExecStart = "${pkgs.polkit-kde-agent}/libexec/polkit-agent-helper-1";
+        ExecStart = "${pkgs.polkit-kde-agent}/libexec/polkit-kde-authentication-agent-1";
         Restart = "on-failure";
         RestartSec = 1;
         TimeoutStopSec = 10;
