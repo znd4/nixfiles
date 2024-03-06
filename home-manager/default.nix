@@ -222,6 +222,8 @@ in
       go
       google-cloud-sdk
       htop
+      jc
+      jq
       just
       kubectl
       lazygit
