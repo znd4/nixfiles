@@ -236,13 +236,11 @@ else
             weztermClass = "^org.wezfurlong.wezterm$";
           in
           [
-            "suppressevent maximize, class:.*" # You'll probably like this.
+            "suppressevent, maximize, class:.*" # You'll probably like this.
 
+            "fullscreen, class:^${weztermClass}$"
             # Automatically send wezterm to scratch workspace
-            "float, class:^${weztermClass}$"
             "workspace special:${terminal}, class:^${weztermClass}$"
-            # "size 99% 50%, class:^${weztermClass}$"
-            # "move 0.5% 0%, class:^${weztermClass}$"
           ];
 
         misc = {
