@@ -2,10 +2,22 @@
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
 
-    hyprland.url = "github:hyprwm/Hyprland";
-    hypridle.url = "github:hyprwm/hypridle";
-    hyprlock.url = "github:hyprwm/hyprlock";
-    hyprland.inputs.nixpkgs.follows = "nixpkgs";
+    hyprland = {
+      # url = "github:hyprwm/Hyprland";
+      type = "github";
+      owner = "hyprwm";
+      repo = "Hyprland";
+      ref = "v0.35.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    hypridle = {
+      url = "github:hyprwm/hypridle";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    hyprlock = {
+      url = "github:hyprwm/hyprlock";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     hyprland-plugins = {
       url = "github:hyprwm/hyprland-plugins";
