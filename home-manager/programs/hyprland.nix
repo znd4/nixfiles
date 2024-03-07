@@ -236,7 +236,7 @@ else
             weztermClass = "^org.wezfurlong.wezterm$";
           in
           [
-            "suppressevent, maximize, class:.*" # You'll probably like this.
+            # "suppressevent, maximize, class:.*" # You'll probably like this.
 
             "fullscreen, class:^${weztermClass}$"
             # Automatically send wezterm to scratch workspace
