@@ -74,6 +74,7 @@ in
   programs.gh = {
     enable = true;
     extensions = with pkgs; [ gh-dash ];
+    gitCredentialHelper.enable = false;
   };
 
   programs.gh-dash.enable = true;
