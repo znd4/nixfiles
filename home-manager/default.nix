@@ -110,11 +110,6 @@ in
       }
     ];
 
-  programs.wezterm = {
-    enable = true;
-    extraConfig = builtins.readFile "${inputs.dotfiles}/xdg-config/.config/wezterm/wezterm.lua";
-  };
-
   programs.git = {
     enable = true;
     lfs.enable = true;
