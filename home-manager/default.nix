@@ -281,6 +281,9 @@ in
     shellAbbrs = {
       ky = "kubectl get -o yaml";
     };
+    shellAbbrs = {
+      tg = "terragrunt";
+    };
     shellAliases = shellAliases // fishAliases;
     interactiveShellInit = ''
       fish_vi_key_bindings
