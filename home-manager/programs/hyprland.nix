@@ -231,15 +231,19 @@ else
         # Example windowrule v2
         # windowrulev2 = float,class:^(kitty)$,title:^(kitty)$
         # See https://wiki.hyprland.org/Configuring/Window-Rules/ for more
-        windowrulev2 = [
-          "suppressevent maximize, class:.*" # You'll probably like this.
+        windowrulev2 =
+          let
+            weztermClass = "^org.wezfurlong.wezterm$";
+          in
+          [
+            "suppressevent maximize, class:.*" # You'll probably like this.
 
-          # Automatically send wezterm to scratch workspace
-          # "float, class:^${terminal}$"
-          # "workspace special:${terminal}, class:^${terminal}$"
-          # "size 99% 50%, class:^${terminal}$"
-          # "move 0.5% 0%, class:^${terminal}$"
-        ];
+            # Automatically send wezterm to scratch workspace
+            "float, class:^${weztermClass}$"
+            # "workspace special:${terminal}, class:^${weztermClass}$"
+            # "size 99% 50%, class:^${weztermClass}$"
+            # "move 0.5% 0%, class:^${weztermClass}$"
+          ];
 
         misc = {
           # See https://wiki.hyprland.org/Configuring/Variables/ for more
