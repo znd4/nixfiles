@@ -240,7 +240,7 @@ else
 
             # Automatically send wezterm to scratch workspace
             "float, class:^${weztermClass}$"
-            # "workspace special:${terminal}, class:^${weztermClass}$"
+            "workspace special:${terminal}, class:^${weztermClass}$"
             # "size 99% 50%, class:^${weztermClass}$"
             # "move 0.5% 0%, class:^${weztermClass}$"
           ];
