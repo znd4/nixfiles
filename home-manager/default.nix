@@ -67,9 +67,15 @@ in
     enable = true;
     arguments = [ "--smart-case" ];
   };
+  # TODO: store wi-fi credentials
   # programs.jujutsu.enable = true; # TODO - try this out
   programs.thefuck.enable = true;
   programs.awscli.enable = true;
+  programs.gh = {
+    enable = true;
+    extensions = with pkgs; [ gh-dash ];
+  };
+
   programs.gh-dash.enable = true;
 
   home.sessionVariables = {
@@ -217,7 +223,6 @@ in
       delta
       fd
       gcc
-      gh
       git
       git-credential-oauth
       gnumake
