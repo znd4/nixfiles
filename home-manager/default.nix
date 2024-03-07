@@ -214,7 +214,7 @@ in
       bat
       broot
       cargo
-      clipboard-jh
+      clipboard-jh # TODO: install latest
       delta
       fd
       gcc
