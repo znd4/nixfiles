@@ -283,7 +283,7 @@ in
     };
     shellAbbrs = {
       tg = "terragrunt";
-      hm = "home-manager switch --flake=.";
+      hm = "home-manager switch --flake .";
       nfl = "nix flake update --commit-lock-file";
     };
     shellAliases = shellAliases // fishAliases;
