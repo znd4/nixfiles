@@ -105,7 +105,6 @@ in
       {
         # "fish/"={source= "${inputs.dotfiles}/fish/.config/fish/"; enable=false;};
         "starship.toml".source = "${dotConfig}/starship.toml";
-        "wezterm/wezterm.lua".source = "${dotConfig}/wezterm/wezterm.lua";
         # "direnv/direnvrc".source = "${dotConfig}/direnv/direnvrc";
         "direnv/direnvrc".text = builtins.readFile "${dotConfig}/direnv/direnvrc";
       }
@@ -113,6 +112,7 @@ in
 
   programs.wezterm = {
     enable = true;
+    extraConfig = builtins.readFile "${inputs.dotfiles}/xdg-config/.config/wezterm/wezterm.lua";
   };
 
   programs.git = {
