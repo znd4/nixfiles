@@ -30,6 +30,10 @@ return {
         c = { factory(vim.cmd.G, "commit"), "Git Commit" },
         s = { vim.cmd.G, "Open Git (fugitive)" },
       },
+      w = {
+        w = { vim.cmd.w, ":w" },
+      },
+      G = { vim.cmd.Gitsigns, "Gitsigns" },
       c = {
         name = "ChatGPT",
         c = { vim.cmd.ChatGPT, "ChatGPT" },
