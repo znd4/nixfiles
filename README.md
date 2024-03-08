@@ -5,6 +5,7 @@
 ```shell
 git clone https://github.com/znd4/nixfiles
 cd ./nixfiles
+# Only needed during system setup
 export NIX_CONFIG="experimental-features = nix-command flakes"
 ```
 
