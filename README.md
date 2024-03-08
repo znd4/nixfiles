@@ -5,6 +5,7 @@
 ```shell
 git clone https://github.com/znd4/nixfiles
 cd ./nixfiles
+export NIX_CONFIG="experimental-features = nix-command flakes"
 ```
 
 ### nix-darwin
