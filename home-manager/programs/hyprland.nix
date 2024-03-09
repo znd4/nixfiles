@@ -1,3 +1,6 @@
+# TODO: Save wifi password
+# TODO: hypridle should actually make the computer go to sleep
+# TODO: use alt+space to open launcher
 {
   config,
   inputs,
@@ -138,6 +141,7 @@ else
         exec-once = [
           "${pkgs.networkmanagerapplet}/bin/nm-applet --indicator & disown"
           wallpaperApp # # wallpaper
+          terminal
           "waybar" # menu bar
           notificationDaemon
           # terminal # terminal (e.g. wezterm)
