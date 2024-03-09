@@ -38,7 +38,10 @@
 
   security = {
     polkit.enable = true;
-    pam.services.ags = { };
+    pam.services = {
+      hyprlock = { };
+      args = { };
+    };
   };
 
   services = {

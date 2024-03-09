@@ -46,6 +46,7 @@ else
     programs.hyprlock = {
       # https://github.com/hyprwm/hyprlock/blob/main/nix/hm-module.nix
       enable = true;
+      # TODO: set wallpaper to tokyo_skyline.png
     };
 
     gtk = {
