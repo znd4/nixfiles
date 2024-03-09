@@ -10,7 +10,9 @@
     trusted-public-keys = [ "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc=" ];
   };
 
-  services.xserver.displayManager.startx.enable = true;
+  services.xserver.displayManager.sddm = {
+    enable = true;
+  };
 
   programs.hyprland = {
     enable = true;
@@ -26,7 +28,7 @@
 
   hardware = {
     opengl.enable = true;
-    # nvidia.modesetting.enable = true;
+    nvidia.modesetting.enable = true;
   };
 
   xdg.portal = {
