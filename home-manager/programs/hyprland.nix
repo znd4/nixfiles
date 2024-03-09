@@ -1,6 +1,7 @@
 # TODO: Save wifi password
 # TODO: hypridle should actually make the computer go to sleep
 # TODO: use alt+space to open launcher
+# TODO: Look into scripting with various launchers (e.g custom search providers)
 {
   config,
   inputs,
