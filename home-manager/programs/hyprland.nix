@@ -1,6 +1,5 @@
 # TODO: Save wifi password
 # TODO: hypridle should actually make the computer go to sleep
-# TODO: use alt+space to open launcher
 # TODO: Look into scripting with various launchers (e.g custom search providers)
 {
   config,
@@ -313,6 +312,7 @@ else
             "ALT, G, exec, vivaldi"
             "${mainMod}, E, exec, ${fileManager}"
             "${mainMod}, R, exec, ${menu}"
+            "ALT, SPACE, exec, ${menu}"
 
             # youtube
             ", XF86Launch1,  exec, ${yt}"
