@@ -42,7 +42,7 @@ else
       # https://github.com/hyprwm/hypridle/blob/main/nix/hm-module.nix
       enable = true;
       lockCmd = "hyprlock";
-      beforeSleepCommand = "systemctl suspend-then-hibernate";
+      beforeSleepCmd = "systemctl suspend-then-hibernate";
     };
     programs.hyprlock = {
       # https://github.com/hyprwm/hyprlock/blob/main/nix/hm-module.nix
