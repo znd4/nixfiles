@@ -1,4 +1,4 @@
-{ inputs, machineName, ... }:
+{ inputs, hostname, ... }:
 {
   imports = [ inputs.kmonad.nixosModules.default ];
   services.kmonad =
@@ -11,12 +11,12 @@
       enable = true;
       keyboards = {
         "kmonad-keeb" = {
-          device = keyboardMap.${machineName};
+          device = keyboardMap.${hostname};
           config = ''
             (defcfg
               ;; For Linux
               ;; TODO - make this programmatically determined (e.g. generate this with Cue)
-              input  (device-file "${keyboardMap.${machineName}}")
+              input  (device-file "${keyboardMap.${hostname}}")
               output (uinput-sink "My KMonad output"
                 ;; To understand the importance of the following line, see the section on
                 ;; Compose-key sequences at the near-bottom of this file.

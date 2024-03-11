@@ -62,7 +62,9 @@
       darwin,
       ...
     }@inputs:
-
+    let
+      lib = nixpkgs.lib;
+    in
     {
       keys = {
         "github.com" = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHkoZGPqvCciloARGk9/rgPdjCFI2JmsYbgboEv98RKc github.com key";
@@ -93,25 +95,40 @@
         stateVersion = 4;
       };
 
-      nixosConfigurations.nixos =
-        let
-          system = "x86_64-linux";
-        in
-        nixpkgs.lib.nixosSystem {
-          system = system;
-          specialArgs = {
-            inherit inputs;
-            system = system;
-            outputs = self;
-            stateVersion = "23.11";
-            username = "znd4";
-            machineName = "t470";
-          };
-          modules = [
-            ./nixos
-            ./shell
-          ];
-        };
+      nixosConfigurations = (
+        builtins.listToAttrs (
+          builtins.map
+            (
+              {
+                system ? "x86_64-linux",
+                stateVersion ? "23.11",
+                username,
+                hostname,
+              }:
+              (lib.attrSets.nameValuePair hostname lib.nixosSystem {
+                system = system;
+                specialArgs = {
+                  inherit inputs;
+                  system = system;
+                  outputs = self;
+                  stateVersion = stateVersion;
+                  username = username;
+                  hostname = hostname;
+                };
+                modules = [
+                  ./nixos
+                  ./shell
+                ];
+              })
+            )
+            [
+              {
+                hostname = "t470";
+                username = "znd4";
+              }
+            ]
+        )
+      );
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt-rfc-style;
       formatter.aarch64-darwin = nixpkgs.legacyPackages.aarch64-darwin.nixfmt-rfc-style;
 
@@ -139,15 +156,33 @@
           };
           modules = [ self.homeModules.default ] ++ extraModules;
         };
-      homeConfigurations = {
-        "work" = self.homeConfigurationFactory {
-          system = "aarch64-darwin";
-          username = "dufourz";
-        };
-        "znd4@nixos" = self.homeConfigurationFactory {
-          system = "x86_64-linux";
-          username = "znd4";
-        };
-      };
+      homeConfigurations = (
+        builtins.listToAttrs (
+          builtins.map
+            (
+              {
+                username,
+                machineName,
+                system ? "x86_64-linux",
+              }:
+              (lib.attrSets.nameValuePair "${username}@${machineName}" (
+                self.homeConfigurationFactory { inherit system username machineName; }
+              ))
+            )
+            [
+              {
+                username = "znd4";
+                machineName = "t470";
+              }
+            ]
+        )
+      );
+      # homeConfigurations = {
+      #   "znd4@t470" = self.homeConfigurationFactory {
+      #     system = "x86_64-linux";
+      #     username = "znd4";
+      #     machineName = "t470";
+      #   };
+      # };
     };
 }

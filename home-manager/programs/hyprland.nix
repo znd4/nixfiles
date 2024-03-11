@@ -42,7 +42,19 @@ else
       # https://github.com/hyprwm/hypridle/blob/main/nix/hm-module.nix
       enable = true;
       lockCmd = "hyprlock";
-      beforeSleepCmd = "systemctl suspend-then-hibernate";
+      beforeSleepCmd = "loginctl lock-session";
+      afterSleepCmd = "hyprctl dispatch dpms on";
+      listeners = [
+        {
+          timeout = 180;
+          onTimeout = "pidof hyprlock || hyprlock";
+          onResume = "echo hi";
+        }
+        {
+          timeout = 300;
+          command = "systemctl suspend-then-hibernate";
+        }
+      ];
     };
     programs.hyprlock = {
       # https://github.com/hyprwm/hyprlock/blob/main/nix/hm-module.nix

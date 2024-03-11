@@ -7,7 +7,7 @@
   inputs,
   pkgs,
   username,
-  machineName,
+  hostname,
   stateVersion,
   ...
 }@args:
@@ -16,7 +16,7 @@ let
   machineConfigMap = {
     "t470" = ./machines/t470.nix;
   };
-  hardwareConfig = machineConfigMap.${machineName};
+  hardwareConfig = machineConfigMap.${hostname};
 in
 {
   imports = [
@@ -44,7 +44,7 @@ in
     })
   ];
 
-  networking.hostName = "nixos"; # Define your hostname.
+  networking.hostName = hostname; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
