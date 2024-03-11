@@ -52,7 +52,7 @@ else
         }
         {
           timeout = 300;
-          command = "systemctl suspend-then-hibernate";
+          onTimeout = "systemctl suspend-then-hibernate";
         }
       ];
     };
