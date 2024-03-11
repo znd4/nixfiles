@@ -18,7 +18,8 @@ let
   notificationDaemon = "dunst"; # mako, swaync
   wallpaperApp = "hyprpaper"; # swaybg, wpaperd, mpvpaper, swww
   menu = "wofi --show drun";
-
+  brightnessctlBin = "${pkgs.brightnessctl}/bin/brightnessctl";
+  pactlBin = "${pkgs.pulseaudio}/bin/pactl";
   yt = pkgs.writeShellScript "yt" ''
     notify-send "Opening video" "$(wl-paste)"
     mpv "$(wl-paste)"
@@ -41,18 +42,32 @@ else
     services.hypridle = {
       # https://github.com/hyprwm/hypridle/blob/main/nix/hm-module.nix
       enable = true;
-      lockCmd = "hyprlock";
+      lockCmd = "pidof hyprlock || hyprlock";
       beforeSleepCmd = "loginctl lock-session";
       afterSleepCmd = "hyprctl dispatch dpms on";
       listeners = [
         {
-          timeout = 180;
-          onTimeout = "pidof hyprlock || hyprlock";
-          onResume = "echo hi";
+          timeout = 150;
+          onTimeout = "${brightnessctlBin} -s set 10";
+          onResume = "${brightnessctlBin} -r ";
+        }
+        {
+          timeout = 150; # 2.5min.
+          onTimeout = "brightnessctl -sd rgb:kbd_backlight set 0"; # turn off keyboard backlight.
+          onResume = "brightnessctl -rd rgb:kbd_backlight"; # turn on keyboard backlight.
         }
         {
           timeout = 300;
-          onTimeout = "systemctl suspend-then-hibernate";
+          onTimeout = "loginctl lock-session";
+        }
+        {
+          timeout = 380; # 5.5min
+          onTimeout = "hyprctl dispatch dpms off"; # screen off when timeout has passed
+          onResume = "hyprctl dispatch dpms on"; # screen on when activity is detected after timeout has fired.
+        }
+        {
+          timeout = 600; # 10min
+          onTimeout = "systemctl suspend-then-hybernate"; # suspend pc
         }
       ];
     };
@@ -367,26 +382,19 @@ else
           ++ (map (i: ws (toString i) (toString i)) arr)
           ++ (map (i: mvtows (toString i) (toString i)) arr);
 
-        bindel =
-          let
-            brightnessctl = "${pkgs.brightnessctl}/bin/brightnessctl";
-            pactl = "${pkgs.pulseaudio}/bin/pactl";
-          in
-
-          [
-            ",XF86MonBrightnessUp,   exec, ${brightnessctl} set +5%"
-            ",XF86MonBrightnessDown, exec, ${brightnessctl} set  5%-"
-            # keyboard backlight
-            # ",XF86KbdBrightnessUp,   exec, ${brightnessctl} -d asus::kbd_backlight set +1"
-            # ",XF86KbdBrightnessDown, exec, ${brightnessctl} -d asus::kbd_backlight set  1-"
-            ",XF86AudioRaiseVolume,  exec, ${pactl} set-sink-volume @DEFAULT_SINK@ +5%"
-            ",XF86AudioLowerVolume,  exec, ${pactl} set-sink-volume @DEFAULT_SINK@ -5%"
-          ];
+        bindel = [
+          ",XF86MonBrightnessUp,   exec, ${brightnessctlBin} set +5%"
+          ",XF86MonBrightnessDown, exec, ${brightnessctlBin} set  5%-"
+          # keyboard backlight
+          # ",XF86KbdBrightnessUp,   exec, ${brightnessctl} -d asus::kbd_backlight set +1"
+          # ",XF86KbdBrightnessDown, exec, ${brightnessctl} -d asus::kbd_backlight set  1-"
+          ",XF86AudioRaiseVolume,  exec, ${pactlBin} set-sink-volume @DEFAULT_SINK@ +5%"
+          ",XF86AudioLowerVolume,  exec, ${pactlBin} set-sink-volume @DEFAULT_SINK@ -5%"
+        ];
 
         bindl =
           let
             playerctl = "${pkgs.playerctl}/bin/playerctl";
-            pactl = "${pkgs.pulseaudio}/bin/pactl";
           in
           [
             ",XF86AudioPlay,    exec, ${playerctl} play-pause"
@@ -394,7 +402,7 @@ else
             ",XF86AudioPause,   exec, ${playerctl} pause"
             ",XF86AudioPrev,    exec, ${playerctl} previous"
             ",XF86AudioNext,    exec, ${playerctl} next"
-            ",XF86AudioMicMute, exec, ${pactl} set-source-mute @DEFAULT_SOURCE@ toggle"
+            ",XF86AudioMicMute, exec, ${pactlBin} set-source-mute @DEFAULT_SOURCE@ toggle"
           ];
 
         bindm = [
