@@ -141,6 +141,7 @@
         {
           system,
           username,
+          hostname,
           keys ? self.keys,
           stateVersion ? "23.11",
           extraModules ? [ ],
@@ -152,6 +153,7 @@
               inputs
               system
               username
+              hostname
               stateVersion
               keys
               ;
@@ -179,12 +181,5 @@
             ]
         )
       );
-      # homeConfigurations = {
-      #   "znd4@t470" = self.homeConfigurationFactory {
-      #     system = "x86_64-linux";
-      #     username = "znd4";
-      #     hostname = "t470";
-      #   };
-      # };
     };
 }
