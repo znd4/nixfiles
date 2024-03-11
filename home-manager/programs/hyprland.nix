@@ -42,6 +42,7 @@ else
       # https://github.com/hyprwm/hypridle/blob/main/nix/hm-module.nix
       enable = true;
       lockCmd = "hyprlock";
+      beforeSleepCommand = "systemctl suspend-then-hibernate";
     };
     programs.hyprlock = {
       # https://github.com/hyprwm/hyprlock/blob/main/nix/hm-module.nix
@@ -143,6 +144,7 @@ else
           "${pkgs.networkmanagerapplet}/bin/nm-applet --indicator & disown"
           wallpaperApp # # wallpaper
           terminal
+          "1password"
           "waybar" # menu bar
           notificationDaemon
           # terminal # terminal (e.g. wezterm)
