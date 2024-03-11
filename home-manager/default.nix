@@ -35,6 +35,8 @@ in
     ./programs
   ];
 
+  nix.package = pkgs.nix;
+
   nixpkgs = {
     # You can add overlays here
     overlays = [
