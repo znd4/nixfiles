@@ -2,7 +2,15 @@
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
     nil.url = "github:oxalica/nil";
+    nixd = {
+      url = "github:nix-community/nixd";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     hyprland = {
       # url = "github:hyprwm/Hyprland";
       type = "github";
@@ -15,18 +23,14 @@
       url = "github:hyprwm/hypridle";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    hyprland-plugins = {
+      url = "github:hyprwm/hyprland-plugins";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     hyprlock = {
       url = "github:hyprwm/hyprlock";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    hyprland-plugins = {
-      url = "github:hyprwm/hyprland-plugins";
-      inputs.hyprland.follows = "hyprland";
-    };
-
-    home-manager.url = "github:nix-community/home-manager";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     sesh = {
       url = "github:joshmedeski/sesh";
@@ -36,10 +40,10 @@
       url = "github:omerxx/tmux-sessionx";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    darwin.url = "github:LnL7/nix-darwin";
-    darwin.inputs.nixpkgs.follows = "nixpkgs";
-
+    darwin = {
+      url = "github:LnL7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     kmonad = {
       url = "git+https://github.com/kmonad/kmonad?submodules=1&dir=nix";
       inputs.nixpkgs.follows = "nixpkgs";

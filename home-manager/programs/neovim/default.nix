@@ -16,6 +16,7 @@
     "nvim/".source = "${inputs.dotfiles}/xdg-config/.config/nvim/";
     "nvim/".recursive = true;
   };
+  nixpkgs.overlays = [ inputs.nixd.overlays.nixd ];
   home.packages = with pkgs; [ neovim-remote ];
   programs.neovim = {
     enable = true;
