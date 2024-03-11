@@ -1,6 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
+    nil.url = "github:oxalica/nil";
 
     hyprland = {
       # url = "github:hyprwm/Hyprland";
