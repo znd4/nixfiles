@@ -164,17 +164,17 @@
             (
               {
                 username,
-                machineName,
+                hostname,
                 system ? "x86_64-linux",
               }:
-              (lib.attrsets.nameValuePair "${username}@${machineName}" (
-                self.homeConfigurationFactory { inherit system username machineName; }
+              (lib.attrsets.nameValuePair "${username}@${hostname}" (
+                self.homeConfigurationFactory { inherit system username hostname; }
               ))
             )
             [
               {
                 username = "znd4";
-                machineName = "t470";
+                hostname = "t470";
               }
             ]
         )
@@ -183,7 +183,7 @@
       #   "znd4@t470" = self.homeConfigurationFactory {
       #     system = "x86_64-linux";
       #     username = "znd4";
-      #     machineName = "t470";
+      #     hostname = "t470";
       #   };
       # };
     };
