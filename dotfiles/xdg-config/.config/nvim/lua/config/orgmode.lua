@@ -1,8 +1,15 @@
-local org_dir = os.getenv("HOME") .. "/Dropbox/org/"
+local org_dir = os.getenv("OBSIDIAN_VAULT") or os.getenv("HOME") .. "/logseq-graph/"
 -- mkdir if not exist
 if vim.fn.isdirectory(org_dir) == 0 then
-  vim.fn.mkdir(org_dir, "p")
+  print("logseq vault not present")
+  return
 end
+-- TODO: Convert :LSPLog to TODO list
+-- TODO: Write yr and yg commands to query you.com
+-- TODO: Configure hypridle properly
+-- TODO: Set up automated TODO processor on this website
+-- TODO: install latest clipboard-jh and test in wezterm / kitty
+-- TODO: Try setting up launcher with arguments (https://you.com/search?q=Which+Linux+launchers+allow+for+passing+arguments%3F&cid=c1_0b3143fc-e873-4c61-9f69-3900a6aa0ba0&tbm=youchat)
 
 require("orgmode").setup({
   org_agenda_files = { org_dir .. "/*" },

@@ -105,21 +105,23 @@
                 username,
                 hostname,
               }:
-              (lib.attrSets.nameValuePair hostname lib.nixosSystem {
-                system = system;
-                specialArgs = {
-                  inherit inputs;
+              (lib.attrsets.nameValuePair hostname (
+                lib.nixosSystem {
                   system = system;
-                  outputs = self;
-                  stateVersion = stateVersion;
-                  username = username;
-                  hostname = hostname;
-                };
-                modules = [
-                  ./nixos
-                  ./shell
-                ];
-              })
+                  specialArgs = {
+                    inherit inputs;
+                    system = system;
+                    outputs = self;
+                    stateVersion = stateVersion;
+                    username = username;
+                    hostname = hostname;
+                  };
+                  modules = [
+                    ./nixos
+                    ./shell
+                  ];
+                }
+              ))
             )
             [
               {
@@ -165,7 +167,7 @@
                 machineName,
                 system ? "x86_64-linux",
               }:
-              (lib.attrSets.nameValuePair "${username}@${machineName}" (
+              (lib.attrsets.nameValuePair "${username}@${machineName}" (
                 self.homeConfigurationFactory { inherit system username machineName; }
               ))
             )
