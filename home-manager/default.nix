@@ -281,10 +281,9 @@ in
     # ];
     shellAbbrs = {
       ky = "kubectl get -o yaml";
-    };
-    shellAbbrs = {
       tg = "terragrunt";
       hm = "home-manager switch --flake .";
+      j = "just";
       nfl = "nix flake update --commit-lock-file";
     };
     shellAliases = shellAliases // fishAliases;
