@@ -23,10 +23,7 @@
       url = "github:hyprwm/hypridle";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    hyprland-plugins = {
-      url = "github:hyprwm/hyprland-plugins";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    hyprland-plugins.url = "github:hyprwm/hyprland-plugins";
     hyprlock = {
       url = "github:hyprwm/hyprlock";
       inputs.nixpkgs.follows = "nixpkgs";
