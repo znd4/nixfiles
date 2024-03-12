@@ -115,8 +115,11 @@ in
     ];
 
   programs.lazygit = {
-    gui.nerdFontsVersion = 3;
-    git.autoFetch = false;
+    enable = true;
+    settings = {
+      gui.nerdFontsVersion = 3;
+      git.autoFetch = false;
+    };
   };
 
   programs.git = {
