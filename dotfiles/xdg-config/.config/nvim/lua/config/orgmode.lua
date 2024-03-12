@@ -13,7 +13,7 @@ end
 
 require("orgmode").setup({
   org_agenda_files = { org_dir .. "/*" },
-  org_default_notes_file = org_dir .. "refile.org",
+  org_default_notes_file = org_dir .. "/refile.org",
   org_agenda_templates = {
     m = {
       description = "Magic card wishlist",
