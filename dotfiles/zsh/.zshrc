@@ -210,8 +210,6 @@ fi
 
 
 
-# TODO - get this working on new desktop
-source_if_exists "$HOME/.config/op/plugins.sh"
 
 add_to_path "$HOME/.local/bin"
 

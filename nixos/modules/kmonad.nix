@@ -15,7 +15,6 @@
           config = ''
             (defcfg
               ;; For Linux
-              ;; TODO - make this programmatically determined (e.g. generate this with Cue)
               input  (device-file "${keyboardMap.${hostname}}")
               output (uinput-sink "My KMonad output"
                 ;; To understand the importance of the following line, see the section on
