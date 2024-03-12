@@ -28,6 +28,7 @@
       isort
       nil
       lua-language-server
+      marksman
       # nil
       nixd
       prettierd
