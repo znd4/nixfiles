@@ -114,6 +114,14 @@ in
       }
     ];
 
+  programs.lazygit = {
+    enable = true;
+    settings = {
+      gui.nerdFontsVersion = 3;
+      git.autoFetch = false;
+    };
+  };
+
   programs.git = {
     enable = true;
     lfs.enable = true;
@@ -232,7 +240,6 @@ in
       jq
       just
       kubectl
-      lazygit
       nixfmt
       nodejs
       opam

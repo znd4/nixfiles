@@ -9,7 +9,6 @@ local ensure_installed = {
   "jsonls",
   "jsonnet_ls",
   "ltex",
-  "marksman",
   "pyright",
   "rust_analyzer",
   "sqlls",
@@ -293,6 +292,7 @@ require("mason-lspconfig").setup({
     ltex = lsp_zero.noop,
     pylsp = lsp_zero.noop,
     rnix = lsp_zero.noop,
+    marksman = lsp_zero.default_setup,
     gopls = function()
       require("lspconfig").gopls.setup(gopls_settings)
     end,
