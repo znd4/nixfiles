@@ -1,4 +1,0 @@
-#!/usr/bin/env nu
-[(op read "op://Private/Protonmail/password"), (op item get Protonmail --otp)] 
-| str join "\n"
-| hydroxide auth znd4
