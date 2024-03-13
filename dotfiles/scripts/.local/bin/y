@@ -1,27 +1,16 @@
 #!/usr/bin/env nu
-let open_command = (match (uname) {
-    "Darwin" => "open",
-    "Linux" => "xdg-open",
-    _ => {error make { msg: "unsupported platform" }}
-    
-})
-
-# def open_command [] {
-#     match (uname) {
-#         "Darwin" => "open",
-#         "Linux" => "xdg-open",
-#         _ => {error make { msg: "unsupported platform" }}
-#     }
-# }
+use std
 
 def you.com_query [query: string, chatMode: string] {
     let qstring = { q: $query, chatMode: $chatMode, tbm: "youchat" } | url build-query
-    {
+    let url = {
         scheme: "https",
         host: "you.com",
         path: "/search",
         query: $qstring,
-    } | url join | start $in
+    } | url join 
+    std log debug "url: $url"
+    start $url
 }
 
 def "main genius" [query: string] {
@@ -31,6 +20,7 @@ def "main g" [query: string] {
     main genius $query
 }
 def "main research" [query: string] {
+    you.com_query $query "research"
 }
 def "main r" [query: string] {
     main research $query
