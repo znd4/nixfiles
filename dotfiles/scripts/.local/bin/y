@@ -1,3 +1,38 @@
-#!/usr/bin/env bash
+#!/usr/bin/env nu
+let open_command = (match (uname) {
+    "Darwin" => "open",
+    "Linux" => "xdg-open",
+    _ => {error make { msg: "unsupported platform" }}
+    
+})
 
-yadm $*
+# def open_command [] {
+#     match (uname) {
+#         "Darwin" => "open",
+#         "Linux" => "xdg-open",
+#         _ => {error make { msg: "unsupported platform" }}
+#     }
+# }
+
+def you.com_query [query: string, chatMode: string] {
+    let qstring = { q: $query, chatMode: $chatMode, tbm: "youchat" } | url build-query
+    {
+        scheme: "https",
+        host: "you.com",
+        path: "/search",
+        query: $qstring,
+    } | url join | $open_command $in
+}
+
+def "main genius" [query: string] {
+    you.com_query $query "agent"
+}
+def "main g" [query: string] {
+    main genius $query
+}
+def "main research" [query: string] {
+}
+def "main r" [query: string] {
+    main research $query
+}
+def main [] {}
