@@ -21,7 +21,7 @@ def you.com_query [query: string, chatMode: string] {
         host: "you.com",
         path: "/search",
         query: $qstring,
-    } | url join | $open_command $in
+    } | url join | start $in
 }
 
 def "main genius" [query: string] {
