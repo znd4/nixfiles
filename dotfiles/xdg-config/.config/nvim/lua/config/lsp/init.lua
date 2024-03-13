@@ -242,6 +242,8 @@ lsp_zero.configure("taplo", {
   filetypes = { "toml", "gitconfig" },
 })
 
+lsp_zero.configure("nushell", {})
+
 lsp_zero.configure("sqlls", {
   init_options = {
     provideFormatter = false,
