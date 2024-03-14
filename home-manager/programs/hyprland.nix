@@ -342,7 +342,7 @@ else
             "SUPER, grave, togglespecialworkspace, ${terminal}"
             "SUPER, Return, exec, ${terminal}" # xterm is a symlink, not actually xterm
             "ALT, G, exec, vivaldi"
-            "${mainMod}, E, exec, ${fileManager}"
+            # "${mainMod}, E, exec, ${fileManager}"
             "${mainMod}, R, exec, ${menu}"
             "ALT, SPACE, exec, ${menu}"
 
