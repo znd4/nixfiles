@@ -21,6 +21,7 @@ let
     by = "bat -l yaml";
     k = "kubectl";
     vi = "nvim";
+    terraform = "tofu";
     openai = "op plugin run -- openai";
     gh = lib.mkDefault "op plugin run -- gh";
   };
@@ -243,6 +244,7 @@ in
       nixfmt
       nodejs
       opam
+      opentofu
       personal_python
       personal_scripts
       podman-compose
@@ -260,7 +262,6 @@ in
       talosctl
       terragrunt
       thefuck
-      tofu
       unzip
       vale
       wget
