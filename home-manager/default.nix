@@ -260,6 +260,7 @@ in
       stow
       stylua
       talosctl
+      terraform
       terragrunt
       thefuck
       unzip
