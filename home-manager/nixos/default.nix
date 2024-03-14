@@ -24,9 +24,10 @@ else
     home.homeDirectory = "/home/" + username;
     home.sessionVariables.SSH_AUTH_SOCK = "/home/${username}/.1password/agent.sock";
     home.packages = with pkgs; [
-      signal-desktop
       appimage-run
+      mpv-unwrapped
       rpi-imager
+      signal-desktop
     ];
     # Nicely reload system units when changing configs
     systemd.user.startServices = "sd-switch";
