@@ -1,4 +1,3 @@
-# TODO: Save wifi password
 # TODO: Look into scripting with various launchers (e.g custom search providers)
 # TODO: fix hyprland flickering resizing issue
 {
