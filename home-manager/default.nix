@@ -260,6 +260,7 @@ in
       talosctl
       terragrunt
       thefuck
+      tofu
       unzip
       vale
       wget
