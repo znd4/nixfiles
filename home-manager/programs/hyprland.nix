@@ -141,6 +141,9 @@ else
     # enable clipboard support
     services.copyq.enable = true;
 
+    # bluetooth
+    services.blueman-applet.enable = true;
+
     systemd.user.services.polkit-agent-helper-1 = {
       Unit = {
         Description = "polkit-agent-helper-1";
