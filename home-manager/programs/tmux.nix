@@ -27,13 +27,15 @@
         		--bind 'ctrl-x:change-prompt(📁  )+reload(sesh list -z)' \
         		--bind 'ctrl-f:change-prompt(🔎  )+reload(fd -H -d 2 -t d -E .Trash . ~)'
       )"
+      # set -g @clipboard '#{?WAYLAND_DISPLAY,wl-copy,cb copy}'
+      set @clipboard '#{?WAYLAND_DISPLAY,wl-copy,cb copy}'
       # vi mode
       bind P paste-buffer
       bind-key -T copy-mode-vi v send-keys -X begin-selection
       unbind -T copy-mode-vi Enter
-      bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel 'cb copy'
-      bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'cb copy'
-      bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel 'cb copy'
+      bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel @clipboard
+      bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel @clipboard
+      bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel @clipboard
 
 
       unbind r

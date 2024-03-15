@@ -10,6 +10,21 @@ if uname_output:match("Linux") then
   vim.g.netrw_browsex_viewer = "xdg-open"
 end
 
+-- set clipboard+=unnamedplus
+vim.o.clipboard = "unnamedplus"
+-- vim.g.clipboard = {
+--   name = "custom_clipboard",
+--   copy = {
+--     ["+"] = { "cb", "copy" },
+--     ["*"] = { "cb", "copy" },
+--   },
+--   paste = {
+--     ["+"] = { "cb", "paste" },
+--     ["*"] = { "cb", "paste" },
+--   },
+--   cache_enabled = 0,
+-- }
+
 --enable editorconfig
 vim.g.editorconfig = true
 
