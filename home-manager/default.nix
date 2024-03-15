@@ -225,6 +225,7 @@ in
       asdf
       awsume
       bat
+      bottom
       broot
       cargo
       clipboard-jh # TODO: install latest
@@ -267,6 +268,7 @@ in
       vale
       wget
       xh
+      zenith
       zig
       zoxide
       zsh
