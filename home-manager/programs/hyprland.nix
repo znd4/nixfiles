@@ -174,6 +174,7 @@ else
           wallpaperApp # # wallpaper
           terminal
           "1password"
+          "logseq"
           "waybar" # menu bar
           notificationDaemon
           # terminal # terminal (e.g. wezterm)
