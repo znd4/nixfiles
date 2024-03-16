@@ -310,7 +310,10 @@ in
     enable = true;
   };
   programs.zoxide.enable = true;
-  programs.direnv.enable = true;
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+  };
   programs.k9s.enable = true;
 
   # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
