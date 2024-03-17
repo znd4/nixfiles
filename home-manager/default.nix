@@ -265,6 +265,7 @@ in
       terragrunt
       thefuck
       unzip
+      uv
       vale
       wget
       xh
@@ -303,6 +304,8 @@ in
     shellAliases = shellAliases // fishAliases;
     interactiveShellInit = ''
       fish_vi_key_bindings
+      # TODO: Contribute uv to home-manager
+      # eval (uv generate-shell-completion fish)
     '';
   };
 
