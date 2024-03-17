@@ -1,5 +1,6 @@
 # TODO: Look into scripting with various launchers (e.g custom search providers)
 # TODO: fix hyprland flickering resizing issue
+# TODO: fix iwd not reconnecting after suspend
 {
   config,
   inputs,
@@ -20,7 +21,7 @@ let
     "tofi-drun"
     "--font=${pkgs.nerdfonts}/share/fonts/truetype/NerdFonts/VictorMonoNerdFont-Italic.ttf"
     "--ascii-input=true"
-    "| xargs hyprctl dispatch exec"
+    "--drun-launch=true"
   ];
   # menu = "bemenu-run";
   brightnessctlBin = "${pkgs.brightnessctl}/bin/brightnessctl";
