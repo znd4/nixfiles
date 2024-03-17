@@ -27,8 +27,11 @@
         		--bind 'ctrl-x:change-prompt(📁  )+reload(sesh list -z)' \
         		--bind 'ctrl-f:change-prompt(🔎  )+reload(fd -H -d 2 -t d -E .Trash . ~)'
       )"
-      # set -g @clipboard '#{?WAYLAND_DISPLAY,wl-copy,cb copy}'
-      set @clipboard '#{?WAYLAND_DISPLAY,wl-copy,cb copy}'
+
+      if-shell "[ -z '$WAYLAND_DISPLAY' ]" \
+          "set -g @clipboard 'cb copy'" \
+          "set -g @clipboard 'wl-copy'" \
+
       # vi mode
       bind P paste-buffer
       bind-key -T copy-mode-vi v send-keys -X begin-selection
