@@ -67,6 +67,11 @@ in
     };
   };
 
+  services.lorri = {
+    enable = true;
+    enableNotifications = true;
+  };
+
   programs.ripgrep = {
     enable = true;
     arguments = [ "--smart-case" ];
