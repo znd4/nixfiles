@@ -16,7 +16,13 @@ let
   fileManager = "dolphin";
   notificationDaemon = "dunst"; # mako, swaync
   wallpaperApp = "hyprpaper"; # swaybg, wpaperd, mpvpaper, swww
-  menu = "wofi --show drun";
+  menu = ''
+    tofi-drun \
+      --font=${pkgs.nerdfonts}/share/fonts/truetype/NerdFonts/VictorMonoNerdFont-Italic.ttf \
+      --ascii-input=true \
+    | xargs hyprctl dispatch exec \
+  '';
+  # menu = "bemenu-run";
   brightnessctlBin = "${pkgs.brightnessctl}/bin/brightnessctl";
   pactlBin = "${pkgs.pulseaudio}/bin/pactl";
   yt = pkgs.writeShellScript "yt" ''
