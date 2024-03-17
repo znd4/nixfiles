@@ -1,6 +1,5 @@
-# TODO: Look into scripting with various launchers (e.g custom search providers)
-# TODO: fix hyprland flickering resizing issue
 # TODO: fix iwd not reconnecting after suspend
+# TODO: Implement automatic login, and test that it only works right after boot
 {
   config,
   inputs,
