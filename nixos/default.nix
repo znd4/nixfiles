@@ -188,7 +188,7 @@ in
     enable = true;
     # Certain features, including CLI integration and system authentication support,
     # require enabling PolKit integration on some desktop environments (e.g. Plasma).
-    polkitPolicyOwners = [ "znd4" ];
+    polkitPolicyOwners = [ username ];
   };
   programs.fish.enable = lib.mkForce true;
   programs.neovim.enable = lib.mkForce true;
