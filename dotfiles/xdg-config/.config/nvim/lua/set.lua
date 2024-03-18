@@ -29,7 +29,7 @@ vim.o.clipboard = "unnamedplus"
 vim.g.editorconfig = true
 
 --enable .nvim.lua
-vim.g.exrc = "exrc"
+vim.opt.exrc = "exrc"
 
 -- set autoindent
 vim.opt.smartindent = true
