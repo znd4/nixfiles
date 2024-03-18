@@ -15,6 +15,7 @@
 let
   machineConfigMap = {
     "t470" = ./machines/t470.nix;
+    "desktop" = ./machines/desktop.nix;
   };
   hardwareConfig = machineConfigMap.${hostname};
 in

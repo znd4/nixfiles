@@ -1,11 +1,15 @@
 { inputs, hostname, ... }:
+let
+  keyboardMap = {
+    "t470" = "/dev/input/by-path/platform-i8042-serio-0-event-kbd";
+  };
+  enabled = builtins.hasAttr hostname keyboardMap;
+in
+if !enabled then {} else
 {
   imports = [ inputs.kmonad.nixosModules.default ];
   services.kmonad =
     let
-      keyboardMap = {
-        "t470" = "/dev/input/by-path/platform-i8042-serio-0-event-kbd";
-      };
     in
     {
       enable = true;

@@ -135,6 +135,10 @@
             )
             [
               {
+                hostname = "desktop";
+                username = "znd4";
+              }
+              {
                 hostname = "t470";
                 username = "znd4";
               }
@@ -184,6 +188,10 @@
               ))
             )
             [
+              {
+                username = "znd4";
+                hostname = "desktop";
+              }
               {
                 username = "znd4";
                 hostname = "t470";
