@@ -67,6 +67,13 @@ in
     };
   };
 
+  programs.kitty = {
+    enable = true;
+    font = {
+      package = pkgs.nerdfonts;
+      name = "VictorMono";
+    };
+  };
   programs.ripgrep = {
     enable = true;
     arguments = [ "--smart-case" ];

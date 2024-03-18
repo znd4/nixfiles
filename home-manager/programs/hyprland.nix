@@ -12,7 +12,7 @@ let
   hyprland = inputs.hyprland.packages.${system}.hyprland;
   plugins = inputs.hyprland-plugins.packages.${system};
   mainMod = "SUPER";
-  terminal = "wezterm";
+  terminal = "kitty";
   fileManager = "dolphin";
   notificationDaemon = "dunst"; # mako, swaync
   wallpaperApp = "hyprpaper"; # swaybg, wpaperd, mpvpaper, swww
@@ -178,13 +178,13 @@ else
         exec-once = [
           "${pkgs.networkmanagerapplet}/bin/nm-applet --indicator & disown"
           wallpaperApp # # wallpaper
-          terminal
           "1password"
           "logseq"
           "waybar" # menu bar
           notificationDaemon
           # terminal # terminal (e.g. wezterm)
           "wl-clip-persist --clipboard both"
+          terminal
         ];
 
         monitor = [ ",preferred,auto,auto" ];
@@ -276,14 +276,15 @@ else
         # See https://wiki.hyprland.org/Configuring/Window-Rules/ for more
         windowrulev2 =
           let
-            weztermClass = "^org.wezfurlong.wezterm$";
+            # weztermClass = "^org.wezfurlong.wezterm$";
+            kittyClass = "^kitty$";
           in
           [
             # "suppressevent, maximize, class:.*" # You'll probably like this.
 
-            "fullscreen, class:^${weztermClass}$"
+            "fullscreen, class:^${kittyClass}$"
             # Automatically send wezterm to scratch workspace
-            "workspace special:${terminal}, class:^${weztermClass}$"
+            "workspace special:${terminal}, class:^${kittyClass}$"
           ];
 
         misc = {
@@ -355,6 +356,12 @@ else
 
             # youtube
             ", XF86Launch1,  exec, ${yt}"
+
+            # 1password
+            "CTRL, P, exec, 1password --show"
+            "CTRL SHIFT, SPACE, exec, 1password --quick-access"
+            "CTRL, BACKSLASH, exec, 1password --fill"
+            
 
             "ALT, Tab, focuscurrentorlast"
             "CTRL ALT, Delete, exit"
