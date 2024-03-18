@@ -275,12 +275,17 @@ in
       zsh
     ];
 
-  programs.skim = {
-    enable = true;
-    defaultCommand = "rg --files --hidden --follow --glob '!.git'";
-    changeDirWidgetCommand = "fd --type d --hidden --glob '!.git'";
-    defaultOptions = [ "--cycle" ];
-  };
+  programs.skim =
+    let
+      rgFiles = "rg --files --hidden --follow --glob '!.git'";
+    in
+    {
+      enable = true;
+      defaultCommand = rgFiles;
+      fileWidgetCommand = rgFiles;
+      changeDirWidgetCommand = "fd --type d --hidden --glob '!.git'";
+      defaultOptions = [ "--cycle" ];
+    };
 
   programs.zsh.enable = true;
   # Enable home-manager and git
