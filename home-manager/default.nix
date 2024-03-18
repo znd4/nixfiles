@@ -67,11 +67,15 @@ in
     };
   };
 
+  programs.alacritty = {
+    enable = true;
+  };
   programs.kitty = {
     enable = true;
     settings = {
-      shell = "sesh connect $(sesh list | sk)";
+      # shell = "sesh connect $(sesh list | sk)";
     };
+    theme = "Tokyo Night";
     font = {
       package = pkgs.nerdfonts;
       name = "VictorMono";
