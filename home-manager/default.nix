@@ -291,6 +291,9 @@ in
   # Enable home-manager and git
   programs.fzf = {
     enable = true;
+    enableFishIntegration = false;
+    enableBashIntegration = false;
+    enableZshIntegration = false;
   };
   programs.home-manager.enable = true;
   programs.nushell = {
