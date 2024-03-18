@@ -69,6 +69,9 @@ in
 
   programs.kitty = {
     enable = true;
+    settings = {
+      shell = "sesh connect $(sesh list | sk)";
+    };
     font = {
       package = pkgs.nerdfonts;
       name = "VictorMono";
