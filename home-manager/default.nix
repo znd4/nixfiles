@@ -107,12 +107,16 @@ in
       (getFiles "fish/conf.d" "${inputs.dotfiles}/fish/.config")
       (getFiles "fish/completions" "${inputs.dotfiles}/fish/.config")
       (getFiles "fish/functions" "${inputs.dotfiles}/fish/.config")
-      {
-        # "fish/"={source= "${inputs.dotfiles}/fish/.config/fish/"; enable=false;};
-        "starship.toml".source = "${dotConfig}/starship.toml";
-        # "direnv/direnvrc".source = "${dotConfig}/direnv/direnvrc";
-        "direnv/direnvrc".text = builtins.readFile "${dotConfig}/direnv/direnvrc";
-      }
+      (lib.attrsets.genAttrs
+        [
+          "starship.toml"
+          "direnv/direnvrc"
+          "ptpython/config.py"
+        ]
+        (name: {
+          source = "${dotConfig}/${name}";
+        })
+      )
     ];
 
   programs.lazygit = {
