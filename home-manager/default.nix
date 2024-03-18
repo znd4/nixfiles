@@ -275,7 +275,18 @@ in
       zsh
     ];
 
-  programs.skim.enable = true;
+  programs.skim = {
+    enable = true;
+    defaultCommand = "rg --files --hidden --follow --glob '!.git'";
+    changeDirWidgetCommand = "fd --type d --hidden --glob '!.git'";
+    defaultOptions = [ "--cycle" ];
+
+    # export FZF_COMPLETION_DIR_COMMANDS="cd z pushd rmdir"
+    #
+    # export SKIM_DEFAULT_COMMAND="${FZF_DEFAULT_COMMAND?}"
+    # export SKIM_CTRL_T_COMMAND="${SKIM_DEFAULT_COMMAND?}"
+    # export SKIM_DEFAULT_OPTS=${FZF_DEFAULT_OPTS?}
+  };
   programs.zsh.enable = true;
   # Enable home-manager and git
   programs.fzf = {
