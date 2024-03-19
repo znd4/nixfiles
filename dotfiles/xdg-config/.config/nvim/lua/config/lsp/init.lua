@@ -295,7 +295,7 @@ require("mason-lspconfig").setup({
     pylsp = lsp_zero.noop,
     rnix = lsp_zero.noop,
     marksman = lsp_zero.default_setup,
-    nushell = lsp_zero.default_setup,
+    -- nushell = lsp_zero.default_setup,
     gopls = function()
       require("lspconfig").gopls.setup(gopls_settings)
     end,
