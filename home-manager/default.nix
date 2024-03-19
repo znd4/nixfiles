@@ -115,18 +115,6 @@ in {
       )
     ];
 
-  xdg.mimeApps = {
-    enable = true;
-    defaultApplications = let
-      vivaldi = "${pkgs.vivaldi}/share/applications/vivaldi-stable.desktop";
-    in {
-      "text/html" = [vivaldi];
-      "application/xhtml+xml" = [vivaldi];
-      "x-scheme-handler/http" = [vivaldi];
-      "x-scheme-handler/https" = [vivaldi];
-    };
-  };
-
   programs.lazygit = {
     enable = true;
     settings = {

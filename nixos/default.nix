@@ -1,7 +1,6 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-
 {
   lib,
   inputs,
@@ -10,16 +9,13 @@
   hostname,
   stateVersion,
   ...
-}@args:
-
-let
+} @ args: let
   machineConfigMap = {
     "t470" = ./machines/t470.nix;
     "desktop" = ./machines/desktop.nix;
   };
   hardwareConfig = machineConfigMap.${hostname};
-in
-{
+in {
   imports = [
     # Include the results of the hardware scan.
     hardwareConfig
@@ -93,7 +89,6 @@ in
   };
 
   virtualisation.podman = {
-
     enable = true;
 
     # Create a `docker` alias for podman, to use it as a drop-in replacement
@@ -153,9 +148,10 @@ in
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.allowUnfreePredicate = _: true;
 
   # logseq
-  nixpkgs.config.permittedInsecurePackages = [ "electron-20.3.12" ];
+  nixpkgs.config.permittedInsecurePackages = ["electron-20.3.12"];
   nixpkgs.overlays = import ./overlays args;
 
   # List packages installed in system profile. To search, run:
@@ -188,7 +184,7 @@ in
     enable = true;
     # Certain features, including CLI integration and system authentication support,
     # require enabling PolKit integration on some desktop environments (e.g. Plasma).
-    polkitPolicyOwners = [ username ];
+    polkitPolicyOwners = [username];
   };
   programs.fish.enable = lib.mkForce true;
   programs.neovim.enable = lib.mkForce true;

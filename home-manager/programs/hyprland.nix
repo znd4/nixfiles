@@ -7,8 +7,7 @@
   pkgs,
   system,
   ...
-}:
-let
+}: let
   hyprland = inputs.hyprland.packages.${system}.hyprland;
   plugins = inputs.hyprland-plugins.packages.${system};
   mainMod = "SUPER";
@@ -16,12 +15,6 @@ let
   fileManager = "dolphin";
   notificationDaemon = "dunst"; # mako, swaync
   wallpaperApp = "hyprpaper"; # swaybg, wpaperd, mpvpaper, swww
-  menu = builtins.concatStringsSep " " [
-    "tofi-drun"
-    "--font=${pkgs.nerdfonts}/share/fonts/truetype/NerdFonts/VictorMonoNerdFont-Italic.ttf"
-    "--ascii-input=true"
-    "--drun-launch=true"
-  ];
   # menu = "bemenu-run";
   brightnessctlBin = "${pkgs.brightnessctl}/bin/brightnessctl";
   pactlBin = "${pkgs.pulseaudio}/bin/pactl";
@@ -35,10 +28,9 @@ let
     "aarch_64-linux"
   ];
 in
-if !enabled then
-  { }
-else
-  {
+  if !enabled
+  then {}
+  else {
     imports = [
       inputs.hypridle.homeManagerModules.default
       inputs.hyprlock.homeManagerModules.default
@@ -152,11 +144,11 @@ else
     systemd.user.services.polkit-agent-helper-1 = {
       Unit = {
         Description = "polkit-agent-helper-1";
-        Wants = [ "graphical-session.target" ];
-        After = [ "graphical-session.target" ];
+        Wants = ["graphical-session.target"];
+        After = ["graphical-session.target"];
       };
       Install = {
-        WantedBy = [ "graphical-session.target" ];
+        WantedBy = ["graphical-session.target"];
       };
       Service = {
         Type = "simple";
@@ -172,9 +164,8 @@ else
       package = hyprland;
       systemd.enable = true;
       xwayland.enable = true;
-      plugins = [ ];
+      plugins = [];
       settings = {
-
         exec-once = [
           "${pkgs.networkmanagerapplet}/bin/nm-applet --indicator & disown"
           wallpaperApp # # wallpaper
@@ -187,7 +178,7 @@ else
           terminal
         ];
 
-        monitor = [ ",preferred,auto,auto" ];
+        monitor = [",preferred,auto,auto"];
 
         env = [
           "XCURSOR_SIZE,24"
@@ -274,18 +265,16 @@ else
         # Example windowrule v2
         # windowrulev2 = float,class:^(kitty)$,title:^(kitty)$
         # See https://wiki.hyprland.org/Configuring/Window-Rules/ for more
-        windowrulev2 =
-          let
-            # weztermClass = "^org.wezfurlong.wezterm$";
-            kittyClass = "^kitty$";
-          in
-          [
-            # "suppressevent, maximize, class:.*" # You'll probably like this.
+        windowrulev2 = let
+          # weztermClass = "^org.wezfurlong.wezterm$";
+          kittyClass = "^kitty$";
+        in [
+          # "suppressevent, maximize, class:.*" # You'll probably like this.
 
-            "fullscreen, class:^${kittyClass}$"
-            # Automatically send wezterm to scratch workspace
-            "workspace special:${terminal}, class:^${kittyClass}$"
-          ];
+          "fullscreen, class:^${kittyClass}$"
+          # Automatically send wezterm to scratch workspace
+          "workspace special:${terminal}, class:^${kittyClass}$"
+        ];
 
         misc = {
           # See https://wiki.hyprland.org/Configuring/Variables/ for more
@@ -308,42 +297,54 @@ else
           workspace_swipe_numbered = true;
         };
 
-        windowrule =
-          let
-            f = regex: "float, ^(${regex})$";
-          in
-          [
-            (f "pavucontrol")
-            (f "nm-connection-editor")
-            (f "Color Picker")
-            (f "xdg-desktop-portal")
-            (f "xdg-desktop-portal-gtk")
-            (f "transmission-gtk")
-            # "workspace 7, title:Spotify"
-          ];
+        windowrule = let
+          f = regex: "float, ^(${regex})$";
+        in [
+          (f "pavucontrol")
+          (f "nm-connection-editor")
+          (f "Color Picker")
+          (f "xdg-desktop-portal")
+          (f "xdg-desktop-portal-gtk")
+          (f "transmission-gtk")
+          # "workspace 7, title:Spotify"
+        ];
 
-        bind =
-          let
-            binding =
-              mod: cmd: key: arg:
-              "${mod}, ${key}, ${cmd}, ${arg}";
-            mvfocus = binding "SUPER" "movefocus";
-            ws = binding "SUPER" "workspace";
-            resizeactive = binding "SUPER CTRL" "resizeactive";
-            mvactive = binding "SUPER ALT" "moveactive";
-            mvtows = binding "SUPER SHIFT" "movetoworkspace";
-            arr = [
-              1
-              2
-              3
-              4
-              5
-              6
-              7
-              8
-              9
-            ];
-          in
+        bind = let
+          binding = mod: cmd: key: arg: "${mod}, ${key}, ${cmd}, ${arg}";
+          mvfocus = binding "SUPER" "movefocus";
+          ws = binding "SUPER" "workspace";
+          resizeactive = binding "SUPER CTRL" "resizeactive";
+          mvactive = binding "SUPER ALT" "moveactive";
+          mvtows = binding "SUPER SHIFT" "movetoworkspace";
+          arr = [
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+          ];
+          drun = builtins.concatStringsSep " " [
+            "tofi-drun"
+            "--font=${pkgs.nerdfonts}/share/fonts/truetype/NerdFonts/VictorMonoNerdFont-Italic.ttf"
+            "--ascii-input=true"
+            "--drun-launch=true"
+          ];
+          run = builtins.concatStringsSep " " [
+            "tofi-run"
+            "--font=${pkgs.nerdfonts}/share/fonts/truetype/NerdFonts/VictorMonoNerdFont-Italic.ttf"
+            "--ascii-input=true"
+            "|"
+            "xargs"
+            "-r"
+            "hyprctl"
+            "dispatch"
+            "exec"
+          ];
+        in
           # Example binds, see https://wiki.hyprland.org/Configuring/Binds/ for more
           [
             "CTRL ALT, F, togglespecialworkspace, ${terminal}"
@@ -351,8 +352,8 @@ else
             "SUPER, Return, exec, ${terminal}" # xterm is a symlink, not actually xterm
             "ALT, G, exec, vivaldi"
             # "${mainMod}, E, exec, ${fileManager}"
-            "${mainMod}, R, exec, ${menu}"
-            "ALT, SPACE, exec, ${menu}"
+            "ALT, SPACE, exec, ${drun}"
+            "${mainMod}, R, exec, ${run}"
 
             # youtube
             ", XF86Launch1,  exec, ${yt}"
@@ -407,18 +408,16 @@ else
           ",XF86AudioLowerVolume,  exec, ${pactlBin} set-sink-volume @DEFAULT_SINK@ -5%"
         ];
 
-        bindl =
-          let
-            playerctl = "${pkgs.playerctl}/bin/playerctl";
-          in
-          [
-            ",XF86AudioPlay,    exec, ${playerctl} play-pause"
-            ",XF86AudioStop,    exec, ${playerctl} pause"
-            ",XF86AudioPause,   exec, ${playerctl} pause"
-            ",XF86AudioPrev,    exec, ${playerctl} previous"
-            ",XF86AudioNext,    exec, ${playerctl} next"
-            ",XF86AudioMicMute, exec, ${pactlBin} set-source-mute @DEFAULT_SOURCE@ toggle"
-          ];
+        bindl = let
+          playerctl = "${pkgs.playerctl}/bin/playerctl";
+        in [
+          ",XF86AudioPlay,    exec, ${playerctl} play-pause"
+          ",XF86AudioStop,    exec, ${playerctl} pause"
+          ",XF86AudioPause,   exec, ${playerctl} pause"
+          ",XF86AudioPrev,    exec, ${playerctl} previous"
+          ",XF86AudioNext,    exec, ${playerctl} next"
+          ",XF86AudioMicMute, exec, ${pactlBin} set-source-mute @DEFAULT_SOURCE@ toggle"
+        ];
 
         bindm = [
           "SUPER, mouse:273, resizewindow"
