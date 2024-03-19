@@ -3,8 +3,7 @@
   inputs,
   system,
   ...
-}:
-{
+}: {
   programs.fzf.tmux.enableShellIntegration = true;
   programs.tmux = {
     disableConfirmationPrompt = true;
@@ -42,7 +41,7 @@
 
 
       unbind r
-      bind r source-file ~/.config/tmux/tmux.conf \; display "Reloaded ~/.tmux.conf"
+      bind r source-file ~/.config/tmux/tmux.conf \; display "Reloaded tmux configuration"
 
       # Turn the mouse on, but without copy mode dragging
       unbind -n MouseDrag1Pane
@@ -81,7 +80,7 @@
       {
         plugin = tmux-thumbs;
         extraConfig = ''
-          set -g @thumbs-command 'echo -n {} | cb copy && tmux display-message "Copied to clipboard"'
+          set -g @thumbs-command 'tmux run-shell "echo -n {} | #{@clipboard} && tmux display-message \"Copied to clipboard\""'
         '';
       }
       {
