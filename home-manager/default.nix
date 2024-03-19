@@ -70,7 +70,7 @@ in
   programs.kitty = {
     enable = true;
     settings = {
-      shell = "sesh connect $(sesh list | sk)";
+      # shell = "sesh connect $(sesh list | sk)";
     };
     font = {
       package = pkgs.nerdfonts;
