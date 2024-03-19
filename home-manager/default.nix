@@ -67,17 +67,6 @@ in
     };
   };
 
-  programs.kitty = {
-    enable = true;
-    settings = {
-      # shell = "sesh connect $(sesh list | sk)";
-    };
-    theme = "Tokyo Night"; # "Tokyo Night {Moon/Storm}"
-    font = {
-      package = pkgs.nerdfonts;
-      name = "VictorMono";
-    };
-  };
   programs.ripgrep = {
     enable = true;
     arguments = [ "--smart-case" ];
