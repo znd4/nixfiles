@@ -59,12 +59,7 @@ in
       # })
     ];
     # Configure your nixpkgs instance
-    config = {
-      # Disable if you don't want unfree packages
-      allowUnfree = true;
-      # Workaround for https://github.com/nix-community/home-manager/issues/2942
-      allowUnfreePredicate = _: true;
-    };
+    config = import ./nixpkgs-config.nix;
   };
 
   programs.alacritty = {
@@ -107,6 +102,9 @@ in
         );
     in
     lib.foldl' lib.attrsets.recursiveUpdate { } [
+    {
+      "nixpkgs/config.nix".source = ./nixpkgs-config.nix;
+    }
       (getFiles "fish/conf.d" "${inputs.dotfiles}/fish/.config")
       (getFiles "fish/completions" "${inputs.dotfiles}/fish/.config")
       (getFiles "fish/functions" "${inputs.dotfiles}/fish/.config")
