@@ -10,8 +10,7 @@
   stateVersion,
   keys,
   ...
-}:
-let
+}: let
   system = pkgs.stdenv.system;
   shellAliases = {
     nix = "NO_COLOR=1 command nix";
@@ -28,8 +27,7 @@ let
   fishAliases = {
     awsume = "source (pyenv which awsume.fish)";
   };
-in
-{
+in {
   imports = [
     ./darwin
     ./nixos
@@ -67,7 +65,7 @@ in
   };
   programs.ripgrep = {
     enable = true;
-    arguments = [ "--smart-case" ];
+    arguments = ["--smart-case"];
   };
   # TODO: store wi-fi credentials
   # programs.jujutsu.enable = true; # TODO - try this out
@@ -75,7 +73,7 @@ in
   programs.awscli.enable = true;
   programs.gh = {
     enable = true;
-    extensions = with pkgs; [ gh-dash ];
+    extensions = with pkgs; [gh-dash];
     gitCredentialHelper.enable = false;
   };
 
@@ -87,26 +85,25 @@ in
   };
   home.username = username;
 
-  xdg.configFile =
-    let
-      dotConfig = "${inputs.dotfiles}/xdg-config/.config";
-      getFiles =
-        dir: prefix:
-        builtins.listToAttrs (
-          map (fp: {
-            name = dir + "/" + fp;
-            value = {
-              source = "${prefix}/${dir}/${fp}";
-            };
-          }) (builtins.attrNames (builtins.readDir "${prefix}/${dir}"))
-        );
-    in
-    lib.foldl' lib.attrsets.recursiveUpdate { } [
-      { "nixpkgs/config.nix".source = ./nixpkgs-config.nix; }
+  xdg.configFile = let
+    dotConfig = "${inputs.dotfiles}/xdg-config/.config";
+    getFiles = dir: prefix:
+      builtins.listToAttrs (
+        map (fp: {
+          name = dir + "/" + fp;
+          value = {
+            source = "${prefix}/${dir}/${fp}";
+          };
+        }) (builtins.attrNames (builtins.readDir "${prefix}/${dir}"))
+      );
+  in
+    lib.foldl' lib.attrsets.recursiveUpdate {} [
+      {"nixpkgs/config.nix".source = ./nixpkgs-config.nix;}
       (getFiles "fish/conf.d" "${inputs.dotfiles}/fish/.config")
       (getFiles "fish/completions" "${inputs.dotfiles}/fish/.config")
       (getFiles "fish/functions" "${inputs.dotfiles}/fish/.config")
-      (lib.attrsets.genAttrs
+      (
+        lib.attrsets.genAttrs
         [
           "starship.toml"
           "direnv/direnvrc"
@@ -117,6 +114,18 @@ in
         })
       )
     ];
+
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = let
+      vivaldi = "${pkgs.vivaldi}/share/applications/vivaldi-stable.desktop";
+    in {
+      "text/html" = [vivaldi];
+      "application/xhtml+xml" = [vivaldi];
+      "x-scheme-handler/http" = [vivaldi];
+      "x-scheme-handler/https" = [vivaldi];
+    };
+  };
 
   programs.lazygit = {
     enable = true;
@@ -198,97 +207,93 @@ in
       lib.attrsets.mapAttrs (name: value: {
         identitiesOnly = true;
         identityFile = "${pkgs.writeText "${name}_id_rsa.pub" value}";
-      }) keys
+      })
+      keys
     );
   };
 
   # Add stuff for your user as you see fit:
-  home.packages =
-    with pkgs;
-    let
-      sessionx = inputs.sessionx.packages.${system}.default;
-      sesh = (
-        buildGoModule {
-          src = "${inputs.sesh}";
-          name = "sesh";
-          vendorHash = "sha256-zt1/gE4bVj+3yr9n0kT2FMYMEmiooy3k1lQ77rN6sTk=";
-        }
-      );
-      personal_python = (python3.withPackages (ps: with ps; [ pre-commit ]));
-      personal_scripts = (
-        buildEnv {
-          name = "myScripts";
-          paths = [ "${inputs.dotfiles}/scripts/.local" ];
-        }
-      );
-    in
-    [
-      # kmonad
-      age
-      asdf
-      awsume
-      bat
-      bottom
-      broot
-      cargo
-      clipboard-jh # TODO: install latest
-      delta
-      fd
-      gcc
-      git
-      git-credential-oauth
-      gnumake
-      go
-      google-cloud-sdk
-      htop
-      jc
-      jq
-      just
-      kubectl
-      nixfmt
-      nodejs
-      opam
-      opentofu
-      personal_python
-      personal_scripts
-      podman-compose
-      pre-commit
-      python-launcher
-      ruff
-      rustc
-      sd
-      sesh
-      sessionx
-      skim
-      sops
-      stow
-      stylua
-      talosctl
-      terraform
-      terragrunt
-      thefuck
-      unzip
-      uv
-      vale
-      wget
-      xh
-      zenith
-      zig
-      zoxide
-      zsh
-    ];
+  home.packages = with pkgs; let
+    sessionx = inputs.sessionx.packages.${system}.default;
+    sesh = (
+      buildGoModule {
+        src = "${inputs.sesh}";
+        name = "sesh";
+        vendorHash = "sha256-zt1/gE4bVj+3yr9n0kT2FMYMEmiooy3k1lQ77rN6sTk=";
+      }
+    );
+    personal_python = python3.withPackages (ps: with ps; [pre-commit]);
+    personal_scripts = (
+      buildEnv {
+        name = "myScripts";
+        paths = ["${inputs.dotfiles}/scripts/.local"];
+      }
+    );
+  in [
+    # kmonad
+    age
+    asdf
+    awsume
+    bat
+    bottom
+    broot
+    cargo
+    clipboard-jh # TODO: install latest
+    delta
+    fd
+    gcc
+    git
+    git-credential-oauth
+    gnumake
+    go
+    google-cloud-sdk
+    htop
+    jc
+    jq
+    just
+    kubectl
+    nixfmt
+    nodejs
+    opam
+    opentofu
+    personal_python
+    personal_scripts
+    podman-compose
+    pre-commit
+    python-launcher
+    ruff
+    rustc
+    sd
+    sesh
+    sessionx
+    skim
+    sops
+    stow
+    stylua
+    talosctl
+    terraform
+    terragrunt
+    thefuck
+    unzip
+    uv
+    vale
+    wget
+    xh
+    zenith
+    zig
+    zoxide
+    zsh
+  ];
 
-  programs.skim =
-    let
-      rgFiles = "rg --files --hidden --follow --glob '!.git'";
-    in
-    {
-      enable = true;
-      defaultCommand = rgFiles;
-      fileWidgetCommand = rgFiles;
-      changeDirWidgetCommand = "fd --type d --hidden --glob '!.git'";
-      defaultOptions = [ "--cycle" ];
-    };
+  programs.skim = let
+    rgFiles = "rg --files --hidden --follow --glob '!.git'";
+  in {
+    enable = true;
+    defaultCommand = rgFiles;
+    fileWidgetCommand = rgFiles;
+    changeDirWidgetCommand = "fd --type d --hidden --glob '!.git'";
+    defaultOptions = ["--cycle"];
+  };
 
   programs.zsh.enable = true;
   # Enable home-manager and git
