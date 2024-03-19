@@ -9,11 +9,10 @@ On macOS, this is: ~/Library/Application Support/ptpython/config.py
 from prompt_toolkit.filters import ViInsertMode
 from prompt_toolkit.key_binding.key_processor import KeyPress
 from prompt_toolkit.keys import Keys
-from prompt_toolkit.styles import Style
+from prompt_toolkit.styles import DynamicStyle, Style
 
 from ptpython.layout import CompletionVisualisation
 
-from pygments.styles import Style
 from pygments.token import (
     Token,
     Comment,
@@ -36,18 +35,6 @@ __all__ = ["configure"]
 # magenta = '#bb9af7'
 # cyan = '#7dcfff'
 # white = '#a9b1d6'
-
-
-class Tokyonight(Style):
-    styles = {
-        Token: "#15161e",
-        Comment: "italic #e0af68",
-        Keyword: "bold #7aa2f7",
-        Name: "#a9b1d6",
-        Name.Class: "bold #7dcfff",
-        Name.Function: "#bb9af7",
-        String: "bg:#eee #9ece6a",
-    }
 
 
 def configure(repl):
@@ -149,9 +136,15 @@ def configure(repl):
     # color schemes. See:
     # https://pygments.org/docs/styles/
     # https://pygments.org/demo/
-    repl.use_code_colorscheme(Tokyonight)
+    # repl.use_code_colorscheme(Tokyonight)
+    # repl.use_code_colorscheme("default")
     # A colorscheme that looks good on dark backgrounds is 'native':
-    # repl.use_code_colorscheme("native")
+    # repl.install_code_colorscheme(
+    #     "tokyonight",
+    #     DynamicStyle(get_style=lambda: Tokyonight),
+    # )
+    # repl.use_code_colorscheme("tokyonight")
+    repl.use_code_colorscheme("github-dark")
 
     # Set color depth (keep in mind that not all terminals support true color).
 
@@ -174,10 +167,11 @@ def configure(repl):
     repl.vi_keep_last_used_mode = False
 
     # Install custom colorscheme named 'my-colorscheme' and use it.
-    """
-    repl.install_ui_colorscheme("my-colorscheme", Style.from_dict(_custom_ui_colorscheme))
+    repl.install_ui_colorscheme(
+        "my-colorscheme", Style.from_dict(_custom_ui_colorscheme)
+    )
     repl.use_ui_colorscheme("my-colorscheme")
-    """
+    # repl.use_ui_colorscheme("native")
 
     # Add custom key binding for PDB.
     """
@@ -232,11 +226,104 @@ def configure(repl):
     """
 
 
+bg_dark = "#1f2335"
+bg = "#24283b"
+bg_highlight = "#292e42"
+terminal_black = "#414868"
+fg = "#c0caf5"
+fg_dark = "#a9b1d6"
+fg_gutter = "#3b4261"
+dark3 = "#545c7e"
+comment = "#565f89"
+dark5 = "#737aa2"
+blue0 = "#3d59a1"
+blue = "#7aa2f7"
+cyan = "#7dcfff"
+blue1 = "#2ac3de"
+blue2 = "#0db9d7"
+blue5 = "#89ddff"
+blue6 = "#b4f9f8"
+blue7 = "#394b70"
+magenta = "#bb9af7"
+magenta2 = "#ff007c"
+purple = "#9d7cd8"
+orange = "#ff9e64"
+yellow = "#e0af68"
+green = "#9ece6a"
+green1 = "#73daca"
+green2 = "#41a6b5"
+teal = "#1abc9c"
+red = "#f7768e"
+red1 = "#db4b4b"
+
 # Custom colorscheme for the UI. See `ptpython/layout.py` and
 # `ptpython/style.py` for all possible tokens.
 _custom_ui_colorscheme = {
-    # Blue prompt.
-    "prompt": "bg:#eeeeff #000000 bold",
-    # Make the status toolbar red.
-    "status-toolbar": "bg:#ff0000 #000000",
+    "control-character": "ansiblue",
+    # Classic prompt.
+    "prompt": "bold",
+    "prompt.dots": "noinherit",
+    # (IPython <5.0) Prompt: "In [1]:"
+    "in": "bold #008800",
+    "in.number": "",
+    # Return value.
+    "out": "#ff0000",
+    "out.number": "#ff0000",
+    # Completions.
+    "completion": f"bg:{bg_dark}",
+    "completion.builtin": "",
+    "completion.param": "#006666 italic",
+    "completion.keyword": "fg:#008800",
+    "completion.keyword fuzzymatch.inside": "fg:#008800",
+    "completion.keyword fuzzymatch.outside": "fg:#44aa44",
+    # Separator between windows. (Used above docstring.)
+    "separator": "#bbbbbb",
+    # System toolbar
+    "system-toolbar": "#22aaaa noinherit",
+    # "arg" toolbar.
+    "arg-toolbar": "#22aaaa noinherit",
+    "arg-toolbar.text": "noinherit",
+    # Signature toolbar.
+    "signature-toolbar": "bg:#44bbbb #000000",
+    "signature-toolbar current-name": "bg:#008888 #ffffff bold",
+    "signature-toolbar operator": "#000000 bold",
+    "docstring": "#888888",
+    # Validation toolbar.
+    "validation-toolbar": "bg:#440000 #aaaaaa",
+    # Status toolbar.
+    "status-toolbar": "bg:#222222 #aaaaaa",
+    "status-toolbar.title": "underline",
+    "status-toolbar.inputmode": "bg:#222222 #ffffaa",
+    "status-toolbar.key": "bg:#000000 #888888",
+    "status-toolbar key": "bg:#000000 #888888",
+    "status-toolbar.pastemodeon": "bg:#aa4444 #ffffff",
+    "status-toolbar.pythonversion": "bg:#222222 #ffffff bold",
+    "status-toolbar paste-mode-on": "bg:#aa4444 #ffffff",
+    "record": "bg:#884444 white",
+    "status-toolbar more": "#ffff44",
+    "status-toolbar.input-mode": "#ffff44",
+    # The options sidebar.
+    "sidebar": f"bg:{bg_dark} #000000",
+    "sidebar.title": "bg:#668866 #ffffff",
+    "sidebar.label": f"bg:{bg_dark} #222222",
+    "sidebar.status": f"bg:{bg} #000011",
+    "sidebar.label selected": "bg:#222222 #eeeeee",
+    "sidebar.status selected": "bg:#444444 #ffffff bold",
+    "sidebar.separator": "underline",
+    "sidebar.key": f"bg:{terminal_black} #000000 bold",
+    "sidebar.key.description": f"bg:{bg} #000000",
+    "sidebar.helptext": f"bg:{bg_dark} #000011",
+    #        # Styling for the history layout.
+    #        history.line:                          '',
+    #        history.line.selected:                 'bg:#008800  #000000',
+    #        history.line.current:                  'bg:#ffffff #000000',
+    #        history.line.selected.current:         'bg:#88ff88 #000000',
+    #        history.existinginput:                  '#888888',
+    # Help Window.
+    "window-border": "#aaaaaa",
+    "window-title": "bg:#bbbbbb #000000",
+    # Meta-enter message.
+    "accept-message": "bg:#ffff88 #444444",
+    # Exit confirmation.
+    "exit-confirmation": "bg:#884444 #ffffff",
 }
