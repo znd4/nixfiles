@@ -72,6 +72,7 @@ in
     settings = {
       # shell = "sesh connect $(sesh list | sk)";
     };
+    theme = "Tokyo Night"; # "Tokyo Night {Moon/Storm}"
     font = {
       package = pkgs.nerdfonts;
       name = "VictorMono";
