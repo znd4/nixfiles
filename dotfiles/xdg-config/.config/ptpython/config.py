@@ -13,7 +13,41 @@ from prompt_toolkit.styles import Style
 
 from ptpython.layout import CompletionVisualisation
 
+from pygments.styles import Style
+from pygments.token import (
+    Token,
+    Comment,
+    Keyword,
+    Name,
+    String,
+    Error,
+    Generic,
+    Number,
+    Operator,
+)
+
 __all__ = ["configure"]
+
+# black = '#15161e'
+# red = '#f7768e'
+# green = '#9ece6a'
+# yellow = '#e0af68'
+# blue = '#7aa2f7'
+# magenta = '#bb9af7'
+# cyan = '#7dcfff'
+# white = '#a9b1d6'
+
+
+class Tokyonight(Style):
+    styles = {
+        Token: "#15161e",
+        Comment: "italic #e0af68",
+        Keyword: "bold #7aa2f7",
+        Name: "#a9b1d6",
+        Name.Class: "bold #7dcfff",
+        Name.Function: "#bb9af7",
+        String: "bg:#eee #9ece6a",
+    }
 
 
 def configure(repl):
