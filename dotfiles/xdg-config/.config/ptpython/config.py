@@ -149,7 +149,7 @@ def configure(repl):
     # color schemes. See:
     # https://pygments.org/docs/styles/
     # https://pygments.org/demo/
-    repl.use_code_colorscheme("default")
+    repl.use_code_colorscheme(Tokyonight)
     # A colorscheme that looks good on dark backgrounds is 'native':
     # repl.use_code_colorscheme("native")
 
