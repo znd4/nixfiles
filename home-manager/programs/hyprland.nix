@@ -361,7 +361,6 @@ else
             "CTRL, P, exec, 1password --show"
             "CTRL SHIFT, SPACE, exec, 1password --quick-access"
             "CTRL, BACKSLASH, exec, 1password --fill"
-            
 
             "ALT, Tab, focuscurrentorlast"
             "CTRL ALT, Delete, exit"

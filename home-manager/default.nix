@@ -102,9 +102,7 @@ in
         );
     in
     lib.foldl' lib.attrsets.recursiveUpdate { } [
-    {
-      "nixpkgs/config.nix".source = ./nixpkgs-config.nix;
-    }
+      { "nixpkgs/config.nix".source = ./nixpkgs-config.nix; }
       (getFiles "fish/conf.d" "${inputs.dotfiles}/fish/.config")
       (getFiles "fish/completions" "${inputs.dotfiles}/fish/.config")
       (getFiles "fish/functions" "${inputs.dotfiles}/fish/.config")

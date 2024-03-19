@@ -10,6 +10,4 @@ builtins.map
   # execute and import the overlay file
   (f: (import (./. + "/${f}") args))
   # find all overlay files in the current directory
-  (
-    builtins.filter (f: f != "default.nix") (builtins.attrNames (builtins.readDir ./.))
-  )
+  (builtins.filter (f: f != "default.nix") (builtins.attrNames (builtins.readDir ./.)))
