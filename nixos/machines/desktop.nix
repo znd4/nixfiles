@@ -4,15 +4,25 @@
 {
   config,
   lib,
-  pkgs,
+  outputs,
+  username,
   modulesPath,
   ...
 }: {
   imports = [(modulesPath + "/installer/scan/not-detected.nix")];
 
+  services.openssh = {
+    enable = true;
+    settings = {
+      PasswordAuthentication = false;
+      AllowUsers = [username];
+    };
+  };
+  users.users.${username}.openssh.authorizedKeys.keys = [outputs.keys.Desktop];
+
   services.avahi = {
     enable = true;
-    nssmdns = true;
+    nssmdns4 = true;
     # TODO: Minimize the number of these that are published
     publish = {
       enable = true;
