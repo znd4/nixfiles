@@ -28,16 +28,13 @@
       )"
 
       if-shell "[ -z '$WAYLAND_DISPLAY' ]" \
-          "set -g @clipboard 'cb copy'" \
-          "set -g @clipboard 'wl-copy'" \
+          "set -s copy-command 'cb copy'" \
+          "set -s copy-command 'wl-copy'" \
 
       # vi mode
       bind P paste-buffer
       bind-key -T copy-mode-vi v send-keys -X begin-selection
-      unbind -T copy-mode-vi Enter
-      bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel @clipboard
-      bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel @clipboard
-      bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel @clipboard
+      set-window-option -g mode-keys vi
 
 
       unbind r
@@ -79,9 +76,9 @@
       tmux-fzf
       {
         plugin = tmux-thumbs;
-        extraConfig = ''
-          set -g @thumbs-command 'tmux run-shell "echo -n {} | #{@clipboard} && tmux display-message \"Copied to clipboard\""'
-        '';
+        # extraConfig = ''
+        #   set -g @thumbs-command 'tmux run-shell "echo -n {} | #{@clipboard} && tmux display-message \"Copied to clipboard\""'
+        # '';
       }
       {
         plugin = inputs.sessionx.packages.${system}.default;
