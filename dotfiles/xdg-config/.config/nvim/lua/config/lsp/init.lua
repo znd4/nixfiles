@@ -1,6 +1,7 @@
 local servers = {
   "bashls",
-  "basedpyright",
+  -- "basedpyright",
+  "pyright",
   "bufls",
   "clojure_lsp",
   "eslint",
@@ -240,6 +241,15 @@ lsp_zero.configure("texlab", {
 })
 lsp_zero.configure("taplo", {
   filetypes = { "toml", "gitconfig" },
+})
+lsp_zero.configure("pyright", {
+  settings = {
+    python = {
+      analysis = {
+        diagnosticMode = "workspace",
+      },
+    },
+  },
 })
 
 lsp_zero.configure("nushell", {})
