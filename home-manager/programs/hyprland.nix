@@ -31,7 +31,9 @@ in
   if !enabled
   then {}
   else {
-    nixpkgs.overlays = [inputs.waybar.overlays.default];
+    nixpkgs.overlays = [
+      # inputs.waybar.overlays.default
+    ];
     imports = [
       inputs.hypridle.homeManagerModules.default
       inputs.hyprlock.homeManagerModules.default
@@ -92,7 +94,7 @@ in
 
     home.packages = with pkgs; [
       # menu bars
-      waybar
+      # waybar
       # eww # https://github.com/elkowar/eww/
 
       pkgs.${notificationDaemon} # notifications
@@ -169,7 +171,7 @@ in
           wallpaperApp # # wallpaper
           "1password"
           "logseq"
-          "waybar" # menu bar
+          # "waybar" # menu bar
           notificationDaemon
           # terminal # terminal (e.g. wezterm)
           "wl-clip-persist --clipboard both"
