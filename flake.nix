@@ -8,6 +8,8 @@
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixpkgs.url = "nixpkgs/nixos-unstable";
+    nixpkgs-main.url = "nixpkgs/master";
+
     nil.url = "github:oxalica/nil";
     nixd = {
       url = "github:nix-community/nixd";
