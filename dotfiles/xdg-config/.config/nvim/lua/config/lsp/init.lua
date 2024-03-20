@@ -302,17 +302,7 @@ require("mason-lspconfig").setup({
     jsonnet_ls = function()
       require("lspconfig").jsonnet_ls.setup({})
     end,
-    -- pyright = function()
-    --   require("lspconfig").pyright.setup({
-    --     settings = {
-    --       python = {
-    --         analysis = {
-    --           diagnosticMode = "workspace",
-    --         },
-    --       },
-    --     },
-    --   })
-    -- end,
+    pyright = lsp_zero.noop,
   },
 })
 
