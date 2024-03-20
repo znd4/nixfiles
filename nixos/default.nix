@@ -42,12 +42,9 @@ in {
     };
   };
   programs.ssh = {
-    hostKeyAlgorithms = ["ssh-rsa" "ssh-ed25519"];
-    knownHosts = (
-      lib.attrsets.mapAttrs
-      (_: value: {
-        publicKey = value;
-      })
+    knownHostsFiles = (
+      lib.attrsets.mapAttrsToList
+      (name: value: (pkgs.writeText name value))
       outputs.knownHosts
     );
   };
