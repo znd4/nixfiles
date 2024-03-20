@@ -24,6 +24,38 @@ return {
     vim.o.timeoutlen = 300
     local wk = require("which-key")
     wk.register({
+      ["<BS>"] = {
+        ["<BS>"] = {
+          function()
+            require("neotest").run.run()
+          end,
+          "Test Nearest Function",
+        },
+        f = {
+          function()
+            require("neotest").run.run(vim.fn.expand("%"))
+          end,
+          "Test Current File",
+        },
+        d = {
+          function()
+            require("neotest").run.run({ strategy = "dap" })
+          end,
+          "Debug nearest test",
+        },
+        s = {
+          function()
+            require("neotest").run.stop()
+          end,
+          "stop nearest test",
+        },
+        a = {
+          function()
+            require("neotest").run.attach()
+          end,
+          "Attach to nearest test",
+        },
+      },
       g = {
         p = { factory(vim.cmd.G, "pull"), "Git Pull" },
         P = { factory(vim.cmd.G, "push"), "Git Push" },
