@@ -9,7 +9,6 @@ local ensure_installed = {
   "jsonls",
   "jsonnet_ls",
   "ltex",
-  "pyright",
   "rust_analyzer",
   "sqlls",
   "taplo",
@@ -295,6 +294,7 @@ require("mason-lspconfig").setup({
     pylsp = lsp_zero.noop,
     rnix = lsp_zero.noop,
     marksman = lsp_zero.default_setup,
+    basedpyright = lsp_zero.default_setup,
     -- nushell = lsp_zero.default_setup,
     gopls = function()
       require("lspconfig").gopls.setup(gopls_settings)
@@ -302,17 +302,17 @@ require("mason-lspconfig").setup({
     jsonnet_ls = function()
       require("lspconfig").jsonnet_ls.setup({})
     end,
-    pyright = function()
-      require("lspconfig").pyright.setup({
-        settings = {
-          python = {
-            analysis = {
-              diagnosticMode = "workspace",
-            },
-          },
-        },
-      })
-    end,
+    -- pyright = function()
+    --   require("lspconfig").pyright.setup({
+    --     settings = {
+    --       python = {
+    --         analysis = {
+    --           diagnosticMode = "workspace",
+    --         },
+    --       },
+    --     },
+    --   })
+    -- end,
   },
 })
 
