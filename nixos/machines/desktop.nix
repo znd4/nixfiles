@@ -18,7 +18,7 @@
       AllowUsers = [username];
     };
   };
-  users.users.${username}.openssh.authorizedKeys.keys = [outputs.keys.Desktop];
+  users.users.${username}.openssh.authorizedKeys.keys = [outputs.keys."desktop.local"];
 
   services.avahi = {
     enable = true;
