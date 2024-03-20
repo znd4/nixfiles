@@ -250,7 +250,6 @@ lsp_zero.configure("sqlls", {
   on_init = disableFormatting,
 })
 
-lsp_zero.configure("basedpyright", {})
 lsp_zero.configure("nil_ls", {
   settings = {
     ["nil"] = {
@@ -284,6 +283,8 @@ local gopls_settings = {
     usePlaceholders = true,
   },
 }
+
+lsp_zero.setup_servers({ "basedpyright" })
 
 require("mason").setup({})
 
