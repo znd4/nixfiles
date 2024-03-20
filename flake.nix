@@ -27,6 +27,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     waybar.url = "github:Alexays/Waybar";
+    waybar.inputs.nixpkgs.follows = "nixpkgs";
     hypridle = {
       url = "github:hyprwm/hypridle";
       inputs.nixpkgs.follows = "nixpkgs";
