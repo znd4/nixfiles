@@ -27,6 +27,20 @@ in {
     "flakes"
   ];
 
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    # TODO: Minimize the number of these that are published
+    publish = {
+      enable = true;
+      addresses = true;
+      workstation = true;
+      # domain = true;
+      # hinfo = true;
+      # userServices = true;
+    };
+  };
+
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
