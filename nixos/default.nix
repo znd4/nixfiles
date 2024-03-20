@@ -45,10 +45,8 @@ in {
     hostKeyAlgorithms = ["ssh-rsa" "ssh-ed25519"];
     knownHosts = (
       lib.attrsets.mapAttrs
-      (name: value: {
-        ${name} = {
-          publicKey = value;
-        };
+      (_: value: {
+        publicKey = value;
       })
       outputs.knownHosts
     );
