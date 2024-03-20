@@ -22,7 +22,7 @@
 
   services.avahi = {
     enable = true;
-    nssmdns = true;
+    nssmdns4 = true;
     # TODO: Minimize the number of these that are published
     publish = {
       enable = true;
