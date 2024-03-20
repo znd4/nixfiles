@@ -91,10 +91,10 @@ in
 
     home.packages = with pkgs; [
       # menu bars
-      waybar
-      # (waybar.overrideAttrs (
-      #   oldAttrs: { mesonFlags = oldAttrs.mesonFlags ++ [ "-Dexperimental=true" ]; }
-      # ))
+      # waybar
+      (waybar.overrideAttrs (
+        oldAttrs: {mesonFlags = oldAttrs.mesonFlags ++ ["-Dexperimental=true"];}
+      ))
       # eww # https://github.com/elkowar/eww/
 
       pkgs.${notificationDaemon} # notifications
