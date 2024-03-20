@@ -13,6 +13,7 @@
   services.avahi = {
     enable = true;
     nssmdns = true;
+    # TODO: Minimize the number of these that are published
     publish = {
       enable = true;
       addresses = true;
