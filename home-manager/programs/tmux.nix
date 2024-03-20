@@ -27,6 +27,7 @@
         		--bind 'ctrl-f:change-prompt(🔎  )+reload(fd -H -d 2 -t d -E .Trash . ~)'
       )"
 
+      set -s set-clipboard off
       if-shell "[ -z '$WAYLAND_DISPLAY' ]" \
           "set -s copy-command 'cb copy'" \
           "set -s copy-command 'wl-copy'" \
@@ -34,6 +35,7 @@
       # vi mode
       bind P paste-buffer
       bind-key -T copy-mode-vi v send-keys -X begin-selection
+      bind-key -T copy-mode-vi y send-keys -X copy-pipe
       set-window-option -g mode-keys vi
 
 
