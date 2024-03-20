@@ -9,6 +9,8 @@
   modulesPath,
   ...
 }: {
+  imports = [(modulesPath + "/installer/scan/not-detected.nix")];
+
   services.openssh = {
     enable = true;
     settings = {
@@ -18,7 +20,19 @@
   };
   users.users.${username}.openssh.authorizedKeys.keys = [outputs.keys.Desktop];
 
-  imports = [(modulesPath + "/installer/scan/not-detected.nix")];
+  services.avahi = {
+    enable = true;
+    nssmdns = true;
+    # TODO: Minimize the number of these that are published
+    publish = {
+      enable = true;
+      addresses = true;
+      domain = true;
+      hinfo = true;
+      userServices = true;
+      workstation = true;
+    };
+  };
 
   boot.initrd.luks.devices."luks-f380fed3-c5d0-4257-b880-15362768a758".device = "/dev/disk/by-uuid/f380fed3-c5d0-4257-b880-15362768a758";
 
