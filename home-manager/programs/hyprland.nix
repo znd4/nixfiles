@@ -31,6 +31,7 @@ in
   if !enabled
   then {}
   else {
+    nixpkgs.overlays = [inputs.waybar.overlays.default];
     imports = [
       inputs.hypridle.homeManagerModules.default
       inputs.hyprlock.homeManagerModules.default
@@ -91,10 +92,7 @@ in
 
     home.packages = with pkgs; [
       # menu bars
-      # waybar
-      (waybar.overrideAttrs (
-        oldAttrs: {mesonFlags = oldAttrs.mesonFlags ++ ["-Dexperimental=true"];}
-      ))
+      waybar
       # eww # https://github.com/elkowar/eww/
 
       pkgs.${notificationDaemon} # notifications
