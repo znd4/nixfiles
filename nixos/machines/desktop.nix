@@ -7,10 +7,21 @@
   pkgs,
   modulesPath,
   ...
-}:
+}: {
+  imports = [(modulesPath + "/installer/scan/not-detected.nix")];
 
-{
-  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
+  services.avahi = {
+    enable = true;
+    nssmdns = true;
+    publish = {
+      enable = true;
+      addresses = true;
+      domain = true;
+      hinfo = true;
+      userServices = true;
+      workstation = true;
+    };
+  };
 
   boot.initrd.luks.devices."luks-f380fed3-c5d0-4257-b880-15362768a758".device = "/dev/disk/by-uuid/f380fed3-c5d0-4257-b880-15362768a758";
 
@@ -22,9 +33,9 @@
     "usbhid"
     "sd_mod"
   ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-intel" ];
-  boot.extraModulePackages = [ ];
+  boot.initrd.kernelModules = [];
+  boot.kernelModules = ["kvm-intel"];
+  boot.extraModulePackages = [];
 
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/c490e6ae-375c-458e-be63-f423f27475e9";
@@ -38,7 +49,7 @@
     fsType = "vfat";
   };
 
-  swapDevices = [ { device = "/dev/disk/by-uuid/aba13537-f387-40ec-a134-15dc2c806a9f"; } ];
+  swapDevices = [{device = "/dev/disk/by-uuid/aba13537-f387-40ec-a134-15dc2c806a9f";}];
 
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's
