@@ -1,5 +1,6 @@
-local ensure_installed = {
+local servers = {
   "bashls",
+  "basedpyright",
   "bufls",
   "clojure_lsp",
   "eslint",
@@ -284,28 +285,11 @@ local gopls_settings = {
   },
 }
 
-lsp_zero.setup_servers({ "basedpyright" })
+lsp_zero.setup("gopls", gopls_settings)
+
+lsp_zero.setup_servers(servers)
 
 require("mason").setup({})
-
-require("mason-lspconfig").setup({
-  ensure_installed = ensure_installed,
-  handlers = {
-    lsp_zero.default_setup,
-    ltex = lsp_zero.noop,
-    pylsp = lsp_zero.noop,
-    rnix = lsp_zero.noop,
-    marksman = lsp_zero.default_setup,
-    -- nushell = lsp_zero.default_setup,
-    gopls = function()
-      require("lspconfig").gopls.setup(gopls_settings)
-    end,
-    jsonnet_ls = function()
-      require("lspconfig").jsonnet_ls.setup({})
-    end,
-    pyright = lsp_zero.noop,
-  },
-})
 
 require("luasnip.loaders.from_vscode").lazy_load()
 require("luasnip.loaders.from_snipmate").lazy_load()
