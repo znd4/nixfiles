@@ -7,6 +7,7 @@
   pkgs,
   username,
   hostname,
+  outputs,
   stateVersion,
   ...
 } @ args: let
@@ -39,6 +40,18 @@ in {
       # hinfo = true;
       # userServices = true;
     };
+  };
+  programs.ssh = {
+    hostKeyAlgorithms = ["ssh-rsa" "ssh-ed25519"];
+    knownHosts = (
+      lib.attrsets.mapAttrs
+      (name: value: {
+        ${name} = {
+          publicKey = value;
+        };
+      })
+      outputs.knownHosts
+    );
   };
 
   # Bootloader.
