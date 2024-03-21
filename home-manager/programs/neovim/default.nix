@@ -24,13 +24,13 @@
     extraPython3Packages = ps:
       with ps; [
         pynvim
-        neovim-remote
         debugpy
       ];
     extraPackages = with pkgs; [
       gcc
       isort
       nil
+      neovim-remote
       lua-language-server
       marksman
       nixd
