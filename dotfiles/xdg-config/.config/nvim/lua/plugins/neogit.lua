@@ -14,10 +14,10 @@ return {
     local wk = require("which-key")
     wk.register({
       g = {
-        p = { require("neogit").pull, "Git Pull" },
-        P = { require("neogit").push, "Git Push" },
-        c = { require("neogit").commit, "Git Commit" },
-        s = { require("neogit").open, "Open Git (fugitive)" },
+        p = { ":Neogit pull<CR>", "Git Pull" },
+        P = { ":Neogit push<CR>", "Git Push" },
+        c = { ":Neogit commit<CR>", "Git Commit" },
+        s = { ":Neogit open<CR>", "Open Git (fugitive)" },
       },
     }, { prefix = "<leader>" })
   end,
