@@ -21,19 +21,18 @@
     vimAlias = true;
     withNodeJs = true;
     withPython3 = true;
+    extraPython3Packages = ps:
+      with ps; [
+        pynvim
+        neovim-remote
+        debugpy
+      ];
     extraPackages = with pkgs; [
       gcc
       isort
       nil
       lua-language-server
       marksman
-      (python3.withPackages (ps:
-        with ps; [
-          pynvim
-          neovim-remote
-          debugpy
-        ]))
-      # nil
       nixd
       prettierd
       ruff
