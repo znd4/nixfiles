@@ -56,12 +56,6 @@ return {
           "Attach to nearest test",
         },
       },
-      g = {
-        p = { factory(vim.cmd.G, "pull"), "Git Pull" },
-        P = { factory(vim.cmd.G, "push"), "Git Push" },
-        c = { factory(vim.cmd.G, "commit"), "Git Commit" },
-        s = { vim.cmd.G, "Open Git (fugitive)" },
-      },
       w = {
         w = { vim.cmd.w, ":w" },
       },
