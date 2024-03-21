@@ -2,6 +2,7 @@
 # Use this to configure your home environment (it replaces ~/.config/nixpkgs/home.nix)
 {
   inputs,
+  outputs,
   username,
   lib,
   config,
@@ -191,6 +192,19 @@ in {
   programs.ssh = {
     addKeysToAgent = "confirm";
     enable = true;
+    userKnownHostsFile = (
+      pkgs.writeText
+      "known_hosts"
+      (
+        builtins.concatStringsSep
+        "\n"
+        (
+          lib.attrsets.mapAttrsToList
+          (name: value: value)
+          outputs.knownHosts
+        )
+      )
+    );
     matchBlocks = (
       lib.attrsets.mapAttrs (name: value: {
         identitiesOnly = true;
