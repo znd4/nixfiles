@@ -17,7 +17,7 @@ return {
         p = { ":Neogit pull<CR>", "Git Pull" },
         P = { ":Neogit push<CR>", "Git Push" },
         c = { ":Neogit commit<CR>", "Git Commit" },
-        s = { ":Neogit open<CR>", "Open Git (fugitive)" },
+        s = { ":Neogit<CR>", "Open Git (fugitive)" },
       },
     }, { prefix = "<leader>" })
   end,
