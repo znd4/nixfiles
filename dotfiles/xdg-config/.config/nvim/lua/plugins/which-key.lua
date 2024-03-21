@@ -24,8 +24,8 @@ return {
     vim.o.timeoutlen = 300
     local wk = require("which-key")
     wk.register({
-      ["<BS>"] = {
-        ["<BS>"] = {
+      ["<Space>"] = {
+        ["<Space>"] = {
           function()
             require("neotest").run.run()
           end,
