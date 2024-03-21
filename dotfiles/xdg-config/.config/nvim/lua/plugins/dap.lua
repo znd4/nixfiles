@@ -1,25 +1,4 @@
-local function create_venv(venv_path)
-  if venv_path:joinpath("bin"):joinpath("python"):is_file() then
-    return
-  end
-  local Job = require("plenary.job")
-  Job:new({
-    command = "python",
-    args = { "-m", "venv", venv_path:absolute() },
-  }):sync()
-end
-local function ensure_venv(venv_path)
-  create_venv(venv_path)
-  local Job = require("plenary.job")
-  Job:new({
-    command = venv_path:joinpath("bin"):joinpath("python"):absolute(),
-    args = { "-m", "pip", "install", "debugpy" },
-  }):sync()
-end
 local function dap_python_setup()
-  -- local venv_path = require("plenary.path"):new(vim.fn.stdpath("data")):joinpath("dap-python"):joinpath("venv")
-  -- ensure_venv(venv_path)
-  -- require("dap-python").setup(venv_path:joinpath("bin"):joinpath("python"):absolute())
   require("dap-python").setup(vim.g.python3_host_prog)
   require("dap-python").test_runner = "pytest"
 end
