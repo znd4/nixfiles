@@ -181,6 +181,7 @@
           system,
           username,
           hostname,
+          outputs ? self,
           keys ? self.keys,
           stateVersion ? "23.11",
           extraModules ? [],
@@ -188,8 +189,8 @@
           home-manager.lib.homeManagerConfiguration {
             pkgs = nixpkgs.legacyPackages.${system};
             extraSpecialArgs = {
-              outputs = self;
               inherit
+                outputs
                 inputs
                 system
                 username
