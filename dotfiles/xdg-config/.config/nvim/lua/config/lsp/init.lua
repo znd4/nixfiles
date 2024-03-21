@@ -1,5 +1,7 @@
-local ensure_installed = {
+local servers = {
   "bashls",
+  -- "basedpyright",
+  "pyright",
   "bufls",
   "clojure_lsp",
   "eslint",
@@ -9,7 +11,6 @@ local ensure_installed = {
   "jsonls",
   "jsonnet_ls",
   "ltex",
-  "pyright",
   "rust_analyzer",
   "sqlls",
   "taplo",
@@ -241,6 +242,15 @@ lsp_zero.configure("texlab", {
 lsp_zero.configure("taplo", {
   filetypes = { "toml", "gitconfig" },
 })
+lsp_zero.configure("pyright", {
+  settings = {
+    python = {
+      analysis = {
+        diagnosticMode = "workspace",
+      },
+    },
+  },
+})
 
 lsp_zero.configure("nushell", {})
 
@@ -285,36 +295,11 @@ local gopls_settings = {
   },
 }
 
-require("mason").setup({})
+lsp_zero.setup("gopls", gopls_settings)
 
-require("mason-lspconfig").setup({
-  ensure_installed = ensure_installed,
-  handlers = {
-    lsp_zero.default_setup,
-    ltex = lsp_zero.noop,
-    pylsp = lsp_zero.noop,
-    rnix = lsp_zero.noop,
-    marksman = lsp_zero.default_setup,
-    -- nushell = lsp_zero.default_setup,
-    gopls = function()
-      require("lspconfig").gopls.setup(gopls_settings)
-    end,
-    jsonnet_ls = function()
-      require("lspconfig").jsonnet_ls.setup({})
-    end,
-    pyright = function()
-      require("lspconfig").pyright.setup({
-        settings = {
-          python = {
-            analysis = {
-              diagnosticMode = "workspace",
-            },
-          },
-        },
-      })
-    end,
-  },
-})
+lsp_zero.setup_servers(servers)
+
+require("mason").setup({})
 
 require("luasnip.loaders.from_vscode").lazy_load()
 require("luasnip.loaders.from_snipmate").lazy_load()

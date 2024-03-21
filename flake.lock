@@ -24,7 +24,7 @@
       "flake": false,
       "locked": {
         "lastModified": 1,
-        "narHash": "sha256-ILp1FR8dwa9XliWs+tYiCzitCMlUDebascNrNvXs4ec=",
+        "narHash": "sha256-XfAQ0KSXu9Qyl7wTIxMwDHXPbafVTIKufApPed0zQqI=",
         "path": "./dotfiles",
         "type": "path"
       },
@@ -521,6 +521,21 @@
         "type": "github"
       }
     },
+    "nixpkgs-main": {
+      "locked": {
+        "lastModified": 1710985019,
+        "narHash": "sha256-ANw7ObnfoThIb6Jc7hgEM561MhqtWBffyeNuo/ACVAE=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "b2f29564730e757d24d154272e8e50fc2a831980",
+        "type": "github"
+      },
+      "original": {
+        "id": "nixpkgs",
+        "ref": "master",
+        "type": "indirect"
+      }
+    },
     "nixpkgs_2": {
       "locked": {
         "lastModified": 1704161960,
@@ -566,6 +581,7 @@
         "nil": "nil",
         "nixd": "nixd",
         "nixpkgs": "nixpkgs_3",
+        "nixpkgs-main": "nixpkgs-main",
         "sesh": "sesh",
         "sessionx": "sessionx"
       }
