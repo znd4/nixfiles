@@ -212,8 +212,8 @@ in {
     );
     personal_python = python3.withPackages (ps:
       with ps; [
-        debugpy
-        pynvim
+        ipython
+        pipx
       ]);
     personal_scripts = (
       buildEnv {

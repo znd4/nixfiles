@@ -5,7 +5,9 @@
   config,
   username,
   ...
-}: {
+}: let
+  neovim_python = pkgs.python3.withPackages (ps: with ps; [pynvim debugpy]);
+in {
   xdg.configFile = {
     "nvim/lazy-lock.json".source = (
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixfiles/home-manager/programs/neovim/lazy-lock.json"
@@ -15,7 +17,7 @@
     "nvim/".recursive = true;
   };
   home.sessionVariables = {
-    NVIM_PYTHON = "${pkgs.python3}/bin/python";
+    NVIM_PYTHON = "${neovim_python}/bin/python";
   };
   nixpkgs.overlays = [inputs.nixd.overlays.default];
   home.packages = with pkgs; [neovim-remote];
@@ -24,11 +26,6 @@
     vimAlias = true;
     withNodeJs = true;
     withPython3 = true;
-    extraPython3Packages = ps:
-      with ps; [
-        pynvim
-        debugpy
-      ];
     extraPackages = with pkgs; [
       gcc
       isort
