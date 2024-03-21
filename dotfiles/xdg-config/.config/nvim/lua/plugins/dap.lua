@@ -10,12 +10,13 @@ return {
   "mfussenegger/nvim-dap",
   dependencies = { "leoluz/nvim-dap-go", "mfussenegger/nvim-dap-python", "nvim-lua/plenary.nvim" },
   config = function()
-    local async = require("plenary.async").async
-
-    local dap_go = async(dap_go_setup)()
-    local dap_python = async(dap_python_setup)()
-    dap_go:await()
-    dap_python:await()
+    dap_python_setup()
+    dap_go_setup()
+    -- local async = require("plenary.async").async
+    -- local dap_go = async(dap_go_setup)()
+    -- local dap_python = async(dap_python_setup)()
+    -- dap_go:await()
+    -- dap_python:await()
 
     local vimp = require("vimp")
     local dap = require("dap")
