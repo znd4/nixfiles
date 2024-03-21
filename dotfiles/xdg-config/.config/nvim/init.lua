@@ -3,7 +3,9 @@ require("set")
 
 vim.g.mapleader = " "
 
-vim.g.python3_host_prog = "python3"
+if os.getenv("NVIM_PYTHON") then
+  vim.g.python3_host_prog = os.getenv("NVIM_PYTHON")
+end
 
 if vim.g.neovide ~= nil then
   print("changing directory to home")

@@ -14,6 +14,9 @@
     "nvim/".source = "${inputs.dotfiles}/xdg-config/.config/nvim/";
     "nvim/".recursive = true;
   };
+  home.sessionVariables = {
+    NVIM_PYTHON = "${pkgs.python3}/bin/python";
+  };
   nixpkgs.overlays = [inputs.nixd.overlays.default];
   home.packages = with pkgs; [neovim-remote];
   programs.neovim = {
