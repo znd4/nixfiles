@@ -150,10 +150,10 @@ in {
       gpg.format = "ssh";
       push.autoSetupRemote = true;
       pull.rebase = false;
-      credential.helper = [
-        "cache --timeout 7200"
-        "oauth"
-      ];
+      # credential.helper = [
+      #   "cache --timeout 7200"
+      #   "oauth"
+      # ];
       url = {
         # "ssh://git@github.com/".insteadOf = [
         #   "https://github.com/"
