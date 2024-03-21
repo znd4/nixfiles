@@ -57,10 +57,10 @@ return {
         },
       },
       g = {
-        p = { factory(vim.cmd.G, "pull"), "Git Pull" },
-        P = { factory(vim.cmd.G, "push"), "Git Push" },
-        c = { factory(vim.cmd.G, "commit"), "Git Commit" },
-        s = { vim.cmd.G, "Open Git (fugitive)" },
+        p = { factory(vim.cmd.Neogit, "pull"), "Git Pull" },
+        P = { factory(vim.cmd.Neogit, "push"), "Git Push" },
+        c = { factory(vim.cmd.Neogit, "commit"), "Git Commit" },
+        s = { vim.cmd.Neogit, "Open Git (fugitive)" },
       },
       w = {
         w = { vim.cmd.w, ":w" },
