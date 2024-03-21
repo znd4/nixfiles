@@ -155,11 +155,11 @@ in {
       #   "oauth"
       # ];
       url = {
-        # "ssh://git@github.com/".insteadOf = [
-        #   "https://github.com/"
-        #   "github:"
-        #   "gh:"
-        # ];
+        "ssh://git@github.com/".insteadOf = [
+          "https://github.com/"
+          "github:"
+          "gh:"
+        ];
       };
     };
     aliases = {
