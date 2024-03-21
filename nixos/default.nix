@@ -209,7 +209,6 @@ in {
     polkitPolicyOwners = [username];
   };
   programs.fish.enable = lib.mkForce true;
-  programs.neovim.enable = lib.mkForce true;
 
   # List services that you want to enable:
 
