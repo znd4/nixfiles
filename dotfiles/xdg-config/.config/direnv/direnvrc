@@ -28,6 +28,7 @@ PATH_add "$HOME/Applications/WezTerm.app/Contents/MacOS"
 PATH_add "$HOME/bin"
 PATH_add "$HOME/.cargo/bin"
 PATH_add "$HOME/.local/bin"
+PATH_add "$HOME/.nix-profile/bin"
 PATH_add /mingw64/bin
 PATH_add "$HOME/scoop/shims"
 
