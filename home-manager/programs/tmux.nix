@@ -32,6 +32,8 @@
           "set -s copy-command 'cb copy'" \
           "set -s copy-command 'wl-copy'" \
 
+      set -g @thumbs-command 'echo {} | $(tmux show-options -s copy-command) && tmux display-message \"Copied {}\"'
+
       # vi mode
       bind P paste-buffer
       bind-key -T copy-mode-vi v send-keys -X begin-selection
