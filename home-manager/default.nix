@@ -192,7 +192,7 @@ in {
   programs.ssh = {
     addKeysToAgent = "confirm";
     enable = true;
-    userKnownHostsFile = (
+    userKnownHostsFile = "${(
       pkgs.writeText
       "known_hosts"
       (
@@ -204,7 +204,7 @@ in {
           outputs.knownHosts
         )
       )
-    );
+    )}";
     matchBlocks = (
       lib.attrsets.mapAttrs (name: value: {
         identitiesOnly = true;
