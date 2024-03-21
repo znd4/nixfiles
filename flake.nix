@@ -188,6 +188,7 @@
           home-manager.lib.homeManagerConfiguration {
             pkgs = nixpkgs.legacyPackages.${system};
             extraSpecialArgs = {
+              outputs = self;
               inherit
                 inputs
                 system
