@@ -43,6 +43,7 @@ return {
           end,
           "View value of expression under cursor",
         },
+        x = { dap.terminate, "Close debugger" },
 
         c = { dap.continue, "Open variables in sidebar" },
         n = { dap.step_over, "Step over" },

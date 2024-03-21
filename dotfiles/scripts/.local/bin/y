@@ -13,6 +13,14 @@ def you.com_query [query: string, chatMode: string] {
     start $url
 }
 
+def "main chatgpt" [query: string] {
+    you.com_query $query "custom"
+}
+
+def "main c" [query: string] {
+    main chatgpt $query
+}
+
 def "main genius" [query: string] {
     you.com_query $query "agent"
 }
