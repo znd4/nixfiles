@@ -5,9 +5,7 @@
   config,
   username,
   ...
-}:
-{
-
+}: {
   xdg.configFile = {
     "nvim/lazy-lock.json".source = (
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixfiles/home-manager/programs/neovim/lazy-lock.json"
@@ -16,8 +14,8 @@
     "nvim/".source = "${inputs.dotfiles}/xdg-config/.config/nvim/";
     "nvim/".recursive = true;
   };
-  nixpkgs.overlays = [ inputs.nixd.overlays.default ];
-  home.packages = with pkgs; [ neovim-remote ];
+  nixpkgs.overlays = [inputs.nixd.overlays.default];
+  home.packages = with pkgs; [neovim-remote];
   programs.neovim = {
     enable = true;
     vimAlias = true;
@@ -29,6 +27,12 @@
       nil
       lua-language-server
       marksman
+      (python3.withPackages (ps:
+        with ps; [
+          pynvim
+          neovim-remote
+          debugpy
+        ]))
       # nil
       nixd
       prettierd

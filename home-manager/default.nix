@@ -210,7 +210,10 @@ in {
         vendorHash = "sha256-zt1/gE4bVj+3yr9n0kT2FMYMEmiooy3k1lQ77rN6sTk=";
       }
     );
-    personal_python = python3.withPackages (ps: with ps; [debugpy pre-commit]);
+    personal_python = python3.withPackages (ps:
+      with ps; [
+        pre-commit
+      ]);
     personal_scripts = (
       buildEnv {
         name = "myScripts";
