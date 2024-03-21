@@ -8,14 +8,16 @@ return {
     "antoinemadec/FixCursorHold.nvim",
     "nvim-treesitter/nvim-treesitter",
   },
-  opts = {
-    adapters = {
-      require("neotest-python")({
-        dap = { justMyCode = false },
-      }),
-      require("neotest-go")({
-        dap = { justMyCode = false },
-      }),
-    },
-  },
+  config = function()
+    require("neotest").setup({
+      adapters = {
+        require("neotest-python")({
+          dap = { justMyCode = false },
+        }),
+        require("neotest-go")({
+          dap = { justMyCode = false },
+        }),
+      },
+    })
+  end,
 }
