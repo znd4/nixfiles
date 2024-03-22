@@ -7,6 +7,7 @@
   lib,
   config,
   osConfig,
+  knownHosts,
   pkgs,
   stateVersion,
   keys,
@@ -201,7 +202,7 @@ in {
         (
           lib.attrsets.mapAttrsToList
           (name: value: value)
-          outputs.knownHosts
+          knownHosts
         )
       )
     )}";
