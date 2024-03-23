@@ -436,12 +436,6 @@ require("lazy").setup({
   { "nvim-treesitter/playground" },
   { "akinsho/bufferline.nvim", version = "2.*", dependencies = { "nvim-tree/nvim-web-devicons" } },
   {
-    "nvim-orgmode/orgmode",
-    config = function()
-      require("config.orgmode")
-    end,
-  },
-  {
     "akinsho/org-bullets.nvim",
     config = true,
   },

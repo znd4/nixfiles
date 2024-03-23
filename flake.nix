@@ -8,6 +8,7 @@
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixpkgs.url = "nixpkgs/nixos-unstable";
+    nixpkgs-23_11.url = "github:NixOS/nixpkgs/nixos-23.11";
     nixpkgs-main.url = "nixpkgs/master";
 
     nil.url = "github:oxalica/nil";
@@ -42,6 +43,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    gh-s = {
+      url = "github:gennaro-tedesco/gh-s";
+      flake = false;
+    };
     sesh = {
       url = "github:joshmedeski/sesh";
       flake = false;

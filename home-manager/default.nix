@@ -61,20 +61,33 @@ in {
     config = import ./nixpkgs-config.nix;
   };
 
-  programs.alacritty = {
-    enable = true;
-  };
   programs.ripgrep = {
     enable = true;
     arguments = ["--smart-case"];
   };
   # TODO: store wi-fi credentials
   # programs.jujutsu.enable = true; # TODO - try this out
-  programs.thefuck.enable = true;
-  programs.awscli.enable = true;
+  programs.thefuck = {
+    enable = true;
+  };
+  programs.awscli = {
+    enable = true;
+    package = inputs.nixpkgs-23_11.legacyPackages.${system}.awscli2;
+  };
   programs.gh = {
     enable = true;
-    extensions = with pkgs; [gh-dash];
+    extensions = with pkgs; [
+      gh-dash
+      (
+        buildGoModule
+        {
+          src = "${inputs.gh-s}";
+          name = "gh-s";
+          pname = "gh-s";
+          vendorHash = "sha256-5UJAgsPND6WrOZZ5PUZNdwd7/0NPdhD1SaZJzZ+2VvM=";
+        }
+      )
+    ];
     gitCredentialHelper.enable = false;
   };
 
@@ -224,11 +237,12 @@ in {
         vendorHash = "sha256-zt1/gE4bVj+3yr9n0kT2FMYMEmiooy3k1lQ77rN6sTk=";
       }
     );
-    personal_python = python3.withPackages (ps:
-      with ps; [
-        ipython
-        pipx
-      ]);
+    personal_python = inputs.nixpkgs-23_11.legacyPackages.${system}.python3.withPackages (ps:
+      # personal_python = inputs.nixpkgs-main.legacyPackages.${system}.python3.withPackages (ps:
+        with ps; [
+          ipython
+          pipx
+        ]);
     personal_scripts = (
       buildEnv {
         name = "myScripts";

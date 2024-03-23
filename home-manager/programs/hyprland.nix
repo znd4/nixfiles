@@ -77,7 +77,7 @@ in
     programs.hyprlock = {
       # https://github.com/hyprwm/hyprlock/blob/main/nix/hm-module.nix
       enable = true;
-      package = inputs.hyprlock;
+      package = inputs.hyprlock.packages.${system}.default;
       # TODO: set wallpaper to tokyo_skyline.png
     };
 
@@ -272,12 +272,13 @@ in
         windowrulev2 = let
           # weztermClass = "^org.wezfurlong.wezterm$";
           kittyClass = "^kitty$";
+          alacrittyClass = "^Alacritty$";
         in [
           # "suppressevent, maximize, class:.*" # You'll probably like this.
 
-          "fullscreen, class:^${kittyClass}$"
+          "fullscreen, class:^${alacrittyClass}$"
           # Automatically send wezterm to scratch workspace
-          "workspace special:${terminal}, class:^${kittyClass}$"
+          "workspace special:${terminal}, class:^${alacrittyClass}$"
         ];
 
         misc = {

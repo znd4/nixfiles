@@ -12,9 +12,10 @@
     keyMode = "vi";
     mouse = true;
     shell = "${pkgs.fish}/bin/fish";
-    terminal = "screen-256color";
+    terminal = "tmux-256color";
     tmuxinator.enable = true;
-    tmuxp.enable = true;
+    # TODO: try out tmuxp
+    # tmuxp.enable = true;
     extraConfig = ''
       bind-key "T" run-shell "sesh connect $(
         sesh list -tz | fzf-tmux -p 55%,60% \

@@ -1,5 +1,8 @@
-{ pkgs, lib, ... }:
 {
+  pkgs,
+  lib,
+  ...
+}: {
   fonts.fontconfig.enable = true;
   home.packages = with pkgs; [
     monaspace
@@ -7,6 +10,7 @@
       fonts = [
         "FiraCode"
         "VictorMono"
+        "Monaspace"
         "NerdFontsSymbolsOnly"
       ];
     })
@@ -41,14 +45,14 @@
         ])
         "Symbols Nerd Font Mono"
       ];
-      italic_font = "VictorMono NF Italic";
-      bold_italic_font = "VictorMono NF Bold Italic";
+      italic_font = "MonaspiceRN NFM Italic";
+      bold_italic_font = "MonaspiceRN NFM Bold Italic";
       # italic_font = "VictorMonoNerdFontPropo-Italic";
     };
     theme = "Tokyo Night"; # "Tokyo Night {Moon/Storm}"
     font = {
       package = pkgs.nerdfonts;
-      name = "FiraCode Nerd Font";
+      name = "MonaspiceAr NFM";
     };
   };
 }
