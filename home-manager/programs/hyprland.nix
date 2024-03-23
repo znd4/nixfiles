@@ -11,7 +11,7 @@
   hyprland = inputs.hyprland.packages.${system}.hyprland;
   plugins = inputs.hyprland-plugins.packages.${system};
   mainMod = "SUPER";
-  terminal = "kitty";
+  terminal = "alacritty";
   fileManager = "dolphin";
   notificationDaemon = "dunst"; # mako, swaync
   wallpaperApp = "hyprpaper"; # swaybg, wpaperd, mpvpaper, swww
