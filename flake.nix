@@ -186,6 +186,7 @@
           system,
           username,
           hostname,
+          knownHosts ? self.knownHosts,
           outputs ? self,
           keys ? self.keys,
           stateVersion ? "23.11",
@@ -196,6 +197,7 @@
             extraSpecialArgs = {
               inherit
                 outputs
+                knownHosts
                 inputs
                 system
                 username
