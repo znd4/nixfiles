@@ -27,7 +27,7 @@
     gh = lib.mkDefault "op plugin run -- gh";
   };
   fishAliases = {
-    awsume = "source (pyenv which awsume.fish)";
+    awsume = "source (which awsume.fish)";
   };
 in {
   imports = [
