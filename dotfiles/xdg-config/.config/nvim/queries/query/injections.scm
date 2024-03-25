@@ -4,9 +4,8 @@
   name: (identifier) @match
   (#eq? @match "match")
   parameters: (parameters
-    (string) @pattern
-    (#offset! @pattern 1 0 -1 0)
-    (#set! injection.content @pattern)
+    (string) @injection.content
+    (#offset! @injection.content 1 0 -1 0)
     (#set! injection.language "regex")
   )
 )

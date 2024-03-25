@@ -29,10 +29,10 @@
         key: (flow_node) @_command
         (#eq? @_command "command")
         value: (flow_node) @bash
-        )
       )
     )
   )
+)
 
 ;; github workflows
 (block_mapping_pair
