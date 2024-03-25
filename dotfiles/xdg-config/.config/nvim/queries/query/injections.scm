@@ -1,6 +1,6 @@
 (
  predicate
- name: (identifier)
+ name: (identifier) @name
  (#eq? @name "match")
  parameters: (parameters
   (string) @injection.content
