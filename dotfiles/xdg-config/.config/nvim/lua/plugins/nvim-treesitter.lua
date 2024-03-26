@@ -22,8 +22,6 @@ return {
   "nvim-treesitter/nvim-treesitter",
   build = ":TSUpdate",
   config = function()
-    require("orgmode").setup_ts_grammar()
-
     local ft_to_lang_tbl = {
       ["zsh"] = "bash",
       ["xml"] = "html",
