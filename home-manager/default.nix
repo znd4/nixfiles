@@ -266,6 +266,7 @@ in {
     gcc
     git
     git-credential-oauth
+    glow
     gnumake
     go
     google-cloud-sdk

@@ -13,8 +13,21 @@ end
 -- use system keyboard (I'm a scrub)
 vim.o.clipboard = "unnamedplus"
 
+-- show where my cursor is
+vim.opt.cursorline = true
+
+-- change splitting behavior
+vim.opt.splitright = true
+vim.opt.splitbelow = true
+
+--preview substitutions live
+vim.opt.inccommand = "split"
+
 --enable editorconfig
 vim.g.editorconfig = true
+
+-- prettier line wrapping
+vim.opt.breakindent = true
 
 --enable .nvim.lua
 vim.opt.exrc = true
@@ -39,6 +52,9 @@ vim.opt.termguicolors = true
 
 vim.opt.scrolloff = 8
 vim.opt.colorcolumn = "100"
+
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
 
 -- configure folding to use treesitter
 vim.opt.foldmethod = "expr"
