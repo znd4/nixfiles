@@ -26,6 +26,10 @@ in {
     vimAlias = true;
     withNodeJs = true;
     withPython3 = true;
+    extraLuaPackages = ps:
+      with ps; [
+        jsregexp
+      ];
     extraPackages = with pkgs; [
       gcc
       isort
