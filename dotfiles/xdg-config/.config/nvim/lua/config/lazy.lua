@@ -117,7 +117,6 @@ require("lazy").setup({
     end,
   },
   "earthly/earthly.vim",
-  "tpope/vim-sensible",
   "junegunn/seoul256.vim",
   "dag/vim-fish",
   "editorconfig/editorconfig-vim",
