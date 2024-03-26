@@ -269,6 +269,7 @@ in {
     gnumake
     go
     google-cloud-sdk
+    helm
     htop
     jc
     jq
