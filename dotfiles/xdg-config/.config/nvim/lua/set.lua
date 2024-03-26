@@ -21,7 +21,7 @@ vim.opt.splitright = true
 vim.opt.splitbelow = true
 
 --preview substitutions live
-vim.opt.inccommand = true
+vim.opt.inccommand = "split"
 
 --enable editorconfig
 vim.g.editorconfig = true
