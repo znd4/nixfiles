@@ -32,15 +32,18 @@ in {
       ];
     extraPackages = with pkgs; [
       gcc
+      glow
       isort
-      nil
-      neovim-remote
       lua-language-server
       marksman
+      neovim-remote
+      nil
       nixd
+      plocate
       prettierd
       ruff
       rust-analyzer-unwrapped
+      tree-sitter
     ];
   };
 }
