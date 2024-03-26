@@ -30,20 +30,27 @@ in {
       with ps; [
         jsregexp
       ];
-    extraPackages = with pkgs; [
-      gcc
-      glow
-      isort
-      lua-language-server
-      marksman
-      neovim-remote
-      nil
-      nixd
-      inputs.nixpkgs-23_11.legacyPackages.${system}.plocate
-      prettierd
-      ruff
-      rust-analyzer-unwrapped
-      tree-sitter
-    ];
+    extraPackages = with pkgs;
+      [
+        gcc
+        glow
+        isort
+        lua-language-server
+        marksman
+        neovim-remote
+        nil
+        nixd
+        prettierd
+        ruff
+        rust-analyzer-unwrapped
+        tree-sitter
+      ]
+      ++ {
+        aarch64-darwin = [];
+        x86_64-linux = with pkgs; [
+          plocate
+        ];
+      }
+      .${system};
   };
 }
