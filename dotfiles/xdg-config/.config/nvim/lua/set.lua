@@ -40,6 +40,9 @@ vim.opt.termguicolors = true
 vim.opt.scrolloff = 8
 vim.opt.colorcolumn = "100"
 
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
+
 -- configure folding to use treesitter
 vim.opt.foldmethod = "expr"
 vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
