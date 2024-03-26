@@ -39,7 +39,7 @@ in {
       neovim-remote
       nil
       nixd
-      plocate
+      inputs.nixpkgs-23_11.legacyPackages.${system}.plocate
       prettierd
       ruff
       rust-analyzer-unwrapped
