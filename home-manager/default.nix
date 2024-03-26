@@ -270,12 +270,12 @@ in {
     gnumake
     go
     google-cloud-sdk
-    helm
     htop
     jc
     jq
     just
     kubectl
+    kubernetes-helm
     nixfmt
     nodejs
     opam
