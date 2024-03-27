@@ -232,13 +232,6 @@ in {
   # Add stuff for your user as you see fit:
   home.packages = with pkgs; let
     sessionx = inputs.sessionx.packages.${system}.default;
-    sesh = (
-      buildGoModule {
-        src = "${inputs.sesh}";
-        name = "sesh";
-        vendorHash = "sha256-zt1/gE4bVj+3yr9n0kT2FMYMEmiooy3k1lQ77rN6sTk=";
-      }
-    );
     personal_python = inputs.nixpkgs-23_11.legacyPackages.${system}.python3.withPackages (ps:
       # personal_python = inputs.nixpkgs-main.legacyPackages.${system}.python3.withPackages (ps:
         with ps; [
@@ -288,7 +281,6 @@ in {
     ruff
     rustc
     sd
-    sesh
     sessionx
     skim
     sops
