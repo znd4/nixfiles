@@ -18,6 +18,6 @@
     sesh
   ];
   xdg.configFile = {
-    "sesh/config.toml" = "";
+    "sesh/sesh.toml".text = "";
   };
 }
