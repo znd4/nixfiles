@@ -6,6 +6,7 @@ return {
     local hop = require("hop")
     hop.setup({})
   end,
+  event = "VeryLazy",
   keys = {
     {
       "<M-j>",
