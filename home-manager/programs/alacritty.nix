@@ -18,6 +18,7 @@
     settings = {
       window = {
         opacity = 0.9;
+        option_as_alt = "Both";
       };
       font = {
         normal = {
