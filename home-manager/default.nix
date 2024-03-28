@@ -101,7 +101,7 @@ in {
   home.username = username;
 
   xdg.configFile = let
-    dotConfig = "${inputs.dotfiles}/xdg-config/.config";
+    dotConfig = "${inputs.self}/dotfiles/xdg-config/.config";
     getFiles = dir: prefix:
       builtins.listToAttrs (
         map (fp: {
@@ -114,9 +114,9 @@ in {
   in
     lib.foldl' lib.attrsets.recursiveUpdate {} [
       {"nixpkgs/config.nix".source = ./nixpkgs-config.nix;}
-      (getFiles "fish/conf.d" "${inputs.dotfiles}/fish/.config")
-      (getFiles "fish/completions" "${inputs.dotfiles}/fish/.config")
-      (getFiles "fish/functions" "${inputs.dotfiles}/fish/.config")
+      (getFiles "fish/conf.d" "${inputs.self}/dotfiles/fish/.config")
+      (getFiles "fish/completions" "${inputs.self}/dotfiles/fish/.config")
+      (getFiles "fish/functions" "${inputs.self}/dotfiles/fish/.config")
       (
         lib.attrsets.genAttrs
         [
@@ -160,7 +160,7 @@ in {
       user.signingKey = keys."github.com";
       init.defaultBranch = "main";
       commit.template = "${pkgs.writeText "commit-template" (
-        builtins.readFile "${inputs.dotfiles}/xdg-config/.config/git/stCommitMsg"
+        builtins.readFile "${inputs.self}/dotfiles/xdg-config/.config/git/stCommitMsg"
       )}";
       commit.gpgSign = true;
       gpg.format = "ssh";
@@ -241,7 +241,7 @@ in {
     personal_scripts = (
       buildEnv {
         name = "myScripts";
-        paths = ["${inputs.dotfiles}/scripts/.local"];
+        paths = ["${inputs.self}/dotfiles/scripts/.local"];
       }
     );
   in [
