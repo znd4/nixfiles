@@ -131,7 +131,7 @@ require("lazy").setup({
   {
     "folke/tokyonight.nvim",
     lazy = true,
-    config = { transparent = false, style = "night" },
+    opts = { transparent = true, style = "night" },
   },
   "shaunsingh/moonlight.nvim",
   "bluz71/vim-moonfly-colors",
