@@ -38,7 +38,7 @@
       # vi mode
       bind P paste-buffer
       bind-key -T copy-mode-vi v send-keys -X begin-selection
-      bind-key -T copy-mode-vi y send-keys -X copy-pipe
+      bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel
       set-window-option -g mode-keys vi
 
 

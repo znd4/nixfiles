@@ -25,7 +25,7 @@
 
   enabled = builtins.elem system [
     "x86_64-linux"
-    "aarch_64-linux"
+    "aarch64-linux"
   ];
 in
   if !enabled

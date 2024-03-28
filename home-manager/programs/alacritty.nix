@@ -18,7 +18,7 @@
     settings = {
       window = {
         opacity = 0.9;
-        option_as_alt = "Both";
+        option_as_alt = lib.mkIf (pkgs.system == "aarch64-darwin") "Both";
       };
       font = {
         normal = {

@@ -259,6 +259,7 @@ in {
     gcc
     git
     git-credential-oauth
+    glab
     glow
     gnumake
     go
