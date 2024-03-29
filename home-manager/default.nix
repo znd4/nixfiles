@@ -88,6 +88,17 @@ in {
           vendorHash = "sha256-5UJAgsPND6WrOZZ5PUZNdwd7/0NPdhD1SaZJzZ+2VvM=";
         }
       )
+      (
+        stdenv.mkDerivation {
+          name = "gh-f";
+          pname = "gh-f";
+          src = inputs.gh-f;
+          installPhase = ''
+            mkdir -p $out/bin
+            cp gh-f $out/bin
+          '';
+        }
+      )
     ];
     gitCredentialHelper.enable = false;
   };
