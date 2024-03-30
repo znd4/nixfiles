@@ -3,21 +3,19 @@
   hostname,
   config,
   ...
-}:
-let
-  enabled = builtins.elem hostname [ "desktop" ];
+}: let
+  enabled = builtins.elem hostname ["desktop"];
 in
-if !enabled then
-  { }
-else
-  {
+  if !enabled
+  then {}
+  else {
     # Copied from nixos.wiki/wiki/Nvidia
     hardware.opengl = {
       enable = true;
       driSupport = true;
       driSupport32Bit = true;
     };
-    services.xserver.videoDrivers = [ "nvidia" ];
+    services.xserver.videoDrivers = ["nvidia"];
 
     hardware.nvidia = {
       modesetting.enable = true;
@@ -36,6 +34,7 @@ else
       nvidiaSettings = true;
 
       # package = config.boot.kernelPackages.nvidiaPackages.stable;
-      package = config.boot.kernelPackages.nvidiaPackages.production;
+      # package = config.boot.kernelPackages.nvidiaPackages.production;
+      package = config.boot.kernelPackages.nvidiaPackages.beta;
     };
   }

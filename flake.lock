@@ -91,6 +91,22 @@
         "type": "github"
       }
     },
+    "gh-f": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1711463053,
+        "narHash": "sha256-8aD+63zzFcVfIBNcC7rEnikviFrOtUd46ePCzD9JUMQ=",
+        "owner": "gennaro-tedesco",
+        "repo": "gh-f",
+        "rev": "5338aa60511e394557389c9e0c811166883f14d2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "gennaro-tedesco",
+        "repo": "gh-f",
+        "type": "github"
+      }
+    },
     "gh-s": {
       "flake": false,
       "locked": {
@@ -590,6 +606,7 @@
       "inputs": {
         "darwin": "darwin",
         "flake-parts": "flake-parts",
+        "gh-f": "gh-f",
         "gh-s": "gh-s",
         "home-manager": "home-manager",
         "hypridle": "hypridle",

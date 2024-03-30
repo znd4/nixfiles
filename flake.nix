@@ -47,6 +47,10 @@
       url = "github:gennaro-tedesco/gh-s";
       flake = false;
     };
+    gh-f = {
+      url = "github:gennaro-tedesco/gh-f";
+      flake = false;
+    };
     sesh = {
       url = "github:joshmedeski/sesh";
       flake = false;
