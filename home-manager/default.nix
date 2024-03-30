@@ -355,6 +355,7 @@ in {
     interactiveShellInit = ''
       fish_vi_key_bindings
       ${pkgs.uv}/bin/uv generate-shell-completion fish | source
+      set -g SHELL ${pkgs.fish}/bin/fish
     '';
   };
 
