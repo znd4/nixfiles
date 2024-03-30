@@ -66,8 +66,8 @@ in {
     enable = true;
     arguments = ["--smart-case"];
   };
-  # TODO: store wi-fi credentials
-  # programs.jujutsu.enable = true; # TODO - try this out
+  # TODO: Enable saved WIFI connection credentials
+  programs.jujutsu.enable = true; # TODO - try this out
   programs.thefuck = {
     enable = true;
   };
@@ -264,7 +264,7 @@ in {
     bottom
     broot
     cargo
-    clipboard-jh # TODO: install latest
+    clipboard-jh
     delta
     fd
     gcc

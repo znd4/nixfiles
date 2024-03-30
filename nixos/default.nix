@@ -31,7 +31,6 @@ in {
   services.avahi = {
     enable = true;
     nssmdns4 = true;
-    # TODO: Minimize the number of these that are published
     publish = {
       enable = true;
       addresses = true;
