@@ -94,6 +94,17 @@ in
         # https://github.com/Fausto-Korpsvart/Tokyo-Night-GTK-Theme/tree/master/icons
         name = "Tokyonight-Dark";
       };
+      gtk3.extraConfig = {
+        Settings = ''
+          gtk-application-prefer-dark-theme=1
+        '';
+      };
+
+      gtk4.extraConfig = {
+        Settings = ''
+          gtk-application-prefer-dark-theme=1
+        '';
+      };
     };
 
     home.packages = with pkgs; [
