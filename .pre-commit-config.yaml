@@ -5,9 +5,3 @@ repos:
         name: format nix files
         entry: nix fmt
         language: system
-      - id: nix-flake-lock-update-dotfiles
-        name: Update flake.lock for dotfiles
-        entry: nix flake lock --update-input dotfiles
-        language: system
-        pass_filenames: false
-        files: dotfiles/
