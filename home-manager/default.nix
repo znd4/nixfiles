@@ -261,6 +261,7 @@ in {
   in [
     # kmonad
     age
+    alejandra
     asdf
     awsume
     bat
@@ -284,7 +285,6 @@ in {
     just
     kubectl
     kubernetes-helm
-    nixfmt
     nodejs
     opam
     opentofu
