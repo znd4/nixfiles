@@ -17,6 +17,7 @@
     # TODO: try out tmuxp
     # tmuxp.enable = true;
     extraConfig = ''
+      set -g default-command ${pkgs.fish}/bin/fish
       bind-key "T" run-shell "sesh connect $(
         sesh list -tz | fzf-tmux -p 55%,60% \
         		--no-sort --border-label ' sesh ' --prompt '⚡  ' \

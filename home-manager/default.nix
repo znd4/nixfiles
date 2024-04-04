@@ -67,8 +67,8 @@ in {
     enable = true;
     arguments = ["--smart-case"];
   };
-  # TODO: store wi-fi credentials
-  # programs.jujutsu.enable = true; # TODO - try this out
+  # TODO: Enable saved WIFI connection credentials
+  programs.jujutsu.enable = true; # TODO - try this out
   programs.thefuck = {
     enable = true;
   };
@@ -264,7 +264,7 @@ in {
     bottom
     broot
     cargo
-    clipboard-jh # TODO: install latest
+    clipboard-jh
     delta
     fd
     gcc
@@ -357,6 +357,7 @@ in {
     interactiveShellInit = ''
       fish_vi_key_bindings
       ${pkgs.uv}/bin/uv generate-shell-completion fish | source
+      set -g SHELL ${pkgs.fish}/bin/fish
     '';
   };
 
