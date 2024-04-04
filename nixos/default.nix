@@ -178,9 +178,6 @@ in {
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    _1password
-    #appimageTools
-    logseq
     usbutils
     victor-mono
     xclip
