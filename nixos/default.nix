@@ -172,7 +172,6 @@ in {
   nixpkgs.config.allowUnfreePredicate = _: true;
 
   # logseq
-  nixpkgs.config.permittedInsecurePackages = ["electron-20.3.12"];
   nixpkgs.overlays = import ./overlays args;
 
   # List packages installed in system profile. To search, run:
