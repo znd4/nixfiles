@@ -13,6 +13,7 @@
   keys,
   ...
 }: let
+  dotConfig = "${inputs.self}/dotfiles/xdg-config/.config";
   system = pkgs.stdenv.system;
   shellAliases = {
     nix = "NO_COLOR=1 command nix";
@@ -112,7 +113,6 @@ in {
   home.username = username;
 
   xdg.configFile = let
-    dotConfig = "${inputs.self}/dotfiles/xdg-config/.config";
     getFiles = dir: prefix:
       builtins.listToAttrs (
         map (fp: {
@@ -333,8 +333,10 @@ in {
   };
   programs.home-manager.enable = true;
   programs.nushell = {
-    shellAliases = shellAliases;
     enable = true;
+    envFile.source = "${dotConfig}/nushell/env.nu";
+    configFile.source = "${dotConfig}/nushell/config.nu";
+    shellAliases = shellAliases;
   };
   programs.fish = {
     enable = true;
