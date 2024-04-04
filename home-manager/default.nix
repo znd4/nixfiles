@@ -12,7 +12,7 @@
   stateVersion,
   keys,
   ...
-}: let
+} @ args: let
   dotConfig = "${inputs.self}/dotfiles/xdg-config/.config";
   system = pkgs.stdenv.system;
   shellAliases = {
@@ -41,24 +41,27 @@ in {
 
   nixpkgs = {
     # You can add overlays here
-    overlays = [
-      # Add overlays your own flake exports (from overlays and pkgs dir):
-      # outputs.overlays.additions
-      # outputs.overlays.modifications
-      # outputs.overlays.unstable-packages
 
-      # You can also add overlays exported from other flakes:
-      # neovim-nightly-overlay.overlays.default
-      # inputs.kmonad.overlays.default
-      inputs.nil.overlays.nil
+    overlays =
+      (import ./overlays args)
+      ++ [
+        # Add overlays your own flake exports (from overlays and pkgs dir):
+        # outputs.overlays.additions
+        # outputs.overlays.modifications
+        # outputs.overlays.unstable-packages
 
-      # Or define it inline, for example:
-      # (final: prev: {
-      #   hi = final.hello.overrideAttrs (oldAttrs: {
-      #     patches = [ ./change-hello-to-hi.patch ];
-      #   });
-      # })
-    ];
+        # You can also add overlays exported from other flakes:
+        # neovim-nightly-overlay.overlays.default
+        # inputs.kmonad.overlays.default
+        inputs.nil.overlays.nil
+
+        # Or define it inline, for example:
+        # (final: prev: {
+        #   hi = final.hello.overrideAttrs (oldAttrs: {
+        #     patches = [ ./change-hello-to-hi.patch ];
+        #   });
+        # })
+      ];
     # Configure your nixpkgs instance
     config = import ./nixpkgs-config.nix;
   };
