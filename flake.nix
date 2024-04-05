@@ -1,6 +1,6 @@
 {
   nixConfig = {
-    extra-substituters = ["https://hyprland.cachix.org"];
+    extra-substituters = [ "https://hyprland.cachix.org" ];
     extra-trusted-public-keys = [
       "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
     ];
@@ -21,6 +21,7 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
     hyprland = {
       # url = "github:hyprwm/Hyprland";
       type = "github";
@@ -75,24 +76,24 @@
   # };
   # inputs.kmonad.inputs.nixpkgs.follows = "nixpkgs";
 
-  outputs = {
-    flake-parts,
-    nixpkgs,
-    darwin,
-    home-manager,
-    self,
-    ...
-  } @ inputs: let
-    lib = nixpkgs.lib;
-  in
-    flake-parts.lib.mkFlake {inherit inputs;} {
-      perSystem = {
-        config,
-        pkgs,
-        ...
-      }: {
-        formatter = pkgs.alejandra;
-      };
+  outputs =
+    {
+      flake-parts,
+      nixpkgs,
+      darwin,
+      home-manager,
+      self,
+      ...
+    }@inputs:
+    let
+      lib = nixpkgs.lib;
+    in
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      perSystem =
+        { config, pkgs, ... }:
+        {
+          formatter = pkgs.nixfmt-rfc-style;
+        };
       systems = [
         "x86_64-linux"
         "aarch64-darwin"
@@ -116,12 +117,13 @@
         darwinModules = {
           default = ./darwin;
         };
-        darwinFactory = {
-          system ? "aarch64-darwin",
-          extraModules ? [],
-          username,
-          stateVersion,
-        }:
+        darwinFactory =
+          {
+            system ? "aarch64-darwin",
+            extraModules ? [ ],
+            username,
+            stateVersion,
+          }:
           darwin.lib.darwinSystem {
             system = system;
             inherit inputs;
@@ -131,7 +133,7 @@
               stateVersion = stateVersion;
               system = system;
             };
-            modules = [self.darwinModules.default] ++ extraModules;
+            modules = [ self.darwinModules.default ] ++ extraModules;
           };
         darwinConfigurations.work = self.darwinFactory {
           username = "dufourz";
@@ -141,56 +143,58 @@
         nixosConfigurations = (
           builtins.listToAttrs (
             builtins.map
-            (
-              {
-                system ? "x86_64-linux",
-                stateVersion ? "23.11",
-                username,
-                hostname,
-              }: (lib.attrsets.nameValuePair hostname (
-                lib.nixosSystem {
-                  system = system;
-                  specialArgs = {
-                    inherit inputs;
+              (
+                {
+                  system ? "x86_64-linux",
+                  stateVersion ? "23.11",
+                  username,
+                  hostname,
+                }:
+                (lib.attrsets.nameValuePair hostname (
+                  lib.nixosSystem {
                     system = system;
-                    outputs = self;
-                    stateVersion = stateVersion;
-                    username = username;
-                    hostname = hostname;
-                  };
-                  modules = [
-                    ./nixos
-                    ./shell
-                  ];
+                    specialArgs = {
+                      inherit inputs;
+                      system = system;
+                      outputs = self;
+                      stateVersion = stateVersion;
+                      username = username;
+                      hostname = hostname;
+                    };
+                    modules = [
+                      ./nixos
+                      ./shell
+                    ];
+                  }
+                ))
+              )
+              [
+                {
+                  hostname = "desktop";
+                  username = "znd4";
                 }
-              ))
-            )
-            [
-              {
-                hostname = "desktop";
-                username = "znd4";
-              }
-              {
-                hostname = "t470";
-                username = "znd4";
-              }
-            ]
+                {
+                  hostname = "t470";
+                  username = "znd4";
+                }
+              ]
           )
         );
 
         homeModules = {
           default = ./home-manager;
         };
-        homeConfigurationFactory = {
-          system,
-          username,
-          hostname,
-          knownHosts ? self.knownHosts,
-          outputs ? self,
-          keys ? self.keys,
-          stateVersion ? "23.11",
-          extraModules ? [],
-        }:
+        homeConfigurationFactory =
+          {
+            system,
+            username,
+            hostname,
+            knownHosts ? self.knownHosts,
+            outputs ? self,
+            keys ? self.keys,
+            stateVersion ? "23.11",
+            extraModules ? [ ],
+          }:
           home-manager.lib.homeManagerConfiguration {
             pkgs = nixpkgs.legacyPackages.${system};
             extraSpecialArgs = {
@@ -205,30 +209,31 @@
                 keys
                 ;
             };
-            modules = [self.homeModules.default] ++ extraModules;
+            modules = [ self.homeModules.default ] ++ extraModules;
           };
         homeConfigurations = (
           builtins.listToAttrs (
             builtins.map
-            (
-              {
-                username,
-                hostname,
-                system ? "x86_64-linux",
-              }: (lib.attrsets.nameValuePair "${username}@${hostname}" (
-                self.homeConfigurationFactory {inherit system username hostname;}
-              ))
-            )
-            [
-              {
-                username = "znd4";
-                hostname = "desktop";
-              }
-              {
-                username = "znd4";
-                hostname = "t470";
-              }
-            ]
+              (
+                {
+                  username,
+                  hostname,
+                  system ? "x86_64-linux",
+                }:
+                (lib.attrsets.nameValuePair "${username}@${hostname}" (
+                  self.homeConfigurationFactory { inherit system username hostname; }
+                ))
+              )
+              [
+                {
+                  username = "znd4";
+                  hostname = "desktop";
+                }
+                {
+                  username = "znd4";
+                  hostname = "t470";
+                }
+              ]
           )
         );
       };
