@@ -3,7 +3,8 @@
   lib,
   outputs,
   ...
-}: {
+}:
+{
   home.packages = with pkgs; [
     monaspace
     (nerdfonts.override {

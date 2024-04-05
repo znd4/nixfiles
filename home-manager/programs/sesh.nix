@@ -1,8 +1,5 @@
+{ pkgs, inputs, ... }:
 {
-  pkgs,
-  inputs,
-  ...
-}: {
   nixpkgs.overlays = [
     (final: prev: {
       sesh = (
@@ -14,9 +11,7 @@
       );
     })
   ];
-  home.packages = with pkgs; [
-    sesh
-  ];
+  home.packages = with pkgs; [ sesh ];
   xdg.configFile = {
     "sesh/sesh.toml".text = "";
   };

@@ -3,7 +3,8 @@
   inputs,
   system,
   ...
-}: {
+}:
+{
   programs.fzf.tmux.enableShellIntegration = true;
   programs.tmux = {
     disableConfirmationPrompt = true;
