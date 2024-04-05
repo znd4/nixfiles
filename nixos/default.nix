@@ -10,13 +10,15 @@
   outputs,
   stateVersion,
   ...
-} @ args: let
+}@args:
+let
   machineConfigMap = {
     "t470" = ./machines/t470.nix;
     "desktop" = ./machines/desktop.nix;
   };
   hardwareConfig = machineConfigMap.${hostname};
-in {
+in
+{
   imports = [
     # Include the results of the hardware scan.
     hardwareConfig
@@ -42,9 +44,7 @@ in {
   };
   programs.ssh = {
     knownHostsFiles = (
-      lib.attrsets.mapAttrsToList
-      (name: value: (pkgs.writeText name value))
-      outputs.knownHosts
+      lib.attrsets.mapAttrsToList (name: value: (pkgs.writeText name value)) outputs.knownHosts
     );
   };
 
@@ -72,7 +72,8 @@ in {
 
   # Enable networking
   networking.networkmanager.enable = true;
-  networking.networkmanager.wifi.backend = "iwd";
+  programs.nm-applet.enable = true;
+  # networking.networkmanager.wifi.backend = "iwd";
   # networking.wireless.iwd.enable = true;
   networking.wireless.iwd.settings = {
     Settings = {
@@ -106,7 +107,7 @@ in {
       variant = "";
     };
     displayManager.sddm.enable = true;
-    displayManager.startx.enable = true;
+    # displayManager.startx.enable = true;
   };
 
   virtualisation.podman = {
@@ -201,7 +202,7 @@ in {
     enable = true;
     # Certain features, including CLI integration and system authentication support,
     # require enabling PolKit integration on some desktop environments (e.g. Plasma).
-    polkitPolicyOwners = [username];
+    polkitPolicyOwners = [ username ];
   };
   programs.fish.enable = lib.mkForce true;
 
