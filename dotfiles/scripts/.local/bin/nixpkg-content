@@ -1,0 +1,4 @@
+#!/usr/bin/env nu
+def main [package: string] {
+    fd . (nix-build '<nixpkgs>' -A $package --no-link)
+}
