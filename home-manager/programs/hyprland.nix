@@ -216,6 +216,7 @@ else
           touchpad = {
             natural_scroll = false;
             disable_while_typing = true;
+            clickfinger_behavior = 1; # two finger right click
             # drag_lock = true;
           };
           sensitivity = 0; # -1.0 - 1.0, 0 means no modification.
