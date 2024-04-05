@@ -270,6 +270,7 @@ in
       glow
       gnumake
       go
+      gofumpt
       google-cloud-sdk
       htop
       jc
