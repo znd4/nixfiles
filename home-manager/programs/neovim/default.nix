@@ -50,6 +50,7 @@ in
         ruff
         rust-analyzer-unwrapped
         tree-sitter
+        yaml-language-server
       ]
       ++ {
         aarch64-darwin = [ ];
