@@ -93,6 +93,7 @@
         { config, pkgs, ... }:
         {
           formatter = pkgs.nixfmt-rfc-style;
+          packages = import ./pkgs pkgs;
         };
       systems = [
         "x86_64-linux"
