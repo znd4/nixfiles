@@ -10,11 +10,7 @@ return {
     { "nvim-treesitter/nvim-treesitter", lazy = true },
   },
   event = "VeryLazy",
-  lazy = true,
   ft = { "org", "orgagenda", "orghelp" },
-  keys = {
-    "<leader>o",
-  },
   cmd = {
     -- TODO: test these
     "OrgAgenda",
