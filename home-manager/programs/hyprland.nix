@@ -384,7 +384,7 @@ else
             ", XF86Launch1,  exec, ${yt}"
 
             # 1password
-            "CTRL SHIFT, SPACE, exec, 1password --quick-access"
+            "SUPER SHIFT, SPACE, exec, 1password --quick-access"
 
             "ALT, Tab, focuscurrentorlast"
             "CTRL ALT, Delete, exit"
