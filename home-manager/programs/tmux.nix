@@ -43,6 +43,8 @@
       bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel
       set-window-option -g mode-keys vi
 
+      bind C-a send-prefix
+
 
       unbind r
       bind r source-file ~/.config/tmux/tmux.conf \; display "Reloaded tmux configuration"
