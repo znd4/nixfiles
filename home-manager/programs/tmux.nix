@@ -61,7 +61,7 @@
           detach-client
       } {
           set -gF '@last_session_name' '#S'
-          popup -d '#{pane_current_path}' -xC -yC -w70% -h70% -E 'tmux new -A -s floating'
+          popup -d '#{pane_current_path}' -xC -yC -w80% -h80% -E 'tmux new -A -s floating'
       }
 
       bind ! if-shell -F '#{!=:#{session_name},floating}' {
