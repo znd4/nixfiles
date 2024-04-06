@@ -261,6 +261,7 @@ in
       broot
       cargo
       clipboard-jh
+      cobra-cli
       delta
       fd
       gcc
