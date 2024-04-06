@@ -78,7 +78,7 @@ else
       # https://github.com/hyprwm/hyprlock/blob/main/nix/hm-module.nix
       enable = true;
       package = inputs.hyprlock.packages.${system}.default;
-      # TODO: set wallpaper to tokyo_skyline.png
+      backgrounds = [ { path = "${inputs.self}/docs/tokyo_skyline.png"; } ];
     };
 
     gtk = {
