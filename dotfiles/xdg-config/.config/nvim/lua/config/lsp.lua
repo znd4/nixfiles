@@ -277,6 +277,7 @@ lsp_zero.configure("lua_ls", lua_opts)
 local gopls_settings = {
   cmd = { "gopls" },
   filetypes = { "go", "gomod", "gowork", "gotmpl" },
+  root_dir = require("lspconfig.util").root_pattern("go.work", "go.mod", ".git"),
   settings = {
     gopls = {
       experimentalPostfixCompletions = true,
