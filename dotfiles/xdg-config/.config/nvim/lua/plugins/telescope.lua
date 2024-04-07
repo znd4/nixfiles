@@ -6,7 +6,7 @@ local factory = function(func, ...)
   end
 end
 
-local get_cwd = function()
+local get_project_root = function()
   local result = vim.fn.system("git rev-parse --show-toplevel")
   result = string.gsub(result, "^%s*(.-)%s*$", "%1")
   return result
@@ -106,21 +106,31 @@ return {
   keys = {
     {
       leader .. "ff",
+      delayed("telescope.builtin", "current_buffer_fuzzy_find"),
+      desc = "Telescope find files (current directory)",
+    },
+    {
+      leader .. "fF",
       function()
         require("telescope.builtin").find_files({
-          cwd = get_cwd(),
+          cwd = get_project_root(),
         })
       end,
-      desc = "Telescope find files",
+      desc = "Telescope find files (project root)",
     },
     {
       leader .. "fg",
+      delayed("telescope.builtin", "live_grep"),
+      desc = "Telescope live grep (current directory)",
+    },
+    {
+      leader .. "fG",
       function()
         require("telescope.builtin").live_grep({
-          cwd = get_cwd(),
+          cwd = get_project_root(),
         })
       end,
-      desc = "Telescope live grep",
+      desc = "Telescope live grep (project root)",
     },
     {
       leader .. "fa",
