@@ -106,7 +106,7 @@ return {
   keys = {
     {
       leader .. "ff",
-      delayed("telescope.builtin", "current_buffer_fuzzy_find"),
+      delayed("telescope.builtin", "find_files"),
       desc = "Telescope find files (current directory)",
     },
     {
