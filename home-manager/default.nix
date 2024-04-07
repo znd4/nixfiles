@@ -101,6 +101,9 @@ in
     ];
     gitCredentialHelper.enable = false;
   };
+  programs.go = {
+    enable = true;
+  };
 
   programs.gh-dash.enable = true;
 
