@@ -266,6 +266,7 @@ in
       clipboard-jh
       cobra-cli
       delta
+      devenv
       fd
       gcc
       git
