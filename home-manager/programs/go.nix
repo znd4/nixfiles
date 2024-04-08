@@ -6,5 +6,10 @@
     goPath = "go";
     goBin = ".local/bin.go";
   };
-  home.packages = with pkgs; [ gotools ];
+  home.packages = with pkgs; [
+    gotools
+    golangci-lint
+    gofumpt
+    gopls
+  ];
 }
