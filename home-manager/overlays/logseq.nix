@@ -1,8 +1,5 @@
-{
-  inputs,
-  system,
-  ...
-}: (final: prev: {
+{ inputs, system, ... }:
+(final: prev: {
   logseq = inputs.nixpkgs-main.legacyPackages.${system}.logseq;
   # logseq = inputs.nixpkgs-23_11.legacyPackages.${system}.logseq.overrideAttrs (oldAttrs: {
   #   postFixup = ''

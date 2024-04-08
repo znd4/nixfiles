@@ -1,8 +1,5 @@
-{
-  pkgs,
-  inputs,
-  ...
-}: let
+{ pkgs, inputs, ... }:
+let
   kmonadConfig = (
     pkgs.writeTextFile {
       name = "kmonad-config-with-header.kbd";
@@ -17,8 +14,9 @@
       '';
     }
   );
-in {
-  nixpkgs.overlays = [inputs.kmonad.overlays.default];
+in
+{
+  nixpkgs.overlays = [ inputs.kmonad.overlays.default ];
   home.packages = with pkgs; [
     kmonad
     (writeShellScriptBin "km" ''

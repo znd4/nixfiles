@@ -1,5 +1,25 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
+  nixpkgs.overlays = [
+    (final: prev: {
+      hydroxide = pkgs.buildGoModule.override { go = pkgs.go_1_21; } {
+        version = "znd4-fork";
+        pname = "hydroxide";
+        src = pkgs.fetchFromGitHub {
+          owner = "znd4";
+          repo = "hydroxide";
+          rev = "personal-fork";
+          sha256 = "sha256-lHNq08XJvPVZzKIvSzd2o2nwUIf+sZI8tcUA+Q9HhEE=";
+        };
+        vendorHash = "sha256-YUkggBm2OPD2W8Qo1woG4l7tsh5bLeVehNJ8N0ZlcqU=";
+
+        doCheck = false;
+
+        subPackages = [ "cmd/hydroxide" ];
+        # vendorHash = lib.fakeHash;
+      };
+    })
+  ];
   home.packages = with pkgs; [ hydroxide ];
   # TODO: create aliases for hydroxide that set `HYDROXIDE_BRIDGE_PASS` 
   # using values from `op read ...`

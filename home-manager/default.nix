@@ -12,7 +12,8 @@
   stateVersion,
   keys,
   ...
-} @ args: let
+}@args:
+let
   dotConfig = "${inputs.self}/dotfiles/xdg-config/.config";
   system = pkgs.stdenv.system;
   shellAliases = {
@@ -30,7 +31,8 @@
   fishAliases = {
     awsume = "source (which awsume.fish)";
   };
-in {
+in
+{
   imports = [
     ./darwin
     ./nixos
@@ -42,33 +44,31 @@ in {
   nixpkgs = {
     # You can add overlays here
 
-    overlays =
-      (import ./overlays args)
-      ++ [
-        # Add overlays your own flake exports (from overlays and pkgs dir):
-        # outputs.overlays.additions
-        # outputs.overlays.modifications
-        # outputs.overlays.unstable-packages
+    overlays = (import ./overlays args) ++ [
+      # Add overlays your own flake exports (from overlays and pkgs dir):
+      # outputs.overlays.additions
+      # outputs.overlays.modifications
+      # outputs.overlays.unstable-packages
 
-        # You can also add overlays exported from other flakes:
-        # neovim-nightly-overlay.overlays.default
-        # inputs.kmonad.overlays.default
-        inputs.nil.overlays.nil
+      # You can also add overlays exported from other flakes:
+      # neovim-nightly-overlay.overlays.default
+      # inputs.kmonad.overlays.default
+      inputs.nil.overlays.nil
 
-        # Or define it inline, for example:
-        # (final: prev: {
-        #   hi = final.hello.overrideAttrs (oldAttrs: {
-        #     patches = [ ./change-hello-to-hi.patch ];
-        #   });
-        # })
-      ];
+      # Or define it inline, for example:
+      # (final: prev: {
+      #   hi = final.hello.overrideAttrs (oldAttrs: {
+      #     patches = [ ./change-hello-to-hi.patch ];
+      #   });
+      # })
+    ];
     # Configure your nixpkgs instance
     config = import ./nixpkgs-config.nix;
   };
 
   programs.ripgrep = {
     enable = true;
-    arguments = ["--smart-case"];
+    arguments = [ "--smart-case" ];
   };
   # TODO: Enable saved WIFI connection credentials
   programs.jujutsu.enable = true; # TODO - try this out
@@ -83,28 +83,28 @@ in {
     enable = true;
     extensions = with pkgs; [
       gh-dash
-      (
-        buildGoModule
-        {
-          src = "${inputs.gh-s}";
-          name = "gh-s";
-          pname = "gh-s";
-          vendorHash = "sha256-5UJAgsPND6WrOZZ5PUZNdwd7/0NPdhD1SaZJzZ+2VvM=";
-        }
-      )
-      (
-        stdenv.mkDerivation {
-          name = "gh-f";
-          pname = "gh-f";
-          src = inputs.gh-f;
-          installPhase = ''
-            mkdir -p $out/bin
-            cp gh-f $out/bin
-          '';
-        }
-      )
+      (buildGoModule {
+        src = "${inputs.gh-s}";
+        name = "gh-s";
+        pname = "gh-s";
+        vendorHash = "sha256-5UJAgsPND6WrOZZ5PUZNdwd7/0NPdhD1SaZJzZ+2VvM=";
+      })
+      (stdenv.mkDerivation {
+        name = "gh-f";
+        pname = "gh-f";
+        src = inputs.gh-f;
+        installPhase = ''
+          mkdir -p $out/bin
+          cp gh-f $out/bin
+        '';
+      })
     ];
     gitCredentialHelper.enable = false;
+  };
+  programs.go = {
+    enable = true;
+    goPath = "go";
+    goBin = ".local/bin.go";
   };
 
   programs.gh-dash.enable = true;
@@ -115,24 +115,25 @@ in {
   };
   home.username = username;
 
-  xdg.configFile = let
-    getFiles = dir: prefix:
-      builtins.listToAttrs (
-        map (fp: {
-          name = dir + "/" + fp;
-          value = {
-            source = "${prefix}/${dir}/${fp}";
-          };
-        }) (builtins.attrNames (builtins.readDir "${prefix}/${dir}"))
-      );
-  in
-    lib.foldl' lib.attrsets.recursiveUpdate {} [
-      {"nixpkgs/config.nix".source = ./nixpkgs-config.nix;}
+  xdg.configFile =
+    let
+      getFiles =
+        dir: prefix:
+        builtins.listToAttrs (
+          map (fp: {
+            name = dir + "/" + fp;
+            value = {
+              source = "${prefix}/${dir}/${fp}";
+            };
+          }) (builtins.attrNames (builtins.readDir "${prefix}/${dir}"))
+        );
+    in
+    lib.foldl' lib.attrsets.recursiveUpdate { } [
+      { "nixpkgs/config.nix".source = ./nixpkgs-config.nix; }
       (getFiles "fish/conf.d" "${inputs.self}/dotfiles/fish/.config")
       (getFiles "fish/completions" "${inputs.self}/dotfiles/fish/.config")
       (getFiles "fish/functions" "${inputs.self}/dotfiles/fish/.config")
-      (
-        lib.attrsets.genAttrs
+      (lib.attrsets.genAttrs
         [
           "starship.toml"
           "direnv/direnvrc"
@@ -221,110 +222,111 @@ in {
   programs.ssh = {
     addKeysToAgent = "confirm";
     enable = true;
-    userKnownHostsFile = "${(
-      pkgs.writeText
-      "known_hosts"
-      (
-        builtins.concatStringsSep
-        "\n"
-        (
-          lib.attrsets.mapAttrsToList
-          (name: value: value)
-          knownHosts
-        )
-      )
-    )}";
+    userKnownHostsFile = "${
+      (pkgs.writeText "known_hosts" (
+        builtins.concatStringsSep "\n" (lib.attrsets.mapAttrsToList (name: value: value) knownHosts)
+      ))
+    }";
     matchBlocks = (
       lib.attrsets.mapAttrs (name: value: {
         identitiesOnly = true;
         identityFile = "${pkgs.writeText "${name}_id_rsa.pub" value}";
-      })
-      keys
+      }) keys
     );
   };
 
   # Add stuff for your user as you see fit:
-  home.packages = with pkgs; let
-    sessionx = inputs.sessionx.packages.${system}.default;
-    personal_python = inputs.nixpkgs-23_11.legacyPackages.${system}.python3.withPackages (ps:
-      # personal_python = inputs.nixpkgs-main.legacyPackages.${system}.python3.withPackages (ps:
+  home.packages =
+    with pkgs;
+    let
+      sessionx = inputs.sessionx.packages.${system}.default;
+      personal_python = inputs.nixpkgs-23_11.legacyPackages.${system}.python3.withPackages (
+        ps:
+        # personal_python = inputs.nixpkgs-main.legacyPackages.${system}.python3.withPackages (ps:
         with ps; [
           ipython
           pipx
-        ]);
-    personal_scripts = (
-      buildEnv {
-        name = "myScripts";
-        paths = ["${inputs.self}/dotfiles/scripts/.local"];
-      }
-    );
-  in [
-    # kmonad
-    age
-    alejandra
-    asdf
-    awsume
-    bat
-    bottom
-    broot
-    cargo
-    clipboard-jh
-    delta
-    fd
-    gcc
-    git
-    git-credential-oauth
-    glab
-    glow
-    gnumake
-    go
-    google-cloud-sdk
-    htop
-    jc
-    jq
-    just
-    kubectl
-    kubernetes-helm
-    nodejs
-    opam
-    opentofu
-    personal_python
-    personal_scripts
-    podman-compose
-    pre-commit
-    python-launcher
-    ruff
-    rustc
-    sd
-    sessionx
-    skim
-    sops
-    stow
-    stylua
-    talosctl
-    terraform
-    terragrunt
-    thefuck
-    unzip
-    uv
-    vale
-    wget
-    xh
-    zenith
-    zig
-    zoxide
-    zsh
-  ];
+        ]
+      );
+      personal_scripts = (
+        buildEnv {
+          name = "myScripts";
+          paths = [ "${inputs.self}/dotfiles/scripts/.local" ];
+        }
+      );
+    in
+    [
+      # kmonad
+      age
+      alejandra
+      asdf
+      awsume
+      bat
+      bottom
+      broot
+      cargo
+      clipboard-jh
+      cobra-cli
+      delta
+      devenv
+      fd
+      gcc
+      git
+      git-credential-oauth
+      glab
+      glow
+      gnumake
+      go
+      gofumpt
+      google-cloud-sdk
+      htop
+      jc
+      jq
+      just
+      kubectl
+      kubernetes-helm
+      nodejs
+      opam
+      opentofu
+      personal_python
+      personal_scripts
+      podman-compose
+      pre-commit
+      python-launcher
+      ruff
+      rustc
+      sd
+      sessionx
+      skim
+      sops
+      stow
+      stylua
+      talosctl
+      terraform
+      terragrunt
+      thefuck
+      unzip
+      uv
+      vale
+      wget
+      xh
+      zenith
+      zig
+      zoxide
+      zsh
+    ];
 
-  programs.skim = let
-    rgFiles = "rg --files --hidden --follow --glob '!.git'";
-  in {
-    enable = true;
-    defaultCommand = rgFiles;
-    fileWidgetCommand = rgFiles;
-    changeDirWidgetCommand = "fd --type d --hidden --glob '!.git'";
-    defaultOptions = ["--cycle"];
-  };
+  programs.skim =
+    let
+      rgFiles = "rg --files --hidden --follow --glob '!.git'";
+    in
+    {
+      enable = true;
+      defaultCommand = rgFiles;
+      fileWidgetCommand = rgFiles;
+      changeDirWidgetCommand = "fd --type d --hidden --glob '!.git'";
+      defaultOptions = [ "--cycle" ];
+    };
 
   programs.zsh.enable = true;
   # Enable home-manager and git

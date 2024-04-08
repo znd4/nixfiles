@@ -22,15 +22,6 @@ return {
       markdown = { prettier },
       python = { "ruff_format" },
       yaml = { prettier },
-      nix = function(bufnr)
-        -- if there is a flake.nix in a parent directory, use `nix fmt`
-        local path = vim.api.nvim_buf_get_name(bufnr)
-        local git_root = require("plenary.path"):new(path):find_upwards(".git")
-        if not (git_root and git_root:is_dir() and git_root:parent():joinpath("flake.nix"):is_file()) then
-          return { "alejandra" }
-        end
-        return { "nix fmt" }
-      end,
       -- we've got marksman now
       -- markdown = { prettier },
     },
@@ -38,10 +29,6 @@ return {
       jsonnetfmt = {
         command = "jsonnetfmt",
         args = { "-" },
-      },
-      ["nix fmt"] = {
-        command = "nix",
-        args = { "fmt", "$FILENAME" },
       },
     },
     format_on_save = function(bufnr)

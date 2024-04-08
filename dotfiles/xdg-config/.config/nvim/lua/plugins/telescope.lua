@@ -6,6 +6,12 @@ local factory = function(func, ...)
   end
 end
 
+local get_project_root = function()
+  local result = vim.fn.system("git rev-parse --show-toplevel")
+  result = string.gsub(result, "^%s*(.-)%s*$", "%1")
+  return result
+end
+
 local delayed = function(module, method, ...)
   local args = { ... }
   return function()
@@ -38,6 +44,12 @@ local config = function()
     pickers = {
       find_files = {
         hidden = true,
+      },
+      builtin = {
+        include_extensions = true,
+      },
+      man_pages = {
+        sections = { "1", "4", "5" },
       },
     },
     defaults = {
@@ -95,17 +107,35 @@ return {
     {
       leader .. "ff",
       delayed("telescope.builtin", "find_files"),
-      desc = "Telescope find files",
+      desc = "Telescope find files (current directory)",
+    },
+    {
+      leader .. "fF",
+      function()
+        require("telescope.builtin").find_files({
+          cwd = get_project_root(),
+        })
+      end,
+      desc = "Telescope find files (project root)",
+    },
+    {
+      leader .. "fg",
+      delayed("telescope.builtin", "live_grep"),
+      desc = "Telescope live grep (current directory)",
+    },
+    {
+      leader .. "fG",
+      function()
+        require("telescope.builtin").live_grep({
+          cwd = get_project_root(),
+        })
+      end,
+      desc = "Telescope live grep (project root)",
     },
     {
       leader .. "fa",
       factory(vim.cmd.Telescope, "file_browser"),
       desc = "Telescope file browser",
-    },
-    {
-      leader .. "fg",
-      delayed("telescope.builtin", "live_grep"),
-      desc = "Telescope live grep",
     },
     {
       leader .. "fb",

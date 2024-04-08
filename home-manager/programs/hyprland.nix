@@ -7,7 +7,8 @@
   pkgs,
   system,
   ...
-}: let
+}:
+let
   hyprland = inputs.hyprland.packages.${system}.hyprland;
   plugins = inputs.hyprland-plugins.packages.${system};
   mainMod = "SUPER";
@@ -28,14 +29,13 @@
     "aarch64-linux"
   ];
 in
-  if !enabled
-  then {}
-  else {
+if !enabled then
+  { }
+else
+  {
     nixpkgs.overlays = [
       # inputs.waybar.overlays.default
-      (final: prev: {
-        waybar = inputs.nixpkgs-main.legacyPackages.${system}.waybar;
-      })
+      (final: prev: { waybar = inputs.nixpkgs-main.legacyPackages.${system}.waybar; })
     ];
     imports = [
       inputs.hypridle.homeManagerModules.default
@@ -78,7 +78,7 @@ in
       # https://github.com/hyprwm/hyprlock/blob/main/nix/hm-module.nix
       enable = true;
       package = inputs.hyprlock.packages.${system}.default;
-      # TODO: set wallpaper to tokyo_skyline.png
+      backgrounds = [ { path = "${inputs.self}/docs/tokyo_skyline.png"; } ];
     };
 
     gtk = {
@@ -159,15 +159,16 @@ in
     systemd.user.services.polkit-agent-helper-1 = {
       Unit = {
         Description = "polkit-agent-helper-1";
-        Wants = ["graphical-session.target"];
-        After = ["graphical-session.target"];
+        Wants = [ "graphical-session.target" ];
+        After = [ "graphical-session.target" ];
       };
       Install = {
-        WantedBy = ["graphical-session.target"];
+        WantedBy = [ "graphical-session.target" ];
       };
       Service = {
         Type = "simple";
-        ExecStart = "${pkgs.polkit-kde-agent}/libexec/polkit-kde-authentication-agent-1";
+        ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+        # ExecStart = "${pkgs.polkit-kde-agent}/libexec/polkit-kde-authentication-agent-1";
         Restart = "on-failure";
         RestartSec = 1;
         TimeoutStopSec = 10;
@@ -179,7 +180,7 @@ in
       package = hyprland;
       systemd.enable = true;
       xwayland.enable = true;
-      plugins = [];
+      plugins = [ ];
       settings = {
         exec-once = [
           "${pkgs.networkmanagerapplet}/bin/nm-applet --indicator & disown"
@@ -193,7 +194,7 @@ in
           terminal
         ];
 
-        monitor = [",preferred,auto,auto"];
+        monitor = [ ",preferred,auto,auto" ];
 
         env = [
           "XCURSOR_SIZE,24"
@@ -216,6 +217,7 @@ in
           touchpad = {
             natural_scroll = false;
             disable_while_typing = true;
+            clickfinger_behavior = 1; # two finger right click
             # drag_lock = true;
           };
           sensitivity = 0; # -1.0 - 1.0, 0 means no modification.
@@ -280,17 +282,19 @@ in
         # Example windowrule v2
         # windowrulev2 = float,class:^(kitty)$,title:^(kitty)$
         # See https://wiki.hyprland.org/Configuring/Window-Rules/ for more
-        windowrulev2 = let
-          # weztermClass = "^org.wezfurlong.wezterm$";
-          kittyClass = "^kitty$";
-          alacrittyClass = "^Alacritty$";
-        in [
-          # "suppressevent, maximize, class:.*" # You'll probably like this.
+        windowrulev2 =
+          let
+            # weztermClass = "^org.wezfurlong.wezterm$";
+            kittyClass = "^kitty$";
+            alacrittyClass = "^Alacritty$";
+          in
+          [
+            # "suppressevent, maximize, class:.*" # You'll probably like this.
 
-          "fullscreen, class:^${alacrittyClass}$"
-          # Automatically send wezterm to scratch workspace
-          "workspace special:${terminal}, class:^${alacrittyClass}$"
-        ];
+            "fullscreen, class:^${alacrittyClass}$"
+            # Automatically send wezterm to scratch workspace
+            "workspace special:${terminal}, class:^${alacrittyClass}$"
+          ];
 
         misc = {
           # See https://wiki.hyprland.org/Configuring/Variables/ for more
@@ -313,54 +317,59 @@ in
           workspace_swipe_numbered = true;
         };
 
-        windowrule = let
-          f = regex: "float, ^(${regex})$";
-        in [
-          (f "pavucontrol")
-          (f "nm-connection-editor")
-          (f "Color Picker")
-          (f "xdg-desktop-portal")
-          (f "xdg-desktop-portal-gtk")
-          (f "transmission-gtk")
-          # "workspace 7, title:Spotify"
-        ];
+        windowrule =
+          let
+            f = regex: "float, ^(${regex})$";
+          in
+          [
+            (f "pavucontrol")
+            (f "nm-connection-editor")
+            (f "Color Picker")
+            (f "xdg-desktop-portal")
+            (f "xdg-desktop-portal-gtk")
+            (f "transmission-gtk")
+            # "workspace 7, title:Spotify"
+          ];
 
-        bind = let
-          binding = mod: cmd: key: arg: "${mod}, ${key}, ${cmd}, ${arg}";
-          mvfocus = binding "SUPER" "movefocus";
-          ws = binding "SUPER" "workspace";
-          resizeactive = binding "SUPER CTRL" "resizeactive";
-          mvactive = binding "SUPER ALT" "moveactive";
-          mvtows = binding "SUPER SHIFT" "movetoworkspace";
-          arr = [
-            1
-            2
-            3
-            4
-            5
-            6
-            7
-            8
-            9
-          ];
-          drun = builtins.concatStringsSep " " [
-            "tofi-drun"
-            "--font=${pkgs.nerdfonts}/share/fonts/truetype/NerdFonts/VictorMonoNerdFont-Italic.ttf"
-            "--ascii-input=true"
-            "--drun-launch=true"
-          ];
-          run = builtins.concatStringsSep " " [
-            "tofi-run"
-            "--font=${pkgs.nerdfonts}/share/fonts/truetype/NerdFonts/VictorMonoNerdFont-Italic.ttf"
-            "--ascii-input=true"
-            "|"
-            "xargs"
-            "-r"
-            "hyprctl"
-            "dispatch"
-            "exec"
-          ];
-        in
+        bind =
+          let
+            binding =
+              mod: cmd: key: arg:
+              "${mod}, ${key}, ${cmd}, ${arg}";
+            mvfocus = binding "SUPER" "movefocus";
+            ws = binding "SUPER" "workspace";
+            resizeactive = binding "SUPER CTRL" "resizeactive";
+            mvactive = binding "SUPER ALT" "moveactive";
+            mvtows = binding "SUPER SHIFT" "movetoworkspace";
+            arr = [
+              1
+              2
+              3
+              4
+              5
+              6
+              7
+              8
+              9
+            ];
+            drun = builtins.concatStringsSep " " [
+              "tofi-drun"
+              "--font=${pkgs.nerdfonts}/share/fonts/truetype/NerdFonts/VictorMonoNerdFont-Italic.ttf"
+              "--ascii-input=true"
+              "--drun-launch=true"
+            ];
+            run = builtins.concatStringsSep " " [
+              "tofi-run"
+              "--font=${pkgs.nerdfonts}/share/fonts/truetype/NerdFonts/VictorMonoNerdFont-Italic.ttf"
+              "--ascii-input=true"
+              "|"
+              "xargs"
+              "-r"
+              "hyprctl"
+              "dispatch"
+              "exec"
+            ];
+          in
           # Example binds, see https://wiki.hyprland.org/Configuring/Binds/ for more
           [
             "CTRL ALT, F, togglespecialworkspace, ${terminal}"
@@ -375,7 +384,7 @@ in
             ", XF86Launch1,  exec, ${yt}"
 
             # 1password
-            "CTRL SHIFT, SPACE, exec, 1password --quick-access"
+            "SUPER SHIFT, SPACE, exec, 1password --quick-access"
 
             "ALT, Tab, focuscurrentorlast"
             "CTRL ALT, Delete, exit"
@@ -422,16 +431,18 @@ in
           ",XF86AudioLowerVolume,  exec, ${pactlBin} set-sink-volume @DEFAULT_SINK@ -5%"
         ];
 
-        bindl = let
-          playerctl = "${pkgs.playerctl}/bin/playerctl";
-        in [
-          ",XF86AudioPlay,    exec, ${playerctl} play-pause"
-          ",XF86AudioStop,    exec, ${playerctl} pause"
-          ",XF86AudioPause,   exec, ${playerctl} pause"
-          ",XF86AudioPrev,    exec, ${playerctl} previous"
-          ",XF86AudioNext,    exec, ${playerctl} next"
-          ",XF86AudioMicMute, exec, ${pactlBin} set-source-mute @DEFAULT_SOURCE@ toggle"
-        ];
+        bindl =
+          let
+            playerctl = "${pkgs.playerctl}/bin/playerctl";
+          in
+          [
+            ",XF86AudioPlay,    exec, ${playerctl} play-pause"
+            ",XF86AudioStop,    exec, ${playerctl} pause"
+            ",XF86AudioPause,   exec, ${playerctl} pause"
+            ",XF86AudioPrev,    exec, ${playerctl} previous"
+            ",XF86AudioNext,    exec, ${playerctl} next"
+            ",XF86AudioMicMute, exec, ${pactlBin} set-source-mute @DEFAULT_SOURCE@ toggle"
+          ];
 
         bindm = [
           "SUPER, mouse:273, resizewindow"
