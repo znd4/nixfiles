@@ -101,11 +101,6 @@ in
     ];
     gitCredentialHelper.enable = false;
   };
-  programs.go = {
-    enable = true;
-    goPath = "go";
-    goBin = ".local/bin.go";
-  };
 
   programs.gh-dash.enable = true;
 
