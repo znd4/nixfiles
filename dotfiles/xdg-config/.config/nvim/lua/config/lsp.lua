@@ -284,7 +284,9 @@ local gopls_settings = {
         unusedparams = true,
         shadow = true,
       },
+      allowModfileModifications = true,
       staticcheck = true,
+      gofumpt = true,
       codelenses = {
         gc_details = true,
       },
