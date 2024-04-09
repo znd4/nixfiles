@@ -101,11 +101,6 @@ in
     ];
     gitCredentialHelper.enable = false;
   };
-  programs.go = {
-    enable = true;
-    goPath = "go";
-    goBin = ".local/bin.go";
-  };
 
   programs.gh-dash.enable = true;
 
@@ -276,8 +271,6 @@ in
       glab
       glow
       gnumake
-      go
-      gofumpt
       google-cloud-sdk
       htop
       jc
