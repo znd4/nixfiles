@@ -57,6 +57,7 @@
 
             # https://devenv.sh/reference/options/
             packages = [ config.packages.default ];
+            languages.go.enable = true;
 
             enterShell = ''
               hello
