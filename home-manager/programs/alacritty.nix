@@ -24,6 +24,35 @@
       shell = {
         program = "${pkgs.fish}/bin/fish";
       };
+      keyboard = {
+        bindings = [
+          {
+            key = "+";
+            mods = "Super";
+            action = "IncreaseFontSize";
+          }
+          {
+            key = "=";
+            mods = "Super";
+            action = "IncreaseFontSize";
+          }
+          {
+            key = "NumpadAdd";
+            mods = "Super";
+            action = "IncreaseFontSize";
+          }
+          {
+            key = "-";
+            mods = "Super";
+            action = "DecreaseFontSize";
+          }
+          {
+            key = "NumpadSubtract";
+            mods = "Super";
+            action = "DecreaseFontSize";
+          }
+        ];
+      };
       font = {
         normal = {
           family = "MonaspiceAr Nerd Font";
