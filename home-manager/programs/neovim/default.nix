@@ -49,6 +49,7 @@ in
         prettierd
         ruff
         rust-analyzer-unwrapped
+        taplo
         tree-sitter
         yaml-language-server
       ]
