@@ -391,25 +391,6 @@ require("lazy").setup({
     end,
   },
   {
-    "crispgm/nvim-go",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      -- TODO - enable this + figure out what it is
-      "rcarriga/nvim-notify",
-    },
-    build = ":GoInstallBinaries",
-    config = function()
-      require("go").setup({
-        -- notify: use nvim-notify
-        auto_format = false,
-        auto_lint = false,
-        notify = true,
-        lint_prompt_style = "vt",
-        -- auto_lint = false,
-      })
-    end,
-  },
-  {
     "windwp/nvim-autopairs",
     priority = 101,
     config = function()
