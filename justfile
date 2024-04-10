@@ -1,6 +1,8 @@
 default:
     sudo nixos-rebuild switch --flake .
 
+alias hm := home-manager
+
 home-manager:
     home-manager switch --flake .
 
