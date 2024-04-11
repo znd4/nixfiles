@@ -351,6 +351,17 @@ in
       j = "just";
       nfl = "nix flake update --commit-lock-file";
     };
+    loginShellInit =
+      let
+        authSocks = {
+          x86_64-linux = "${config.home.homeDirectory}/.1password/agent.sock";
+          aarch64-linux = "${config.home.homeDirectory}/.1password/agent.sock";
+          aarch64-darwin = "${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+        };
+      in
+      ''
+        set -q SSH_AUTH_SOCK; or set -g SSH_AUTH_SOCK ${authSocks.${system}}
+      '';
     shellAliases = shellAliases // fishAliases;
     interactiveShellInit = ''
       fish_vi_key_bindings

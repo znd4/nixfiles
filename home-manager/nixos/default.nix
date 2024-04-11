@@ -35,7 +35,6 @@ else
     ;
 
     home.homeDirectory = "/home/" + username;
-    home.sessionVariables.SSH_AUTH_SOCK = "/home/${username}/.1password/agent.sock";
     home.packages = with pkgs; [
       #appimageTools
       logseq
