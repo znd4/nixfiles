@@ -263,6 +263,7 @@ in
       clipboard-jh
       cobra-cli
       delta
+      devbox
       devenv
       fd
       gcc
