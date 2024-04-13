@@ -323,6 +323,7 @@ in
     };
 
   programs.zsh.enable = true;
+  programs.bash.enable = true;
   # Enable home-manager and git
   programs.fzf = {
     enable = true;
