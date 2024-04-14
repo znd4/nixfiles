@@ -9,7 +9,6 @@
   ...
 }:
 let
-  plugins = inputs.hyprland-plugins.packages.${system};
   mainMod = "SUPER";
   terminal = "alacritty";
   fileManager = "dolphin";
@@ -34,7 +33,6 @@ else
   {
     nixpkgs.overlays = [
       # inputs.waybar.overlays.default
-      (final: prev: { waybar = inputs.nixpkgs-main.legacyPackages.${system}.waybar; })
     ];
     imports = [
       inputs.hypridle.homeManagerModules.default

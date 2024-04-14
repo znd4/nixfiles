@@ -161,19 +161,28 @@ in
         pager = "less";
       };
     };
+    signing = {
+      signByDefault = true;
+      key = "${pkgs.writeText "github.com_id_rsa.pub" keys."github.com"}";
+    };
     extraConfig = {
       pager = {
         diff = "delta";
         log = "delta";
         reflog = "delta";
       };
-      user.signingKey = keys."github.com";
+
+      # Configure commit signing with my ssh key
+      gpg.format = "ssh";
+      # TODO - configure this differently on MacOS
+      gpg.ssh.program = "${pkgs._1password-gui}/bin/op-ssh-sign";
+      user.signingKey = "${pkgs.writeText "github.com_id_rsa.pub" keys."github.com"}";
+
       init.defaultBranch = "main";
       commit.template = "${pkgs.writeText "commit-template" (
         builtins.readFile "${inputs.self}/dotfiles/xdg-config/.config/git/stCommitMsg"
       )}";
       commit.gpgSign = true;
-      gpg.format = "ssh";
       push.autoSetupRemote = true;
       pull.rebase = false;
       # credential.helper = [
@@ -214,21 +223,31 @@ in
         "; git log --all --oneline -S "$1"; }; f'';
     };
   };
-  programs.ssh = {
-    addKeysToAgent = "confirm";
-    enable = true;
-    userKnownHostsFile = "${
-      (pkgs.writeText "known_hosts" (
-        builtins.concatStringsSep "\n" (lib.attrsets.mapAttrsToList (name: value: value) knownHosts)
-      ))
-    }";
-    matchBlocks = (
-      lib.attrsets.mapAttrs (name: value: {
-        identitiesOnly = true;
-        identityFile = "${pkgs.writeText "${name}_id_rsa.pub" value}";
-      }) keys
-    );
-  };
+  programs.ssh =
+    let
+      authSocks = {
+        x86_64-linux = "${config.home.homeDirectory}/.1password/agent.sock";
+        aarch64-linux = "${config.home.homeDirectory}/.1password/agent.sock";
+        aarch64-darwin = "${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+      };
+    in
+    {
+      addKeysToAgent = "confirm";
+      enable = true;
+      userKnownHostsFile = "${
+        (pkgs.writeText "known_hosts" (
+          builtins.concatStringsSep "\n" (lib.attrsets.mapAttrsToList (name: value: value) knownHosts)
+        ))
+      }";
+      extraConfig = "IdentityAgent ${authSocks.${system}}";
+
+      matchBlocks = (
+        lib.attrsets.mapAttrs (name: value: {
+          identitiesOnly = true;
+          identityFile = "${pkgs.writeText "${name}_id_rsa.pub" value}";
+        }) keys
+      );
+    };
 
   # Add stuff for your user as you see fit:
   home.packages =
@@ -353,17 +372,6 @@ in
       j = "just";
       nfl = "nix flake update --commit-lock-file";
     };
-    loginShellInit =
-      let
-        authSocks = {
-          x86_64-linux = "${config.home.homeDirectory}/.1password/agent.sock";
-          aarch64-linux = "${config.home.homeDirectory}/.1password/agent.sock";
-          aarch64-darwin = "${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
-        };
-      in
-      ''
-        set -q SSH_AUTH_SOCK; or set -g SSH_AUTH_SOCK ${authSocks.${system}}
-      '';
     shellAliases = shellAliases // fishAliases;
     interactiveShellInit = ''
       fish_vi_key_bindings
