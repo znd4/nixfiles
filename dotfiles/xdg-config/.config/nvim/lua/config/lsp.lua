@@ -334,6 +334,7 @@ local cmp_config = lsp_zero.defaults.cmp_config({
       name = "nvim_lsp",
     },
     { name = "nvim_lua" },
+    { name = "luasnip" },
   }, {
     { name = "orgmode" },
     { name = "path" },
@@ -342,7 +343,6 @@ local cmp_config = lsp_zero.defaults.cmp_config({
     { name = "emoji" },
     -- { name = "fuzzy_buffer" },
     { name = "latex_symbols" },
-    { name = "luasnip" },
   }),
 })
 
