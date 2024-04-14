@@ -281,6 +281,7 @@ in
       cargo
       clipboard-jh
       cobra-cli
+      dagger
       delta
       devbox
       devenv
