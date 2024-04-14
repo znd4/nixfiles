@@ -9,7 +9,6 @@
   ...
 }:
 let
-  hyprland = inputs.hyprland.packages.${system}.hyprland;
   plugins = inputs.hyprland-plugins.packages.${system};
   mainMod = "SUPER";
   terminal = "alacritty";
@@ -40,6 +39,7 @@ else
     imports = [
       inputs.hypridle.homeManagerModules.default
       inputs.hyprlock.homeManagerModules.default
+      inputs.hyprland.homeManagerModules.default
     ];
     services.gnome-keyring.enable = true;
     services.hypridle = {
@@ -177,7 +177,6 @@ else
 
     wayland.windowManager.hyprland = {
       enable = true;
-      package = hyprland;
       systemd.enable = true;
       xwayland.enable = true;
       plugins = [ ];
