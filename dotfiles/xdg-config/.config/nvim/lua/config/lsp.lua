@@ -144,7 +144,7 @@ local yamlls_settings = {
       "!GetAtt",
     },
     schemas = {
-      ["Kubernetes"] = "/overlays/**/*",
+      ["Kubernetes"] = { "/overlays/**/*", "/k8s/**/*.yml", "/k8s/**/*.yaml" },
       ["https://squidfunk.github.io/mkdocs-material/schema.json"] = { "mkdocs.yml" },
       ["https://json.schemastore.org/kustomization.json"] = { "kustomization.yaml" },
       ["https://json.schemastore.org/pre-commit-config.json"] = { ".pre-commit-config.yaml" },
