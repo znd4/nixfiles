@@ -330,9 +330,7 @@ local cmp_config = lsp_zero.defaults.cmp_config({
     ["<C-b>"] = cmp_action.luasnip_jump_backward(),
   }),
   sources = cmp.config.sources({
-    {
-      name = "nvim_lsp",
-    },
+    { name = "nvim_lsp" },
     { name = "nvim_lua" },
     { name = "luasnip" },
   }, {
