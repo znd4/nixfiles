@@ -43,6 +43,7 @@ else
       mpv-unwrapped
       rpi-imager
       signal-desktop
+      zoom-us
     ];
     # Nicely reload system units when changing configs
     systemd.user.startServices = "sd-switch";
