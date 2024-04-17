@@ -175,7 +175,11 @@ in
       # Configure commit signing with my ssh key
       gpg.format = "ssh";
       # TODO - configure this differently on MacOS
-      gpg.ssh.program = "${pkgs._1password-gui}/bin/op-ssh-sign";
+      gpg.ssh.program =
+        if system == "aarch64-darwin" then
+          "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
+        else
+          "${pkgs._1password-gui}/bin/op-ssh-sign";
       user.signingKey = "${pkgs.writeText "github.com_id_rsa.pub" keys."github.com"}";
 
       init.defaultBranch = "main";
@@ -228,7 +232,7 @@ in
       authSocks = {
         x86_64-linux = "${config.home.homeDirectory}/.1password/agent.sock";
         aarch64-linux = "${config.home.homeDirectory}/.1password/agent.sock";
-        aarch64-darwin = "${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+        aarch64-darwin = "\"${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock\"";
       };
     in
     {
