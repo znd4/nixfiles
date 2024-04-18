@@ -44,6 +44,7 @@ else
       rpi-imager
       signal-desktop
       zoom-us
+      podman-desktop
     ];
     # Nicely reload system units when changing configs
     systemd.user.startServices = "sd-switch";
