@@ -3,5 +3,6 @@ repos:
     hooks:
       - id: nix-format
         name: format nix files
-        entry: nix fmt
+        entry: nixfmt
+        types: [nix]
         language: system

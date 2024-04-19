@@ -40,6 +40,7 @@ in
         gcc
         glow
         isort
+        jsonnet-language-server
         lua-language-server
         marksman
         neovim-remote
