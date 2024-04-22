@@ -37,6 +37,7 @@ in
     extraPackages =
       with pkgs;
       [
+        dprint
         gcc
         glow
         isort
@@ -47,6 +48,7 @@ in
         nil
         nixd
         nixfmt-rfc-style
+        prettier
         prettierd
         ruff
         rust-analyzer-unwrapped
