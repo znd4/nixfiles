@@ -59,7 +59,7 @@ else
         }
         {
           timeout = 300;
-          onTimeout = "loginctl lock-session";
+          onTimeout = "hyprctl dispatch exit";
         }
         {
           timeout = 380; # 5.5min
