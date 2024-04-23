@@ -20,7 +20,7 @@ return {
       just = { "just" },
       lua = { "stylua" },
       markdown = { "dprint" },
-      python = { "ruff_format" },
+      python = { "ruff_format", "ruff_fix" },
       yaml = { "dprint" },
       -- we've got marksman now
       -- markdown = { prettier },
