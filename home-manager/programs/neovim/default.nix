@@ -48,6 +48,7 @@ in
         nil
         nixd
         nixfmt-rfc-style
+        nodePackages.vscode-json-languageserver
         prettierd
         ruff
         rust-analyzer-unwrapped
