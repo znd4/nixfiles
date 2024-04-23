@@ -162,6 +162,10 @@ lsp_zero.configure("helm_ls", {
 })
 
 lsp_zero.configure("jsonls", {
+  cmd = {
+    "vscode-json-language-server",
+    "--stdio",
+  },
   settings = {
     json = {
       format = {
