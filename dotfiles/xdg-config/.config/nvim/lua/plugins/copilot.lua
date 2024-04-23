@@ -1,12 +1,4 @@
-return {
-  {
-    "sourcegraph/sg.nvim",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      "nvim-telescope/telescope.nvim",
-    },
-  },
-}
+return
 -- return {
 --   "github/copilot.vim",
 --   priority = 101,
