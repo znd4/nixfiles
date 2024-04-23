@@ -291,6 +291,7 @@ in
       gcc
       git
       git-credential-oauth
+      git-open
       glab
       glow
       gnumake
