@@ -26,9 +26,10 @@ return {
       -- markdown = { prettier },
     },
     formatters = {
-      jsonnetfmt = {
-        command = "jsonnetfmt",
-        args = { "-" },
+      dprint = {
+        condition = function(ctx)
+          return vim.fs.find({ "dprint.json" }, { path = ctx.filename, upward = true })[1]
+        end,
       },
     },
     format_on_save = function(bufnr)
