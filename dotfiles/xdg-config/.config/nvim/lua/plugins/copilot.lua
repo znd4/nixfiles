@@ -1,4 +1,4 @@
-return
+return {}
 -- return {
 --   "github/copilot.vim",
 --   priority = 101,
