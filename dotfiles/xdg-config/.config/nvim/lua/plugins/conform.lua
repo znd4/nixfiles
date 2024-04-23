@@ -28,7 +28,10 @@ return {
     formatters = {
       dprint = {
         condition = function(ctx)
-          return vim.fs.find({ "dprint.json" }, { path = ctx.filename, upward = true })[1]
+          return vim.fs.find(
+            { "dprint.json", ".dprint.json", "dprint.jsonc", ".dprint.jsonc" },
+            { path = ctx.filename, upward = true }
+          )[1]
         end,
       },
     },
