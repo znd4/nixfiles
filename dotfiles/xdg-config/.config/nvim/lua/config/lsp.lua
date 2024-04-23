@@ -32,32 +32,6 @@ vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
 vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
 vim.keymap.set("n", "<space>q", vim.diagnostic.setloclist, opts)
 
--- if you want to set up formatting on save, you can use this as a callback
--- local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
-local function disableFormatting(client)
-  client.server_capabilities.documentFormattingProvider = false
-  client.server_capabilities.documentRangeFormattingProvider = false
-end
-
--- add to your shared on_attach callback
-local enable_formatting = function(client, bufnr)
-  -- get name of filetype
-  local ft = vim.api.nvim_buf_get_option(bufnr, "filetype")
-  local augroup = vim.api.nvim_create_augroup("LspFormatting" .. ft, {})
-  if client.supports_method("textDocument/formatting") then
-    vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
-    vim.api.nvim_create_autocmd("BufWritePre", {
-      group = augroup,
-      buffer = bufnr,
-      callback = function()
-        vim.lsp.buf.format({
-          bufnr = bufnr,
-        })
-      end,
-    })
-  end
-end
-
 local module_exists, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
 local capabilities
 if module_exists then
@@ -79,8 +53,6 @@ local lsp_zero = require("lsp-zero").preset({
     set_extra_mappings = true,
   },
 })
-
-local lua_library = vim.api.nvim_get_runtime_file("", true)
 
 local attached_to_buffer = {}
 
@@ -123,7 +95,6 @@ lsp_zero.on_attach(function(client, bufnr)
   if client.name == "copilot" then
     return
   end
-  enable_formatting(client, bufnr)
   set_keymaps_for_buffer(bufnr)
 end)
 
@@ -163,7 +134,6 @@ local yamlls_settings = {
 local yamlls_filetypes = { "yaml", "yml", "yaml.docker-compose" }
 
 lsp_zero.configure("yamlls", {
-  on_init = disableFormatting,
   settings = yamlls_settings,
   filetypes = yamlls_filetypes,
 })
@@ -186,15 +156,12 @@ local enabled = { enabled = true }
 --   },
 -- })
 
-lsp_zero.configure("tsserver", {
-  on_init = disableFormatting,
-})
+lsp_zero.configure("tsserver", {})
 lsp_zero.configure("helm_ls", {
   filetypes = { "helm.yaml", "gotmpl" },
 })
 
 lsp_zero.configure("jsonls", {
-  on_init = disableFormatting,
   settings = {
     json = {
       format = {
@@ -258,7 +225,6 @@ lsp_zero.configure("sqlls", {
   init_options = {
     provideFormatter = false,
   },
-  on_init = disableFormatting,
 })
 
 lsp_zero.configure("nil_ls", {
@@ -271,7 +237,7 @@ lsp_zero.configure("nil_ls", {
   },
 })
 
-local lua_opts = lsp_zero.nvim_lua_ls({ on_init = disableFormatting })
+local lua_opts = lsp_zero.nvim_lua_ls({})
 lsp_zero.configure("lua_ls", lua_opts)
 
 local gopls_settings = {
