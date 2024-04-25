@@ -5,7 +5,10 @@
   ...
 }:
 {
-  environment.systemPackages = with pkgs; [ via ];
+  environment.systemPackages = with pkgs; [
+    via
+    qmk
+  ];
   hardware.keyboard.qmk.enable = true;
   services.udev.packages = [ pkgs.via ];
 }
