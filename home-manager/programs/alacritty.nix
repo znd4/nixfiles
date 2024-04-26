@@ -32,6 +32,11 @@
             action = "IncreaseFontSize";
           }
           {
+            key = "Insert";
+            mods = null;
+            action = "Paste";
+          }
+          {
             key = "=";
             mods = "Super";
             action = "IncreaseFontSize";
