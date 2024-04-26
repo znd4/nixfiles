@@ -33,7 +33,7 @@
           }
           {
             key = "Insert";
-            mods = null;
+            mods = "None";
             action = "Paste";
           }
           {
