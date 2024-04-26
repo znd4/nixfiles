@@ -15,20 +15,24 @@ return {
       fish = { "fish_indent" },
       go = { "gofumpt" },
       javascript = { prettier },
-      json = { prettier },
+      json = { "dprint" },
       jsonnet = { "jsonnetfmt" },
       just = { "just" },
       lua = { "stylua" },
-      markdown = { prettier },
-      python = { "ruff_format" },
-      yaml = { prettier },
+      markdown = { "dprint" },
+      python = { "ruff_format", "ruff_fix" },
+      yaml = { "dprint" },
       -- we've got marksman now
       -- markdown = { prettier },
     },
     formatters = {
-      jsonnetfmt = {
-        command = "jsonnetfmt",
-        args = { "-" },
+      dprint = {
+        condition = function(ctx)
+          return vim.fs.find(
+            { "dprint.json", ".dprint.json", "dprint.jsonc", ".dprint.jsonc" },
+            { path = ctx.filename, upward = true }
+          )[1]
+        end,
       },
     },
     format_on_save = function(bufnr)

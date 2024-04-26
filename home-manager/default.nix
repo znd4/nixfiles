@@ -22,7 +22,6 @@ let
     bh = "bat -l help";
     g = "git";
     by = "bat -l yaml";
-    k = "kubectl";
     vi = "nvim";
     terraform = "tofu";
     openai = "op plugin run -- openai";
@@ -292,6 +291,7 @@ in
       gcc
       git
       git-credential-oauth
+      git-open
       glab
       glow
       gnumake
@@ -370,6 +370,8 @@ in
     # }
     # ];
     shellAbbrs = {
+      k = "kubectl";
+      n = "nvim -c 'Telescope oldfiles'";
       ky = "kubectl get -o yaml";
       tg = "terragrunt";
       hm = "home-manager switch --flake .";

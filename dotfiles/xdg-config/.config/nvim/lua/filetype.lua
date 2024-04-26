@@ -55,6 +55,7 @@ vim.filetype.add({
     [".devcontainer.json"] = "jsonc",
     [".terraformrc"] = "hcl",
     [".yamllint"] = "yaml",
+    ["devbox.json"] = "jsonc",
     ["Chart.lock"] = "yaml",
     ["Chart.yaml"] = "yaml",
     ["Tiltfile"] = "tiltfile",
