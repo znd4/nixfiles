@@ -21,9 +21,9 @@ in
     device = keyboardMap.${hostname};
     name = "builtin-keyboard";
     package = pkgs.miryoku_kmonad.overrideAttrs (old: {
-      makeFlags = old.makeFlags ++ [
-        "MIRYOKU_ALPHAS=qwerty"
-        "MIRYOKU_NAV=vi"
+      buildFlags = [
+        # "MIRYOKU_ALPHAS=QWERTY"
+        # "MIRYOKU_NAV=VI"
       ];
     });
   };

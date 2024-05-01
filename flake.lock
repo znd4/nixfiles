@@ -507,11 +507,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1714340253,
-        "narHash": "sha256-GfCbyGK7YaEpAHeBWzUCR96M8kfuruklPUo7LBl/ilc=",
+        "lastModified": 1714352789,
+        "narHash": "sha256-o+YP/Zqal9gLwmB+9WJShgbam1sC3c/PIVre7pBkTfE=",
         "owner": "znd4",
         "repo": "miryoku_kmonad",
-        "rev": "a74661f23512023a5487916b9f551ec2d69b22a1",
+        "rev": "496035d77010055a08b0552b428527fd7308c230",
         "type": "github"
       },
       "original": {
