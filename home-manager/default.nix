@@ -19,6 +19,7 @@ let
   shellAliases = {
     nix = "NO_COLOR=1 command nix";
     bathelp = "bat -l help";
+    ipython = "ipython --TerminalInteractiveShell.editing_mode=vi";
     bh = "bat -l help";
     g = "git";
     by = "bat -l yaml";
