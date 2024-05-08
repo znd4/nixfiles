@@ -14,6 +14,11 @@
   ...
 }@args:
 let
+  authSocks = {
+    x86_64-linux = "${config.home.homeDirectory}/.1password/agent.sock";
+    aarch64-linux = "${config.home.homeDirectory}/.1password/agent.sock";
+    aarch64-darwin = "\"${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock\"";
+  };
   dotConfig = "${inputs.self}/dotfiles/xdg-config/.config";
   system = pkgs.stdenv.system;
   shellAliases =
@@ -232,31 +237,23 @@ in
         "; git log --all --oneline -S "$1"; }; f'';
     };
   };
-  programs.ssh =
-    let
-      authSocks = {
-        x86_64-linux = "${config.home.homeDirectory}/.1password/agent.sock";
-        aarch64-linux = "${config.home.homeDirectory}/.1password/agent.sock";
-        aarch64-darwin = "\"${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock\"";
-      };
-    in
-    {
-      addKeysToAgent = "confirm";
-      enable = true;
-      userKnownHostsFile = "${
-        (pkgs.writeText "known_hosts" (
-          builtins.concatStringsSep "\n" (lib.attrsets.mapAttrsToList (name: value: value) knownHosts)
-        ))
-      }";
-      extraConfig = "IdentityAgent ${authSocks.${system}}";
+  programs.ssh = {
+    addKeysToAgent = "confirm";
+    enable = true;
+    userKnownHostsFile = "${
+      (pkgs.writeText "known_hosts" (
+        builtins.concatStringsSep "\n" (lib.attrsets.mapAttrsToList (name: value: value) knownHosts)
+      ))
+    }";
+    extraConfig = "IdentityAgent ${authSocks.${system}}";
 
-      matchBlocks = (
-        lib.attrsets.mapAttrs (name: value: {
-          identitiesOnly = true;
-          identityFile = "${pkgs.writeText "${name}_id_rsa.pub" value}";
-        }) keys
-      );
-    };
+    matchBlocks = (
+      lib.attrsets.mapAttrs (name: value: {
+        identitiesOnly = true;
+        identityFile = "${pkgs.writeText "${name}_id_rsa.pub" value}";
+      }) keys
+    );
+  };
 
   # Add stuff for your user as you see fit:
   home.packages =
@@ -385,11 +382,16 @@ in
       nfl = "nix flake update --commit-lock-file";
     };
     shellAliases = shellAliases // fishAliases;
-    interactiveShellInit = ''
-      fish_vi_key_bindings
-      ${pkgs.uv}/bin/uv generate-shell-completion fish | source
-      set -g SHELL ${pkgs.fish}/bin/fish
-    '';
+    interactiveShellInit =
+      ''
+        fish_vi_key_bindings
+        ${pkgs.uv}/bin/uv generate-shell-completion fish | source
+        set -g SHELL ${pkgs.fish}/bin/fish
+      ''
+      + (
+        (if system == "aarch64-darwin" then "" else "\nset -q SSH_AUTH_SOCK; or")
+        + "\nset -g SSH_AUTH_SOCK ${authSocks.${system}}"
+      );
   };
 
   programs.starship = {
