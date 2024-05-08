@@ -16,18 +16,23 @@
 let
   dotConfig = "${inputs.self}/dotfiles/xdg-config/.config";
   system = pkgs.stdenv.system;
-  shellAliases = {
-    nix = "NO_COLOR=1 command nix";
-    bathelp = "bat -l help";
-    ipython = "ipython --TerminalInteractiveShell.editing_mode=vi";
-    bh = "bat -l help";
-    g = "git";
-    by = "bat -l yaml";
-    vi = "nvim";
-    terraform = "tofu";
-    openai = "op plugin run -- openai";
-    gh = lib.mkDefault "op plugin run -- gh";
-  };
+  shellAliases =
+    let
+      ipython = "ipython --TerminalInteractiveShell.editing_mode=vi";
+    in
+    {
+      nix = "NO_COLOR=1 command nix";
+      bathelp = "bat -l help";
+      ipython = ipython;
+      ipy = ipython;
+      bh = "bat -l help";
+      g = "git";
+      by = "bat -l yaml";
+      vi = "nvim";
+      terraform = "tofu";
+      openai = "op plugin run -- openai";
+      gh = lib.mkDefault "op plugin run -- gh";
+    };
   fishAliases = {
     awsume = "source (which awsume.fish)";
   };
