@@ -1,6 +1,13 @@
 [gpg]
 format = "ssh"
 
+[alias]
+	a="add"
+	s="status"
+	c="commit"
+	pl="pull"
+	ps="push"
+
 [commit]
 gpgsign=true
 
