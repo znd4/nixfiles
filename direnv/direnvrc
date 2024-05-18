@@ -1,4 +1,5 @@
 eval "$(/opt/homebrew/bin/brew shellenv bash)"
 PATH_add $HOME/.local/bin
 PATH_add $HOME/.rd/bin
+export XDG_CONFIG_HOME="$HOME/.config"
 
