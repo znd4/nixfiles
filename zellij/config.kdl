@@ -1,0 +1,14 @@
+default_shell "fish"
+keybinds {
+	normal {
+		unbind "Ctrl g"
+		unbind "Ctrl p"
+		unbind "Ctrl t"
+		unbind "Ctrl n"
+		unbind "Ctrl h"
+		unbind "Ctrl s"
+		unbind "Ctrl o"
+		unbind "Ctrl q"
+	}
+}
+
