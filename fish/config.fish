@@ -14,5 +14,6 @@ zoxide init fish | source
 
 alias g=git
 alias vi=nvim
+alias bh="bat -l help"
 
 abbr k kubectl
