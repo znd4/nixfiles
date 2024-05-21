@@ -6,3 +6,4 @@ export RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgreprc"
 
 export SKIM_DEFAULT_COMMAND="fd --type f --hidden --exclude .git || git ls-tree -r --name-only HEAD || rg --files || find ."
 export SKIM_CTRL_T_COMMAND="fd --hidden --exclude .git --ignore-vcs"
+export MANPAGER="nvim +Man!"
