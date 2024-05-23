@@ -15,3 +15,22 @@ gpgsign=true
 signingkey="/Users/znd4/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/PublicKeys/506eee6d2b3206284402b9cb05843f71.pub"
 	name = Zane Dufour
 	email = zane@protectai.com
+
+[core]
+    pager = delta
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true    # use n and N to move between diff sections
+
+    # delta detects terminal colors automatically; set one of these to disable auto-detection
+    # dark = true
+    # light = true
+
+[merge]
+    conflictstyle = diff3
+
+[diff]
+    colorMoved = default
