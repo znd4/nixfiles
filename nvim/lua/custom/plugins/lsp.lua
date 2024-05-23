@@ -61,13 +61,32 @@ return {
       lsp_zero.on_attach(function(client, bufnr)
         -- see :help lsp-zero-keybindings
         -- to learn the available actions
-        lsp_zero.default_keymaps { buffer = bufnr }
+        local opts = { buffer = bufnr }
+        require('which-key').register({
+          g = {
+            d = { vim.lsp.buf.definition, '[g]o to [d]efinition' },
+            D = { vim.lsp.buf.declaration, '[g]o to [D]eclaration' },
+            i = { vim.lsp.buf.implementation, '[g]o to [i]mplementation' },
+            o = { vim.lsp.buf.type_definition, '[G][o] to type definition' },
+            r = { vim.lsp.buf.references, '[G]o to [r]eferences' },
+            s = { vim.lsp.buf.signature_help, '[G]o to [s]ignature' },
+            l = { vim.lsp.buf.open_float, '[G]o to f[l]oat' },
+          },
+          K = { vim.lsp.buf.hover, 'Hover' },
+          ['<F2>'] = { vim.lsp.buf.rename, 'Rename' },
+          ['<F4>'] = { vim.lsp.buf.code_action, 'Code actions' },
+          ['[d'] = { vim.diagnostic.goto_prev, 'previous diagnostic' },
+          [']d'] = { vim.diagnostic.goto_next, 'next diagnostic' },
+        }, { buffer = bufnr })
+        require('which-key').register({
+          ['<F3>'] = { ':lua vim.lsp.buf.format({async=true})<cr>', 'format buffer' },
+        }, { buffer = bufnr, mode = { 'n', 'x' } })
       end)
 
       -- (Optional) Configure lua language server for neovim
       local lua_opts = lsp_zero.nvim_lua_ls()
       require('lspconfig').lua_ls.setup(lua_opts)
-      require('lspconfig').yamlls.setup {
+      lsp_zero.configure('yamlls', {
         settings = {
           yaml = {
             schemas = {
@@ -75,9 +94,11 @@ return {
             },
           },
         },
+      })
+      lsp_zero.setup_servers {
+        'basedpyright',
+        'gopls',
       }
-      require('lspconfig').basedpyright.setup {}
-      require('lspconfig').gopls.setup {}
     end,
   },
 }
