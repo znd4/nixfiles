@@ -38,7 +38,6 @@ return {
       return is_helm_file(path) and 'helm.tmpl' or 'smarty'
     end
 
-    vim.g.do_filetype_lua = 1
     vim.filetype.add {
       extension = {
         ['tfstate.backup'] = 'json',
@@ -70,10 +69,10 @@ return {
         ['.*'] = {
           priority = -math.huge,
           function(path, bufnr)
-            local content = vim.filetype.getlines(bufnr, 1)
-            if vim.filetype.matchregex(content, [[^#!.*\<node\>]]) then
+            local content = vim.api.nvim_buf_get_lines(bufnr, 0, 1, false)[1] or ''
+            if vim.regex([[^#!.*\<node\>]]):match_str(content) then
               return 'javascript'
-            elseif vim.filetype.matchregex(content, [[^#!.*\<osascript\>]]) then
+            elseif vim.regex([[^#!.*\<osascript\>]]):match_str(content) then
               return 'applescript'
             end
           end,
