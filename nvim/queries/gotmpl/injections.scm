@@ -1,1 +1,4 @@
-(text) @yaml
+(
+ (text) @injection.content
+ (#set! injection.language "yaml" )
+)

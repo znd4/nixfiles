@@ -96,9 +96,14 @@ return {
         },
       })
       lsp_zero.configure('helm_ls', {
-        yamlls = {
-          path = 'yaml-language-server',
+        settings = {
+          ['helm-ls'] = {
+            yamlls = {
+              path = 'yaml-language-server',
+            },
+          },
         },
+        filetypes = { 'gotmpl', 'helm' },
       })
       lsp_zero.setup_servers {
         'basedpyright',
