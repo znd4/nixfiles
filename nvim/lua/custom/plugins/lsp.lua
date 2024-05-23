@@ -77,6 +77,7 @@ return {
         },
       }
       require('lspconfig').basedpyright.setup {}
+      require('lspconfig').gopls.setup {}
     end,
   },
 }
