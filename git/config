@@ -12,7 +12,7 @@ format = "ssh"
 gpgsign=true
 
 [user]
-signingkey="/Users/znd4/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/PublicKeys/506eee6d2b3206284402b9cb05843f71.pub"
+signingkey="/Users/znd4/.ssh/id_ed25519_sk"
 	name = Zane Dufour
 	email = zane@protectai.com
 
@@ -34,3 +34,5 @@ signingkey="/Users/znd4/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/
 
 [diff]
     colorMoved = default
+[pull]
+	rebase = true
