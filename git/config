@@ -8,13 +8,12 @@ format = "ssh"
 	pl="pull"
 	ps="push"
 
+[include]
+    path=~/.config/git/local
+
 [commit]
 gpgsign=true
 
-[user]
-signingkey="/Users/znd4/.ssh/id_ed25519_sk"
-	name = Zane Dufour
-	email = zane@protectai.com
 
 [core]
     pager = delta
@@ -38,5 +37,3 @@ signingkey="/Users/znd4/.ssh/id_ed25519_sk"
 	rebase = true
 [push]
     autoSetupRemote = true
-[url "ssh://git@github.com/"]
-	insteadOf = https://github.com/
