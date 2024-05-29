@@ -36,3 +36,7 @@ signingkey="/Users/znd4/.ssh/id_ed25519_sk"
     colorMoved = default
 [pull]
 	rebase = true
+[push]
+    autoSetupRemote = true
+[url "ssh://git@github.com/"]
+	insteadOf = https://github.com/
