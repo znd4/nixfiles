@@ -108,6 +108,7 @@ return {
       lsp_zero.setup_servers {
         'basedpyright',
         'gopls',
+        'tilt_ls',
       }
     end,
   },
