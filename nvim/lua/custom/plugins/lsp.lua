@@ -70,7 +70,10 @@ return {
             o = { vim.lsp.buf.type_definition, '[G][o] to type definition' },
             r = { vim.lsp.buf.references, '[G]o to [r]eferences' },
             s = { vim.lsp.buf.signature_help, '[G]o to [s]ignature' },
-            l = { vim.lsp.buf.open_float, '[G]o to f[l]oat' },
+            -- call hierarchy
+            I = { vim.lsp.buf.incoming_calls, "[I]ncoming calls" },
+            O = { vim.lsp.buf.outgoing_calls, "[O]utgoing calls" },
+            l = { vim.diagnostic.open_float, "Open f[l]oat" },
           },
           K = { vim.lsp.buf.hover, 'Hover' },
           ['<F2>'] = { vim.lsp.buf.rename, 'Rename' },
@@ -81,11 +84,24 @@ return {
         require('which-key').register({
           ['<F3>'] = { ':lua vim.lsp.buf.format({async=true})<cr>', 'format buffer' },
         }, { buffer = bufnr, mode = { 'n', 'x' } })
+        require('which-key').register({
+          ["<C-k>"] = { vim.lsp.buf.signature_help, "View argument signature" },
+        }, { buffer = bufnr, mode = { "i" } })
       end)
 
       -- (Optional) Configure lua language server for neovim
       local lua_opts = lsp_zero.nvim_lua_ls()
       require('lspconfig').lua_ls.setup(lua_opts)
+      lsp_zero.configure('helm_ls', {
+        settings = {
+          ['helm-ls'] = {
+            yamlls = {
+              path = 'yaml-language-server',
+            },
+          },
+        },
+        -- filetypes = { 'gotmpl', 'helm' },
+      })
       lsp_zero.configure('yamlls', {
         settings = {
           yaml = {
@@ -95,20 +111,11 @@ return {
           },
         },
       })
-      lsp_zero.configure('helm_ls', {
-        settings = {
-          ['helm-ls'] = {
-            yamlls = {
-              path = 'yaml-language-server',
-            },
-          },
-        },
-        filetypes = { 'gotmpl', 'helm' },
-      })
       lsp_zero.setup_servers {
         'basedpyright',
         'gopls',
         'tilt_ls',
+        'tsserver',
       }
     end,
   },
