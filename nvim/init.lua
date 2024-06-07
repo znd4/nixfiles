@@ -344,6 +344,16 @@ require('lazy').setup({
 
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
+      local send_find_files_to_live_grep = function()
+        local files = {}
+        local prompt_bufnr = vim.api.nvim_get_current_buf()
+        require('telescope.actions.utils').map_entries(prompt_bufnr, function(entry, _, _)
+          table.insert(files, entry[0] or entry[1])
+        end)
+        require('telescope.builtin').live_grep {
+          search_dirs = files,
+        }
+      end
       require('telescope').setup {
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
@@ -353,7 +363,18 @@ require('lazy').setup({
         --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
         --   },
         -- },
-        -- pickers = {}
+        pickers = {
+          find_files = {
+            mappings = {
+              n = {
+                ['<c-f>'] = send_find_files_to_live_grep,
+              },
+              i = {
+                ['<c-f>'] = send_find_files_to_live_grep,
+              },
+            },
+          },
+        },
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
