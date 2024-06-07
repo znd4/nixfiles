@@ -23,19 +23,19 @@ return {
     --@return string
     local function yaml_filetype(path, bufname)
       local is_helm = is_helm_file(path)
-      return is_helm and 'gotmpl' or 'yaml'
+      return is_helm and 'helm' or 'yaml'
     end
 
     --@private
     --@return string
     local function tmpl_filetype(path, bufname)
-      return is_helm_file(path) and 'helm.tmpl' or 'template'
+      return is_helm_file(path) and 'helm' or 'template'
     end
 
     --@private
     --@return string
     local function tpl_filetype(path, bufname)
-      return is_helm_file(path) and 'helm.tmpl' or 'smarty'
+      return is_helm_file(path) and 'helm' or 'smarty'
     end
 
     vim.filetype.add {
