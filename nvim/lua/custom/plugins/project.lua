@@ -14,6 +14,8 @@ return {
       datapath = datapath,
     }
     require('telescope').load_extension 'projects'
+    local file_browser = require('telescope').load_extension 'file_browser'
+    require('telescope.builtin').file_browser = file_browser.file_browser
     local wk = require 'which-key'
     wk.register({
       s = {
@@ -22,6 +24,8 @@ return {
     }, { prefix = '<leader>' })
   end,
   dependencies = {
+    'nvim-telescope/telescope-file-browser.nvim',
+    'nvim-lua/plenary.nvim',
     'nvim-telescope/telescope.nvim',
     'folke/which-key.nvim',
   },
