@@ -74,6 +74,8 @@ return {
               return 'javascript'
             elseif vim.regex([[^#!.*\<osascript\>]]):match_str(content) then
               return 'applescript'
+            elseif vim.regex([[^#!.*(pipx|python|python3)]]):match_str(content) then
+              return 'python'
             end
           end,
         },
