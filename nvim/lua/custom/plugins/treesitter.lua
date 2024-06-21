@@ -21,6 +21,7 @@ return { -- Highlight, edit, and navigate code
     vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
     vim.opt.foldenable = false
     vim.treesitter.language.register('starlark', { 'tiltfile' })
+    vim.treesitter.language.register('python', { 'pipx' })
     -- Prefer git instead of curl in order to improve connectivity in some environments
     require('nvim-treesitter.install').prefer_git = true
     ---@diagnostic disable-next-line: missing-fields
