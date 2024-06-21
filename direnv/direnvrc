@@ -8,3 +8,16 @@ export RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgreprc"
 export SKIM_DEFAULT_COMMAND="fd --type f --hidden --exclude .git || git ls-tree -r --name-only HEAD || rg --files || find ."
 export SKIM_CTRL_T_COMMAND="fd --hidden --exclude .git --ignore-vcs"
 export MANPAGER="nvim +Man!"
+
+# PUT this here
+layout_poetry() {
+  if [[ ! -f pyproject.toml ]]; then
+    log_error 'No pyproject.toml found.  Use `poetry new` or `poetry init` to create one first.'
+    exit 2
+  fi
+
+  local VENV=$(dirname $(poetry run which python))
+  export VIRTUAL_ENV=$(echo "$VENV" | rev | cut -d'/' -f2- | rev)
+  export POETRY_ACTIVE=1
+  PATH_add "$VENV"
+}
