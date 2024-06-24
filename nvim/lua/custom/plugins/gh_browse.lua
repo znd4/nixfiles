@@ -4,7 +4,7 @@ return {
   dependencies = { 'nvim-lua/plenary.nvim' },
   init = function()
     local function get_cursor_position()
-      local buf_name = vim.fn.expand '%'            -- Get full path of current buffer
+      local buf_name = vim.fn.expand '%:.'          -- Get full path of current buffer
       local cursor = vim.api.nvim_win_get_cursor(0) -- Get cursor position
       local line = cursor[1]                        -- Line number
 
