@@ -21,3 +21,4 @@ alias by="bat -l yaml"
 alias kkots="kubectl-kots"
 
 abbr k kubectl
+source ~/.config/op/plugins.sh
