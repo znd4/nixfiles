@@ -1,3 +1,14 @@
+local function get_current_branch()
+  local Job = require 'plenary.job'
+  local result = Job:new({
+    command = 'git',
+    args = { 'rev-parse', '--abbrev-ref', 'HEAD' },
+    on_exit = function(j, return_val)
+      return j:result()[1]
+    end,
+  }):sync()
+  return result[1]
+end
 return {
   'nvim-lua/plenary.nvim',
   event = 'VeryLazy',
@@ -20,9 +31,10 @@ return {
         local position = get_cursor_position()
         print("position")
         print(position)
+        local args = { "browse", position, "--branch", get_current_branch() }
         Job:new({
           command = 'gh',
-          args = { 'browse', position },
+          args = args,
           -- cwd = '/usr/bin',
           -- env = { ['a'] = 'b' },
           on_exit = function(j, return_val)
