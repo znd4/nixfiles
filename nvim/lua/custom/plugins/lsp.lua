@@ -13,20 +13,33 @@ return {
 
   -- Autocompletion
   {
+    'L3MON4D3/LuaSnip',
+    dependencies = {
+    },
+    init = function()
+    end,
+  },
+  {
     'hrsh7th/nvim-cmp',
     event = 'InsertEnter',
     dependencies = {
       { 'L3MON4D3/LuaSnip' },
+      { 'hrsh7th/nvim-cmp' },
+      { "rafamadriz/friendly-snippets" },
     },
     config = function()
       -- Here is where you configure the autocompletion settings.
       local lsp_zero = require 'lsp-zero'
       lsp_zero.extend_cmp()
 
+      -- add friendly snippets to luasnip
+      require("luasnip.loaders.from_vscode").lazy_load()
+
       -- And you can configure cmp even more, if you want to.
       local cmp = require 'cmp'
       local cmp_action = lsp_zero.cmp_action()
-
+      local cmp_config = cmp.get_config()
+      table.insert(cmp_config.sources, { name = "luasnip" })
       cmp.setup {
         formatting = lsp_zero.cmp_format { details = true },
         mapping = cmp.mapping.preset.insert {
