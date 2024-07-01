@@ -152,7 +152,7 @@ decorations = "Transparent"
 #
 # You can also set family on root to overwritte all fonts
 # [fonts]
-#   family = "cascadiamono"
+#   family = "MonaspiceAr Nerd Font"
 #
 # You can also specify extra fonts to load
 # [fonts]
@@ -163,20 +163,20 @@ decorations = "Transparent"
 # [fonts]
 # size = 18
 #
-# [fonts.regular]
-# family = "cascadiamono"
-# style = "normal"
-# weight = 400
-#
-# [fonts.bold]
-# family = "cascadiamono"
-# style = "normal"
-# weight = 800
-#
-# [fonts.italic]
-# family = "cascadiamono"
-# style = "italic"
-# weight = 400
+[fonts.regular]
+family = "MonaspiceAr Nerd Font"
+style = "normal"
+weight = 400
+
+[fonts.bold]
+family = "MonaspiceAr Nerd Font"
+style = "bold"
+weight = 800
+
+[fonts.italic]
+family = "MonaspiceRn Nerd Font"
+style = "italic"
+weight = 400
 #
 # [fonts.bold-italic]
 # family = "cascadiamono"
