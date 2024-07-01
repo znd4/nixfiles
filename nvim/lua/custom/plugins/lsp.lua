@@ -124,9 +124,16 @@ return {
           },
         },
       })
+      lsp_zero.configure("gopls", {
+        settings = {
+          gopls = {
+            gofumpt = true
+          }
+        }
+      })
       lsp_zero.setup_servers {
         'basedpyright',
-        'gopls',
+        'nushell',
         'tilt_ls',
         'tsserver',
       }
