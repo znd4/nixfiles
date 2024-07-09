@@ -13,19 +13,19 @@ return {
 
   -- Autocompletion
   {
-    'L3MON4D3/LuaSnip',
-    dependencies = {
-    },
-    init = function()
-    end,
-  },
-  {
     'hrsh7th/nvim-cmp',
     event = 'InsertEnter',
     dependencies = {
       { 'L3MON4D3/LuaSnip' },
       { 'hrsh7th/nvim-cmp' },
       { "rafamadriz/friendly-snippets" },
+      'saadparwaiz1/cmp_luasnip',
+
+      -- Adds other completion capabilities.
+      --  nvim-cmp does not ship with all sources by default. They are split
+      --  into multiple repos for maintenance purposes.
+      'hrsh7th/cmp-nvim-lsp',
+      'hrsh7th/cmp-path',
     },
     config = function()
       -- Here is where you configure the autocompletion settings.
@@ -40,6 +40,9 @@ return {
       local cmp_action = lsp_zero.cmp_action()
       local cmp_config = cmp.get_config()
       table.insert(cmp_config.sources, { name = "luasnip" })
+      table.insert(cmp_config.sources, { name = "path" })
+      table.insert(cmp_config.sources, { name = "nvim_lsp" })
+      local luasnip = require("luasnip")
       cmp.setup {
         formatting = lsp_zero.cmp_format { details = true },
         mapping = cmp.mapping.preset.insert {
@@ -48,6 +51,24 @@ return {
           ['<C-d>'] = cmp.mapping.scroll_docs(4),
           ['<C-f>'] = cmp_action.luasnip_jump_forward(),
           ['<C-b>'] = cmp_action.luasnip_jump_backward(),
+          ['<C-n>'] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+              cmp.select_next_item()
+            elseif luasnip.choice_active() then
+              luasnip.change_choice(1)
+            else
+              fallback()
+            end
+          end, { "i", "s" }),
+          ['<C-p>'] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+              cmp.select_prev_item()
+            elseif luasnip.choice_active() then
+              luasnip.change_choice(-1)
+            else
+              fallback()
+            end
+          end, { "i", "s" })
         },
         snippet = {
           expand = function(args)
