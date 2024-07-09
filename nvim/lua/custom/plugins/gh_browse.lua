@@ -14,6 +14,7 @@ return {
   event = 'VeryLazy',
   dependencies = { 'nvim-lua/plenary.nvim' },
   init = function()
+    -- TODO: make this support ranges
     local function get_cursor_position()
       local buf_name = vim.fn.expand '%:.'          -- Get full path of current buffer
       local cursor = vim.api.nvim_win_get_cursor(0) -- Get cursor position
