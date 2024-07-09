@@ -4,12 +4,13 @@ if status is-interactive
 end
 fish_add_path /opt/homebrew/bin
 
+
 direnv hook fish | source
 
 source "$(brew --prefix)/share/google-cloud-sdk/path.fish.inc"
 
-kubectl-kots completion fish | source
 
+# kubectl-kots completion fish | source
 
 starship init fish | source
 zoxide init fish | source
