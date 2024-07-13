@@ -53,7 +53,7 @@ return {
           ['<C-b>'] = cmp_action.luasnip_jump_backward(),
           ['<C-n>'] = cmp.mapping(function(fallback)
             if cmp.visible() then
-              cmp.select_next_item()
+              cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
             elseif luasnip.choice_active() then
               luasnip.change_choice(1)
             else
@@ -62,7 +62,7 @@ return {
           end, { "i", "s" }),
           ['<C-p>'] = cmp.mapping(function(fallback)
             if cmp.visible() then
-              cmp.select_prev_item()
+              cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
             elseif luasnip.choice_active() then
               luasnip.change_choice(-1)
             else
@@ -157,6 +157,7 @@ return {
         'nushell',
         'tilt_ls',
         'tsserver',
+        'terraformls',
       }
     end,
   },
