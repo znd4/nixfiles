@@ -15,6 +15,8 @@ source "$(brew --prefix)/share/google-cloud-sdk/path.fish.inc"
 starship init fish | source
 zoxide init fish | source
 
+# source ~/.config/op/plugins.sh
+
 alias g=git
 alias vi=nvim
 alias bh="bat -l help"
@@ -22,4 +24,8 @@ alias by="bat -l yaml"
 alias kkots="kubectl-kots"
 
 abbr k kubectl
-source ~/.config/op/plugins.sh
+abbr ky kubectl get -o yaml
+
+### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
+set --export --prepend PATH "/Users/znd4/.rd/bin"
+### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
