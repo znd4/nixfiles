@@ -69,12 +69,13 @@ return {
         ['.*'] = {
           priority = -math.huge,
           function(path, bufnr)
+            -- shebang configuration
             local content = vim.api.nvim_buf_get_lines(bufnr, 0, 1, false)[1] or ''
             if vim.regex([[^#!.*\<node\>]]):match_str(content) then
               return 'javascript'
             elseif vim.regex([[^#!.*\<osascript\>]]):match_str(content) then
               return 'applescript'
-            elseif vim.regex([[^#!.*(pipx|python|python3)]]):match_str(content) then
+            elseif vim.regex([[^#!.*\(pipx\|python\|python3\)]]):match_str(content) then
               return 'python'
             end
           end,
