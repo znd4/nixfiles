@@ -10,6 +10,16 @@ return {
       vim.g.lsp_zero_extend_lspconfig = 0
     end,
   },
+  {
+    "petertriho/cmp-git",
+    dependencies = { 'hrsh7th/nvim-cmp' },
+    opts = {
+      -- ...
+    },
+    init = function()
+      table.insert(require("cmp").get_config().sources, { name = "git" })
+    end
+  },
 
   -- Autocompletion
   {
