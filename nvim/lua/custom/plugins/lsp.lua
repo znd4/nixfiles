@@ -164,10 +164,11 @@ return {
       })
       lsp_zero.setup_servers {
         'basedpyright',
+        'jsonls',
         'nushell',
+        'terraformls',
         'tilt_ls',
         'tsserver',
-        'terraformls',
       }
     end,
   },
