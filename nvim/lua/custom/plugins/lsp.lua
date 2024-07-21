@@ -11,6 +11,13 @@ return {
     end,
   },
   {
+    "hrsh7th/cmp-emoji",
+    dependencies = { 'hrsh7th/nvim-cmp' },
+    init = function()
+      table.insert(require("cmp").get_config().sources, { name = "git" })
+    end
+  },
+  {
     "petertriho/cmp-git",
     dependencies = { 'hrsh7th/nvim-cmp' },
     opts = {
