@@ -34,7 +34,8 @@ blinking-cursor = false
 # (windows: C:\Users\USER\AppData\Local\rio\themes\dracula.toml)
 #
 # Example:
-theme = "tokyonight_night"
+theme = "catppuccin-macchiato"
+# theme = "tokyonight_night"
 
 # Padding-x
 #
