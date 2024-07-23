@@ -3,6 +3,7 @@ if status is-interactive
     fish_vi_key_bindings
 end
 fish_add_path /opt/homebrew/bin
+fish_add_path ~/.cargo/bin
 
 
 direnv hook fish | source
