@@ -34,49 +34,50 @@ else
     nixpkgs.overlays = [
       # inputs.waybar.overlays.default
     ];
-    imports = [
-      inputs.hypridle.homeManagerModules.default
-      inputs.hyprlock.homeManagerModules.default
-      inputs.hyprland.homeManagerModules.default
-    ];
+    imports = [ inputs.hyprland.homeManagerModules.default ];
     services.gnome-keyring.enable = true;
     services.hypridle = {
       # https://github.com/hyprwm/hypridle/blob/main/nix/hm-module.nix
       enable = true;
-      lockCmd = "pidof hyprlock || hyprlock";
-      beforeSleepCmd = "loginctl lock-session";
-      afterSleepCmd = "hyprctl dispatch dpms on";
-      listeners = [
-        {
-          timeout = 150;
-          onTimeout = "${brightnessctlBin} -s set 10";
-          onResume = "${brightnessctlBin} -r ";
-        }
-        {
-          timeout = 150; # 2.5min.
-          onTimeout = "brightnessctl -sd rgb:kbd_backlight set 0"; # turn off keyboard backlight.
-          onResume = "brightnessctl -rd rgb:kbd_backlight"; # turn on keyboard backlight.
-        }
-        {
-          timeout = 300;
-          onTimeout = "hyprctl dispatch exit";
-        }
-        {
-          timeout = 380; # 5.5min
-          onTimeout = "hyprctl dispatch dpms off"; # screen off when timeout has passed
-          onResume = "hyprctl dispatch dpms on"; # screen on when activity is detected after timeout has fired.
-        }
-        {
-          timeout = 600; # 10min
-          onTimeout = "systemctl suspend-then-hybernate"; # suspend pc
-        }
-      ];
+      settings = {
+        general = {
+          lock_cmd = "pidof hyprlock || hyprlock";
+          before_sleep_cmd = "loginctl lock-session";
+          after_sleep_cmd = "hyprctl dispatch dpms on";
+        };
+        listener = [
+          {
+            timeout = 150;
+            onTimeout = "${brightnessctlBin} -s set 10";
+            onResume = "${brightnessctlBin} -r ";
+          }
+          {
+            timeout = 150; # 2.5min.
+            onTimeout = "brightnessctl -sd rgb:kbd_backlight set 0"; # turn off keyboard backlight.
+            onResume = "brightnessctl -rd rgb:kbd_backlight"; # turn on keyboard backlight.
+          }
+          {
+            timeout = 300;
+            onTimeout = "hyprctl dispatch exit";
+          }
+          {
+            timeout = 380; # 5.5min
+            onTimeout = "hyprctl dispatch dpms off"; # screen off when timeout has passed
+            onResume = "hyprctl dispatch dpms on"; # screen on when activity is detected after timeout has fired.
+          }
+          {
+            timeout = 600; # 10min
+            onTimeout = "systemctl suspend-then-hybernate"; # suspend pc
+          }
+        ];
+      };
     };
     programs.hyprlock = {
       # https://github.com/hyprwm/hyprlock/blob/main/nix/hm-module.nix
       enable = true;
-      package = inputs.hyprlock.packages.${system}.default;
-      backgrounds = [ { path = "${inputs.self}/docs/tokyo_skyline.png"; } ];
+      settings = {
+        background = [ { path = "${inputs.self}/docs/tokyo_skyline.png"; } ];
+      };
     };
 
     gtk = {
