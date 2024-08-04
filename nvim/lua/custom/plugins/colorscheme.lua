@@ -16,4 +16,19 @@ local tokyonight = { -- You can easily change to a different colorscheme.
   end,
 }
 
-return { "catppuccin/nvim", name = "catppuccin", priority = 1000 }
+return {
+  "catppuccin/nvim",
+  name = "catppuccin",
+  priority = 1000,
+  opts = {
+    integrations = {
+      cmp = true,
+      gitsigns = true,
+      treesitter = true,
+      neogit = true,
+      mini = {
+        enabled = true
+      },
+    }
+  }
+}
