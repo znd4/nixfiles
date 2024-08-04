@@ -34,6 +34,6 @@ gpgsign=true
 [diff]
     colorMoved = default
 [pull]
-	rebase = true
+	rebase = false
 [push]
     autoSetupRemote = true
