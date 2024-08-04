@@ -61,6 +61,15 @@ return {
 
       -- And you can configure cmp even more, if you want to.
       local cmp = require 'cmp'
+
+      -- play nicely with copilot
+      cmp.event:on("menu_opened", function()
+        vim.b.copilot_suggestion_hidden = true
+      end)
+      cmp.event:on("menu_closed", function()
+        vim.b.copilot_suggestion_hidden = false
+      end)
+
       local cmp_action = lsp_zero.cmp_action()
       local cmp_config = cmp.get_config()
       table.insert(cmp_config.sources, { name = "luasnip" })
