@@ -1,6 +1,7 @@
 return {
   'folke/flash.nvim',
   event = 'VeryLazy',
+  vscode = true,
   config = {
     label = {
       rainbow = {
