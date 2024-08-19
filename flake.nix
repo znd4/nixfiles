@@ -69,6 +69,10 @@
       url = "git+https://github.com/kmonad/kmonad?submodules=1&dir=nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    miryoku_kmonad = {
+      url = "github:znd4/miryoku_kmonad/add-nix-support";
+      inputs.kmonad.follows = "kmonad";
+    };
   };
 
   # inputs.kmonad = {

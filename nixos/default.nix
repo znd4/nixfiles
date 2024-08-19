@@ -126,9 +126,6 @@ in
     defaultNetwork.settings.dns_enabled = true;
   };
 
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
-
   # bluetooth
   hardware.bluetooth.enable = true; # enables support for Bluetooth
   hardware.bluetooth.powerOnBoot = true; # powers up the default Bluetooth controller on boot

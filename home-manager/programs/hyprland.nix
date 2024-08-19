@@ -372,7 +372,6 @@ else
             "CTRL ALT, F, togglespecialworkspace, ${terminal}"
             "SUPER, grave, togglespecialworkspace, ${terminal}"
             "SUPER, Return, exec, ${terminal}" # xterm is a symlink, not actually xterm
-            "ALT, G, exec, vivaldi"
             # "${mainMod}, E, exec, ${fileManager}"
             "ALT, SPACE, exec, ${drun}"
             "${mainMod}, R, exec, ${run}"
