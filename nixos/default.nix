@@ -178,7 +178,6 @@ in
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.allowUnfreePredicate = _: true;
 
-  # logseq
   nixpkgs.overlays = import ./overlays args;
 
   # List packages installed in system profile. To search, run:

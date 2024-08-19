@@ -184,7 +184,6 @@ else
           "${pkgs.networkmanagerapplet}/bin/nm-applet --indicator & disown"
           wallpaperApp # # wallpaper
           "1password"
-          "logseq"
           "waybar" # menu bar
           notificationDaemon
           # terminal # terminal (e.g. wezterm)

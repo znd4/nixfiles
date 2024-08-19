@@ -37,7 +37,6 @@ else
     home.homeDirectory = "/home/" + username;
     home.packages = with pkgs; [
       #appimageTools
-      logseq
 
       appimage-run
       mpv-unwrapped
