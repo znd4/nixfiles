@@ -390,7 +390,7 @@ in
         set -g SHELL ${pkgs.fish}/bin/fish
       ''
       + (
-        (if system == "aarch64-darwin" then "" else "\nset -q SSH_AUTH_SOCK; or")
+        (if system == "aarch64-darwin" then "" else "\nset -q SSH_AUTH_SOCK")
         + "\nset -g SSH_AUTH_SOCK ${authSocks.${system}}"
       );
   };
