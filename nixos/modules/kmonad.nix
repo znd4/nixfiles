@@ -11,20 +11,20 @@ let
   };
   enabled = builtins.hasAttr hostname keyboardMap;
 in
-# if !enabled then
-#   { }
-# else
-{
-  imports = [ inputs.miryoku_kmonad.nixosModules.default ];
-  services.miryoku_kmonad = {
-    enable = true;
-    device = keyboardMap.${hostname};
-    name = "builtin-keyboard";
-    package = pkgs.miryoku_kmonad.overrideAttrs (old: {
-      buildFlags = [
-        # "MIRYOKU_ALPHAS=QWERTY"
-        # "MIRYOKU_NAV=VI"
-      ];
-    });
-  };
-}
+if !enabled then
+  { }
+else
+  {
+    imports = [ inputs.miryoku_kmonad.nixosModules.default ];
+    services.miryoku_kmonad = {
+      enable = true;
+      device = keyboardMap.${hostname};
+      name = "builtin-keyboard";
+      package = pkgs.miryoku_kmonad.overrideAttrs (old: {
+        buildFlags = [
+          # "MIRYOKU_ALPHAS=QWERTY"
+          # "MIRYOKU_NAV=VI"
+        ];
+      });
+    };
+  }

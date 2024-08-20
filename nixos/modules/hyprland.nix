@@ -12,7 +12,7 @@
   };
   imports = [ inputs.hyprland.nixosModules.default ];
 
-  services.xserver.displayManager.sddm = {
+  services.displayManager.sddm = {
     enable = true;
   };
 
@@ -30,7 +30,7 @@
   };
 
   hardware = {
-    opengl.enable = true;
+    graphics.enable = true;
     nvidia.modesetting.enable = true;
   };
 

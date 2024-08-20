@@ -54,6 +54,9 @@ in
     );
   };
 
+  # need for building raspberry pi images
+  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
+
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -106,13 +109,15 @@ in
   };
 
   # Enable the X11 windowing system.
+  services.displayManager = {
+    sddm.enable = true;
+  };
   services.xserver = {
     enable = true;
     xkb = {
       layout = "us";
       variant = "";
     };
-    displayManager.sddm.enable = true;
     # displayManager.startx.enable = true;
   };
 
