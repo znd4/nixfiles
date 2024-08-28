@@ -2,11 +2,13 @@
 format = "ssh"
 
 [alias]
-	a="add"
-	s="status"
-	c="commit"
-	pl="pull"
-	ps="push"
+    a="add"
+    s="status"
+    c="commit"
+    ck="checkout"
+    f="fetch"
+    pl="pull"
+    ps="push"
 
 [include]
     path=~/.config/git/local
