@@ -13,3 +13,5 @@ op/config
 op
 code-server/config.yaml
 github-copilot
+cheat
+pgcli
