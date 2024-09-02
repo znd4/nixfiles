@@ -1,0 +1,13 @@
+[window]
+option_as_alt="Both"
+
+[font.normal]
+family = "MonaspiceAr Nerd Font"
+
+[font.italic]
+family = "MonaspiceRn Nerd Font"
+style = "Italic"
+
+
+[env]
+TERM = "xterm-256color"
