@@ -8,11 +8,9 @@ return {
     'folke/which-key.nvim',
   },
   init = function()
-    require('which-key').register({
-      s = {
-        o = { '<cmd>Octo actions<cr>', 'Octo actions' },
-      },
-    }, { prefix = '<leader>' })
+    require('which-key').add({
+      { "<leader>so", "<cmd>Octo actions<cr>", desc = "Octo actions" },
+    })
   end,
   config = true,
 }

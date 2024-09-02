@@ -17,11 +17,9 @@ return {
     local file_browser = require('telescope').load_extension 'file_browser'
     require('telescope.builtin').file_browser = file_browser.file_browser
     local wk = require 'which-key'
-    wk.register({
-      s = {
-        p = { ':Telescope projects<CR>', '[S]earch [p]rojects' },
-      },
-    }, { prefix = '<leader>' })
+    wk.add({
+      { "<leader>sp", ":Telescope projects<CR>", desc = '[S]earch [p]rojects' },
+    })
   end,
   dependencies = {
     'nvim-telescope/telescope-file-browser.nvim',
