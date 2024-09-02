@@ -199,6 +199,7 @@ return {
         'terraformls',
         'tilt_ls',
         'tsserver',
+        'regal',
       }
     end,
   },
