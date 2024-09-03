@@ -195,7 +195,7 @@ return {
       lsp_zero.setup_servers {
         'basedpyright',
         'jsonls',
-        'jsonnet_ls'
+        'jsonnet_ls',
         'nushell',
         'terraformls',
         'tilt_ls',
