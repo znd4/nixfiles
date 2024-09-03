@@ -11,35 +11,35 @@ return {
     end,
   },
   {
-    "mtoohey31/cmp-fish",
+    'mtoohey31/cmp-fish',
     dependencies = { 'hrsh7th/nvim-cmp' },
     init = function()
-      table.insert(require("cmp").get_config().sources, { name = "fish" })
-    end
-  },
-  {
-    "hrsh7th/cmp-emoji",
-    dependencies = { 'hrsh7th/nvim-cmp' },
-    init = function()
-      table.insert(require("cmp").get_config().sources, { name = "emoji" })
-    end
-  },
-  {
-    "hrsh7th/cmp-buffer",
-    dependencies = { 'hrsh7th/nvim-cmp' },
-    init = function()
-      table.insert(require("cmp").get_config().sources, { name = "buffer" })
+      table.insert(require('cmp').get_config().sources, { name = 'fish' })
     end,
   },
   {
-    "petertriho/cmp-git",
+    'hrsh7th/cmp-emoji',
+    dependencies = { 'hrsh7th/nvim-cmp' },
+    init = function()
+      table.insert(require('cmp').get_config().sources, { name = 'emoji' })
+    end,
+  },
+  {
+    'hrsh7th/cmp-buffer',
+    dependencies = { 'hrsh7th/nvim-cmp' },
+    init = function()
+      table.insert(require('cmp').get_config().sources, { name = 'buffer' })
+    end,
+  },
+  {
+    'petertriho/cmp-git',
     dependencies = { 'hrsh7th/nvim-cmp' },
     opts = {
       -- ...
     },
     init = function()
-      table.insert(require("cmp").get_config().sources, { name = "git" })
-    end
+      table.insert(require('cmp').get_config().sources, { name = 'git' })
+    end,
   },
 
   -- Autocompletion
@@ -49,7 +49,7 @@ return {
     dependencies = {
       { 'L3MON4D3/LuaSnip' },
       { 'hrsh7th/nvim-cmp' },
-      { "rafamadriz/friendly-snippets" },
+      { 'rafamadriz/friendly-snippets' },
       'saadparwaiz1/cmp_luasnip',
 
       -- Adds other completion capabilities.
@@ -64,25 +64,25 @@ return {
       lsp_zero.extend_cmp()
 
       -- add friendly snippets to luasnip
-      require("luasnip.loaders.from_vscode").lazy_load()
+      require('luasnip.loaders.from_vscode').lazy_load()
 
       -- And you can configure cmp even more, if you want to.
       local cmp = require 'cmp'
 
       -- play nicely with copilot
-      cmp.event:on("menu_opened", function()
+      cmp.event:on('menu_opened', function()
         vim.b.copilot_suggestion_hidden = true
       end)
-      cmp.event:on("menu_closed", function()
+      cmp.event:on('menu_closed', function()
         vim.b.copilot_suggestion_hidden = false
       end)
 
       local cmp_action = lsp_zero.cmp_action()
       local cmp_config = cmp.get_config()
-      table.insert(cmp_config.sources, { name = "luasnip" })
-      table.insert(cmp_config.sources, { name = "path" })
-      table.insert(cmp_config.sources, { name = "nvim_lsp" })
-      local luasnip = require("luasnip")
+      table.insert(cmp_config.sources, { name = 'luasnip' })
+      table.insert(cmp_config.sources, { name = 'path' })
+      table.insert(cmp_config.sources, { name = 'nvim_lsp' })
+      local luasnip = require 'luasnip'
       cmp.setup {
         formatting = lsp_zero.cmp_format { details = true },
         mapping = cmp.mapping.preset.insert {
@@ -93,22 +93,22 @@ return {
           ['<C-b>'] = cmp_action.luasnip_jump_backward(),
           ['<C-n>'] = cmp.mapping(function(fallback)
             if cmp.visible() then
-              cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+              cmp.select_next_item { behavior = cmp.SelectBehavior.Select }
             elseif luasnip.choice_active() then
               luasnip.change_choice(1)
             else
               fallback()
             end
-          end, { "i", "s" }),
+          end, { 'i', 's' }),
           ['<C-p>'] = cmp.mapping(function(fallback)
             if cmp.visible() then
-              cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
+              cmp.select_prev_item { behavior = cmp.SelectBehavior.Select }
             elseif luasnip.choice_active() then
               luasnip.change_choice(-1)
             else
               fallback()
             end
-          end, { "i", "s" })
+          end, { 'i', 's' }),
         },
         snippet = {
           expand = function(args)
@@ -145,9 +145,9 @@ return {
             r = { vim.lsp.buf.references, '[G]o to [r]eferences' },
             s = { vim.lsp.buf.signature_help, '[G]o to [s]ignature' },
             -- call hierarchy
-            I = { vim.lsp.buf.incoming_calls, "[I]ncoming calls" },
-            O = { vim.lsp.buf.outgoing_calls, "[O]utgoing calls" },
-            l = { vim.diagnostic.open_float, "Open f[l]oat" },
+            I = { vim.lsp.buf.incoming_calls, '[I]ncoming calls' },
+            O = { vim.lsp.buf.outgoing_calls, '[O]utgoing calls' },
+            l = { vim.diagnostic.open_float, 'Open f[l]oat' },
           },
           K = { vim.lsp.buf.hover, 'Hover' },
           ['<F2>'] = { vim.lsp.buf.rename, 'Rename' },
@@ -159,8 +159,8 @@ return {
           ['<F3>'] = { ':lua vim.lsp.buf.format({async=true})<cr>', 'format buffer' },
         }, { buffer = bufnr, mode = { 'n', 'x' } })
         require('which-key').register({
-          ["<C-k>"] = { vim.lsp.buf.signature_help, "View argument signature" },
-        }, { buffer = bufnr, mode = { "i" } })
+          ['<C-k>'] = { vim.lsp.buf.signature_help, 'View argument signature' },
+        }, { buffer = bufnr, mode = { 'i' } })
       end)
 
       -- (Optional) Configure lua language server for neovim
@@ -185,16 +185,17 @@ return {
           },
         },
       })
-      lsp_zero.configure("gopls", {
+      lsp_zero.configure('gopls', {
         settings = {
           gopls = {
-            gofumpt = true
-          }
-        }
+            gofumpt = true,
+          },
+        },
       })
       lsp_zero.setup_servers {
         'basedpyright',
         'jsonls',
+        'jsonnet_ls'
         'nushell',
         'terraformls',
         'tilt_ls',
