@@ -7,6 +7,8 @@ PATH_add $HOME/go/bin
 export XDG_CONFIG_HOME="$HOME/.config"
 export RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgreprc"
 
+PATH_add "$HOME/.rye/shims"
+
 export SKIM_DEFAULT_COMMAND="fd --type f --hidden --no-ignore-vcs --exclude .git || git ls-tree -r --name-only HEAD || rg --files || find ."
 export SKIM_CTRL_T_COMMAND="fd --hidden --exclude .git --no-ignore-vcs"
 export MANPAGER="nvim +Man!"
