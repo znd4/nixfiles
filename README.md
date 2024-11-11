@@ -12,7 +12,7 @@ export NIX_CONFIG="experimental-features = nix-command flakes"
 ### nix-darwin
 
 ```shell
-darwin-rebuild switch --flake ".<hostname>"
+nix run nix-darwin -- switch --flake ".<hostname>"
 ```
 
 ### NixOS
