@@ -21,6 +21,7 @@ return {
       lua = { 'stylua' },
       markdown = { 'dprint' },
       python = { 'ruff_format', 'ruff_fix' },
+      terraform = { 'tofu_fmt' },
       yaml = { 'dprint' },
       -- we've got marksman now
       -- markdown = { prettier },
