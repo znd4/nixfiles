@@ -22,3 +22,17 @@
   (#set! injection.language "yaml")
  )
 )
+(
+ (redirected_statement
+  body: (command) @_command
+  redirect: (heredoc_redirect
+    redirect: (file_redirect
+      destination: (word) @_file
+      (#match? @_file ".*Dockerfile")
+    )
+    (heredoc_body) @injection.content @indent.dedent
+  )
+  (#set! injection.language "dockerfile")
+ )
+(#eq? @_command "cat")
+)
