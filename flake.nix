@@ -142,7 +142,7 @@
             modules = [ self.darwinModules.default ] ++ extraModules;
           };
         darwinConfigurations.work = self.darwinFactory {
-          username = "dufourz";
+          username = "znd4";
           stateVersion = 4;
         };
 
