@@ -23,6 +23,7 @@ alias vi=nvim
 alias bh="bat -l help"
 alias by="bat -l yaml"
 alias kkots="kubectl-kots"
+alias ipy="py -m IPython"
 
 abbr k kubectl
 abbr ky kubectl get -o yaml
