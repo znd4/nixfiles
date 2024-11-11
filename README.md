@@ -12,7 +12,7 @@ export NIX_CONFIG="experimental-features = nix-command flakes"
 ### nix-darwin
 
 ```shell
-nix run nix-darwin -- switch --flake ".<hostname>"
+nix run nix-darwin -- switch --flake ".#<hostname>"
 ```
 
 ### NixOS
@@ -24,7 +24,7 @@ sudo nixos-rebuild switch --flake ".#<hostname>"
 ### Home Manager
 
 ```sh
-home-manager switch --flake .
+nix run home-manager -- switch --flake ".#<hostname>"
 ```
 
 ## Future plans
