@@ -26,7 +26,8 @@
       (block_mapping_pair
         key: (flow_node) @_command
         (#eq? @_command "command")
-        value: (flow_node) @bash
+        value: (flow_node) @injection.content
+        (#set! injection.language "bash")
       )
     )
   )
@@ -42,7 +43,8 @@
         value: (block_node (block_sequence (block_sequence_item (block_node (block_mapping (block_mapping_pair 
             key: (flow_node) @_run
             (#eq? @_run "run")
-            value: (flow_node) @bash
+            value: (flow_node) @injection.content
+            (#set! injection.language "bash")
         ))))))
     ))))))
 )
@@ -55,8 +57,9 @@
         value: (block_node (block_sequence (block_sequence_item (block_node (block_mapping (block_mapping_pair 
             key: (flow_node) @_run
             (#eq? @_run "run")
-            value: (block_node (block_scalar) @bash)
-            (#gsub! @bash "\n%s*" "")
+            value: (block_node (block_scalar) @injection.content)
+            (#offset! @injection.content 0 1 0 0)
+            (#set! injection.language "bash")
         ))))))
     ))))))
 )
