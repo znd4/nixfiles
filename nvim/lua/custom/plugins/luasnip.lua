@@ -11,6 +11,7 @@ return {
   end)(),
   dependencies = {
     -- "folke/which-key",
+    "znd4/mermaid-luasnip.nvim",
   },
   --[[
 
@@ -25,6 +26,7 @@ return {
   --
   init = function()
     local ls = require("luasnip")
+    require("mermaid-luasnip").setup()
     local s = ls.snippet
     local sn = ls.snippet_node
     local isn = ls.indent_snippet_node
