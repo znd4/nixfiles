@@ -3,12 +3,29 @@ format = "ssh"
 
 [alias]
     a="add"
+    d="diff"
     s="status"
     c="commit"
     ck="checkout"
     f="fetch"
     pl="pull"
     ps="push"
+    append = town append
+    compress = town compress
+    contribute = town contribute
+    diff-parent = town diff-parent
+    hack = town hack
+    kill = town kill
+    observe = town observe
+    park = town park
+    prepend = town prepend
+    propose = town propose
+    rename-branch = town rename-branch
+    repo = town repo
+    set-parent = town set-parent
+    ship = town ship
+    sync = town sync
+    ts = town switch
 
 [include]
     path=~/.config/git/local
@@ -44,3 +61,7 @@ gpgsign=true
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+[init]
+	defaultBranch = main
+[git-town]
+	github-token = foo
