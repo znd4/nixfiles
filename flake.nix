@@ -239,6 +239,10 @@
                   username = "znd4";
                   hostname = "t470";
                 }
+                {
+                  username = "znd4";
+                  hostname = "work";
+                }
               ]
           )
         );
