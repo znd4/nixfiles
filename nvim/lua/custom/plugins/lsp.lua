@@ -196,11 +196,12 @@ return {
         'basedpyright',
         'jsonls',
         'jsonnet_ls',
+        -- 'marksman',
         'nushell',
+        'regal',
         'terraformls',
         'tilt_ls',
         'tsserver',
-        'regal',
       }
     end,
   },
