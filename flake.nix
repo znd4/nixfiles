@@ -58,7 +58,7 @@
       flake = false;
     };
     sessionx = {
-      url = "github:znd4/tmux-sessionx/bind-options";
+      url = "github:omerxx/tmux-sessionx/bind-options";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     darwin = {
