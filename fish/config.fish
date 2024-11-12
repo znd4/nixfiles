@@ -34,11 +34,11 @@ abbr -a by --position anywhere --set-cursor "% | bat -l yaml"
 abbr -a bh --position anywhere --set-cursor "% | bat -l help"
 
 ##### carapace.sh completions
-set -gx CARAPACE_EXCLUDES kubectl
-set -Ux CARAPACE_BRIDGES 'zsh,fish,bash,inshellisense' # optional
-mkdir -p ~/.config/fish/completions
-carapace --list | awk '{print $1}' | xargs -P0 -I{} touch ~/.config/fish/completions/{}.fish # disable auto-loaded completions (#185)
-carapace _carapace | source
+# set -gx CARAPACE_EXCLUDES kubectl
+# set -Ux CARAPACE_BRIDGES 'zsh,fish,bash,inshellisense' # optional
+# mkdir -p ~/.config/fish/completions
+# carapace --list | awk '{print $1}' | xargs -P0 -I{} touch ~/.config/fish/completions/{}.fish # disable auto-loaded completions (#185)
+# carapace _carapace | source
 
 
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
