@@ -4,7 +4,7 @@ default:
 alias hm := home-manager
 
 home-manager:
-    home-manager switch --flake .
+    nix run home-manager -- switch --flake .
 
 nixos:
     sudo nixos-rebuild switch --flake .
