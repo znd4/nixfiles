@@ -242,6 +242,7 @@
                 {
                   username = "znd4";
                   hostname = "work";
+                  system = "aarch64-darwin";
                 }
               ]
           )
