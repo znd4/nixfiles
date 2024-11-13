@@ -2,7 +2,7 @@
 {
   nixpkgs.overlays = [
     (final: prev: {
-      hydroxide = pkgs.buildGoModule.override { go = pkgs.go_1_21; } {
+      hydroxide = pkgs.buildGoModule.override { go = pkgs.go_1_23; } {
         version = "znd4-fork";
         pname = "hydroxide";
         src = pkgs.fetchFromGitHub {
