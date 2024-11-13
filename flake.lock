@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1731424394,
-        "narHash": "sha256-J+POQgWQdjhuF1pEnkVKWPJ+dM62FTepk6TmJdj3O5U=",
+        "lastModified": 1731454423,
+        "narHash": "sha256-TtwvgFxUa0wyptLhQbKaixgNW1UXf3+TDqfX3Kp63oM=",
         "owner": "LnL7",
         "repo": "nix-darwin",
-        "rev": "e30d226a24e4079d068321f935dbf30626f08dc8",
+        "rev": "6c71c49e2448e51ad830ed211024e6d0edc50116",
         "type": "github"
       },
       "original": {
@@ -163,11 +163,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1731235328,
-        "narHash": "sha256-NjavpgE9/bMe/ABvZpyHIUeYF1mqR5lhaep3wB79ucs=",
+        "lastModified": 1731535640,
+        "narHash": "sha256-2EckCJn4wxran/TsRiCOFcmVpep2m9EBKl99NBh2GnM=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "60bb110917844d354f3c18e05450606a435d2d10",
+        "rev": "35b055009afd0107b69c286fca34d2ad98940d57",
         "type": "github"
       },
       "original": {
@@ -737,11 +737,11 @@
     },
     "nixpkgs-main": {
       "locked": {
-        "lastModified": 1731446006,
-        "narHash": "sha256-DRXoTSA71IBNYDkeZXURRLIY4QgdwPecN40bL1HYozI=",
+        "lastModified": 1731535897,
+        "narHash": "sha256-Hp7sEf5toJBwULzHeNATH5RkxDzi0oGo2uA0U0KDmLA=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "4ac41e0f5f72a5b1c4a92cd633ee447c3952c8ec",
+        "rev": "bbe55aa77ddccdd8957f291b69c6dd51ba40965f",
         "type": "github"
       },
       "original": {
@@ -814,7 +814,6 @@
         "nixpkgs": "nixpkgs_4",
         "nixpkgs-23_11": "nixpkgs-23_11",
         "nixpkgs-main": "nixpkgs-main",
-        "sesh": "sesh",
         "sessionx": "sessionx",
         "xdg-config": "xdg-config"
       }
@@ -837,22 +836,6 @@
       "original": {
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "type": "github"
-      }
-    },
-    "sesh": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1730138524,
-        "narHash": "sha256-py8m9fXnx2mrYc6PoYU9QC7896ze1oj22qYCpVnSWsw=",
-        "owner": "joshmedeski",
-        "repo": "sesh",
-        "rev": "9e52703d185411d4675a698287080f4789958da2",
-        "type": "github"
-      },
-      "original": {
-        "owner": "joshmedeski",
-        "repo": "sesh",
         "type": "github"
       }
     },
