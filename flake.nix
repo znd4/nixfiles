@@ -53,10 +53,6 @@
       url = "github:gennaro-tedesco/gh-f";
       flake = false;
     };
-    sesh = {
-      url = "github:joshmedeski/sesh";
-      flake = false;
-    };
     sessionx = {
       url = "github:omerxx/tmux-sessionx";
       inputs.nixpkgs.follows = "nixpkgs";

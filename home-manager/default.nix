@@ -317,6 +317,7 @@ in
       ruff
       rustc
       sd
+      sesh
       sessionx
       skim
       sops
