@@ -333,7 +333,7 @@ in
       wget
       xh
       zenith
-      zig
+      # zig
       zoxide
       zsh
     ];
