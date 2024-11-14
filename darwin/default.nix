@@ -43,7 +43,6 @@
   programs.zsh.enable = true;
 
   homebrew = {
-    brewPrefix = "/Users/${username}/homebrew/bin";
     enable = true;
     casks = [ "1password-cli" ];
   };
