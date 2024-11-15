@@ -1,4 +1,13 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, system, ... }:
+let
+  enabled = builtins.elem system [
+    "x86_64-linux"
+    "aarch64-linux"
+  ];
+in
+if !enabled then
+  { }
+else
 {
   fonts.fontconfig.enable = true;
   home.packages = with pkgs; [
