@@ -260,6 +260,7 @@ in
     with pkgs;
     let
       sessionx = inputs.sessionx.packages.${system}.default;
+      jujutsu = inputs.nixos-unstable.legacyPackages.${system}.jujutsu;
       personal_python = inputs.nixpkgs-24_05.legacyPackages.${system}.python3.withPackages (
         ps:
         # personal_python = inputs.nixpkgs-main.legacyPackages.${system}.python3.withPackages (ps:
