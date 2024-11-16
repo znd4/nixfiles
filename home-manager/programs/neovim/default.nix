@@ -40,7 +40,6 @@ in
         dprint
         gcc
         glow
-        isort
         jsonnet-language-server
         lua-language-server
         marksman
