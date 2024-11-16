@@ -745,6 +745,22 @@
         "type": "github"
       }
     },
+    "nixos-unstable": {
+      "locked": {
+        "lastModified": 1731319897,
+        "narHash": "sha256-PbABj4tnbWFMfBp6OcUK5iGy1QY+/Z96ZcLpooIbuEI=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "dc460ec76cbff0e66e269457d7b728432263166c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1731139594,
@@ -961,6 +977,7 @@
         "miryoku_kmonad": "miryoku_kmonad",
         "nil": "nil",
         "nixd": "nixd",
+        "nixos-unstable": "nixos-unstable",
         "nixpkgs": "nixpkgs_4",
         "nixpkgs-24_05": "nixpkgs-24_05",
         "nixpkgs-main": "nixpkgs-main",
