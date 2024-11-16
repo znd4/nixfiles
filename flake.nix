@@ -1,9 +1,7 @@
 {
-  inputs = let
-    nixos_unstable_url = "github:NixOS/nixpkgs/nixos-unstable";
-  in {
+  inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
-    nixos-unstable.url = nixos_unstable_url;
+    nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     # nixpkgs.url = nixos_unstable_url;
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
     nixpkgs-24_05.url = "github:NixOS/nixpkgs/nixos-24.05";
