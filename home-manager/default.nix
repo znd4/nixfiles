@@ -330,6 +330,7 @@ in
       unzip
       uv
       vale
+      vulnix
       wget
       xh
       zenith

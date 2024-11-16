@@ -6,3 +6,9 @@ repos:
         entry: nixfmt
         types: [nix]
         language: system
+      # - id: vulnix
+      #   name: check for vulnerabilities in nixpkgs
+      #   language: system
+      #   types: [nix]
+      #   # TODO: come up with something smarter than this
+      #   entry: vulnix --system
