@@ -3,8 +3,8 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     # nixpkgs.url = nixos_unstable_url;
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
-    nixpkgs-24_05.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11-small";
+    nixpkgs-24_11.url = "github:NixOS/nixpkgs/nixos-24.11-small";
     nixpkgs-main.url = "nixpkgs/master";
 
     nil.url = "github:oxalica/nil";
@@ -187,10 +187,10 @@
             system,
             username,
             hostname,
+            stateVersion,
             knownHosts ? self.knownHosts,
             outputs ? self,
             keys ? self.keys,
-            stateVersion ? "23.11",
             extraModules ? [ ],
           }:
           home-manager.lib.homeManagerConfiguration {
@@ -217,9 +217,17 @@
                   username,
                   hostname,
                   system ? "x86_64-linux",
+                  stateVersion ? "23.11",
                 }:
                 (lib.attrsets.nameValuePair "${username}@${hostname}" (
-                  self.homeConfigurationFactory { inherit system username hostname; }
+                  self.homeConfigurationFactory {
+                    inherit
+                      stateVersion
+                      system
+                      username
+                      hostname
+                      ;
+                  }
                 ))
               )
               [
@@ -235,6 +243,7 @@
                   username = "znd4";
                   hostname = "work";
                   system = "aarch64-darwin";
+                  stateVersion = "24.11";
                 }
               ]
           )
