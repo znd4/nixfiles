@@ -87,7 +87,7 @@ in
   };
   programs.awscli = {
     enable = true;
-    package = inputs.nixpkgs-23_11.legacyPackages.${system}.awscli2;
+    package = inputs.nixpkgs-24_05.legacyPackages.${system}.awscli2;
   };
   programs.gh = {
     enable = true;
@@ -260,7 +260,7 @@ in
     with pkgs;
     let
       sessionx = inputs.sessionx.packages.${system}.default;
-      personal_python = inputs.nixpkgs-23_11.legacyPackages.${system}.python3.withPackages (
+      personal_python = inputs.nixpkgs-24_05.legacyPackages.${system}.python3.withPackages (
         ps:
         # personal_python = inputs.nixpkgs-main.legacyPackages.${system}.python3.withPackages (ps:
         with ps; [

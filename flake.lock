@@ -653,7 +653,7 @@
         "type": "github"
       }
     },
-    "nixpkgs-23_11": {
+    "nixpkgs-24_05": {
       "locked": {
         "lastModified": 1720535198,
         "narHash": "sha256-zwVvxrdIzralnSbcpghA92tWu2DV2lwv89xZc8MTrbg=",
@@ -812,7 +812,7 @@
         "nil": "nil",
         "nixd": "nixd",
         "nixpkgs": "nixpkgs_4",
-        "nixpkgs-23_11": "nixpkgs-23_11",
+        "nixpkgs-24_05": "nixpkgs-24_05",
         "nixpkgs-main": "nixpkgs-main",
         "sessionx": "sessionx",
         "xdg-config": "xdg-config"
