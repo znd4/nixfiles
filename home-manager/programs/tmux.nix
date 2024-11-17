@@ -19,7 +19,10 @@
     # tmuxp.enable = true;
     extraConfig = ''
       set -g default-command ${pkgs.fish}/bin/fish
-      bind -n M-d run-shell "sesh connect $(
+      bind -n M-d display-popup -E -w 40% "sesh connect \"$(
+        sesh list -i | gum filter --limit 1 --no-sort --fuzzy --placeholder 'Pick a sesh' --height 50 --prompt='⚡'
+      )\""
+      bind -n M-a run-shell "sesh connect $(
         sesh list -tz | fzf-tmux -p 55%,60% \
         		--no-sort --border-label ' sesh ' --prompt '⚡  ' \
         		--header '  ^a all ^t tmux ^x zoxide ^f find' \
