@@ -301,6 +301,7 @@ in
       glow
       gnumake
       google-cloud-sdk
+      gum
       htop
       jc
       jq
