@@ -24,7 +24,9 @@ sudo nixos-rebuild switch --flake ".#<hostname>"
 ### Home Manager
 
 ```sh
-nix run home-manager -- switch --flake ".#<hostname>"
+nix shell home-manager nixpkgs#nix-output-monitor nixpkgs#expect \
+    --command bash -c \
+    'unbuffer home-manager switch --flake ".#znd4@work" |& nom'
 ```
 
 ## Future plans
