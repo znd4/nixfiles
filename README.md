@@ -6,27 +6,30 @@
 git clone https://github.com/znd4/nixfiles
 cd ./nixfiles
 # Only needed during system setup
+# (thanks for keeping these ridiculously popular features "experimental", nix)
 export NIX_CONFIG="experimental-features = nix-command flakes"
 ```
 
 ### nix-darwin
 
 ```shell
-nix run nix-darwin -- switch --flake ".#<hostname>"
+hostname=t470
+nix run nix-darwin -- switch --flake ".#$hostname"
 ```
 
 ### NixOS
 
 ```sh
-sudo nixos-rebuild switch --flake ".#<hostname>"
+hostname=t470
+sudo nixos-rebuild switch --flake ".#$hostname"
 ```
 
 ### Home Manager
 
 ```sh
-nix shell home-manager nixpkgs#nix-output-monitor nixpkgs#expect \
-    --command bash -c \
-    'unbuffer home-manager switch --flake ".#znd4@work" |& nom'
+user=znd4
+hostname=work
+nix run ".#home-manager-switch" ".#$user@$hostname"
 ```
 
 ## Future plans

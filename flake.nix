@@ -90,7 +90,20 @@
         { config, pkgs, ... }:
         {
           formatter = pkgs.nixfmt-rfc-style;
-          packages = import ./pkgs pkgs;
+          packages = (import ./pkgs pkgs) // {
+            home-manager-switch = pkgs.writeShellApplication {
+              name = "home-manager-switch";
+              runtimeInputs = with pkgs; [
+                expect
+                home-manager
+                nix-output-monitor
+              ];
+              text = ''
+                #!/usr/bin/env bash
+                unbuffer home-manager switch --flake "''${1:-.}" |& nom
+              '';
+            };
+          };
         };
       systems = [
         "x86_64-linux"
