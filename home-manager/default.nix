@@ -153,7 +153,6 @@ in
 
   programs.lazygit = {
     enable = true;
-    package = inputs.nixpkgs-main.legacyPackages.${system}.lazygit;
     settings = {
       gui.nerdFontsVersion = 3;
       git.autoFetch = false;

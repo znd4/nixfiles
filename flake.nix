@@ -5,7 +5,6 @@
     # nixpkgs.url = nixos_unstable_url;
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11-small";
     nixpkgs-24_11.url = "github:NixOS/nixpkgs/nixos-24.11-small";
-    nixpkgs-main.url = "nixpkgs/master";
 
     nil.url = "github:oxalica/nil";
     nixd = {
@@ -95,6 +94,7 @@
               ];
               text = ''
                 #!/usr/bin/env bash
+                which home-manager
                 unbuffer home-manager switch --flake "''${1:-.}" |& nom
               '';
             };
