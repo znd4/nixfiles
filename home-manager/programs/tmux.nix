@@ -33,6 +33,12 @@
         		--bind 'ctrl-f:change-prompt(🔎  )+reload(fd -H -d 2 -t d -E .Trash . ~)'
       )"
 
+      # use alt+vim movement between panes
+      bind -n M-h select-pane -L
+      bind -n M-j select-pane -D
+      bind -n M-k select-pane -U
+      bind -n M-l select-pane -R
+
       set -s set-clipboard off
       if-shell "[ -z '$WAYLAND_DISPLAY' ]" \
           "set -s copy-command 'cb copy'" \
