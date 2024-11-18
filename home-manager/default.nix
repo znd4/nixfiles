@@ -385,6 +385,10 @@ in
       hm = "home-manager switch --flake .";
       j = "just";
       nfl = "nix flake update --commit-lock-file";
+      g = "git";
+      kk = "k9s";
+      kr = "kubectl --context rancher-desktop";
+      pc = "pre-commit";
     };
     shellAliases = shellAliases // fishAliases;
     interactiveShellInit =
@@ -392,6 +396,8 @@ in
         fish_vi_key_bindings
         ${pkgs.uv}/bin/uv generate-shell-completion fish | source
         set -g SHELL ${pkgs.fish}/bin/fish
+        abbr -a by --position anywhere --set-cursor "% | bat -l yaml"
+        abbr -a bh --position anywhere --set-cursor "% | bat -l help"
       ''
       + (
         (if system == "aarch64-darwin" then "" else "\nset -q SSH_AUTH_SOCK")
