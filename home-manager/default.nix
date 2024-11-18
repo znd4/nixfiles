@@ -350,7 +350,7 @@ in
       enable = true;
       defaultCommand = fdCommand;
       fileWidgetCommand = fdCommand;
-      changeDirWidgetCommand = "fd --type d --hidden --glob '!.git'";
+      changeDirWidgetCommand = "fd --type d --hidden --exclude '.git'";
       defaultOptions = [ "--cycle" ];
     };
 
