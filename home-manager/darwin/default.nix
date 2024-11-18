@@ -26,7 +26,6 @@ else
       };
     };
 
-    home.packages = with pkgs; [ _1password ];
     home.homeDirectory = "/Users/${username}";
     home.sessionPath = [ "${config.home.homeDirectory}/homebrew/bin" ];
   }
