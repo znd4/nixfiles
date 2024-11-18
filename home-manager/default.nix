@@ -78,7 +78,11 @@ in
 
   programs.ripgrep = {
     enable = true;
-    arguments = [ "--smart-case" ];
+    arguments = [
+      "--smart-case"
+      "--hidden"
+      "--glob=!.git/*"
+    ];
   };
   # TODO: Enable saved WIFI connection credentials
   programs.jujutsu.enable = true; # TODO - try this out
