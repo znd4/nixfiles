@@ -37,7 +37,7 @@
 
   services.nix-daemon.enable = true;
 
-  environment.systemPackages = with pkgs; [ inputs.home-manager.packages.${system}.default ];
+  environment.systemPackages = with pkgs; [ ];
 
   programs.fish.enable = true;
   programs.zsh.enable = true;
