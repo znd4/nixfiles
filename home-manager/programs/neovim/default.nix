@@ -52,6 +52,7 @@ in
         ruff
         rust-analyzer-unwrapped
         taplo
+        terraform-ls
         tree-sitter
         yaml-language-server
       ]
