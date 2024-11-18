@@ -369,9 +369,7 @@ require('lazy').setup({
         },
         pickers = {
           man_pages = {
-            opts = {
-              sections = { 'ALL' },
-            },
+            sections = { 'ALL' },
           },
           find_files = {
             mappings = {
