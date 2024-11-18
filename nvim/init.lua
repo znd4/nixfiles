@@ -372,7 +372,6 @@ require('lazy').setup({
             opts = {
               sections = { 'ALL' },
             },
-            sections = { 'ALL' },
           },
           find_files = {
             mappings = {
