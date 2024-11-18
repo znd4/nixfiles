@@ -1142,11 +1142,11 @@
     "xdg-config": {
       "flake": false,
       "locked": {
-        "lastModified": 1731894632,
-        "narHash": "sha256-IR4FKYScngJ15URuxK+Fo3+zzPw2OhUA8RmwOHi4VOQ=",
+        "lastModified": 1731896740,
+        "narHash": "sha256-U0kGMxCGn9u7fTpYBC6dLImkv8xgIhCxJmxHNaua9IA=",
         "owner": "znd4",
         "repo": "xdg-config",
-        "rev": "1d9588e6bb63a6878cd5f8757b4e344386e0534e",
+        "rev": "3315e7ac3c3763d41a8ce8ffdaecf245db600a0c",
         "type": "github"
       },
       "original": {
