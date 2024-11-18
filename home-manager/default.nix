@@ -343,12 +343,12 @@ in
 
   programs.skim =
     let
-      rgFiles = "rg --files --hidden --follow --glob '!.git'";
+      fdCommand = "fd --type f --hidden --no-ignore-vcs --exclude .git";
     in
     {
       enable = true;
-      defaultCommand = rgFiles;
-      fileWidgetCommand = rgFiles;
+      defaultCommand = fdCommand;
+      fileWidgetCommand = fdCommand;
       changeDirWidgetCommand = "fd --type d --hidden --glob '!.git'";
       defaultOptions = [ "--cycle" ];
     };
