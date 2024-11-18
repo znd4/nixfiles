@@ -301,6 +301,7 @@ in
       gnumake
       google-cloud-sdk
       gum
+      home-manager
       htop
       jc
       jq
@@ -362,7 +363,6 @@ in
     enableBashIntegration = false;
     enableZshIntegration = false;
   };
-  programs.home-manager.enable = true;
   programs.nushell = {
     enable = true;
     envFile.source = "${dotConfig}/nushell/env.nu";
