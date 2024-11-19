@@ -4,6 +4,7 @@
     nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     # nixpkgs.url = nixos_unstable_url;
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11-small";
+    nixpkgs-spacectl.url = "github:znd4/nixpkgs/spacectl_completions";
     nixpkgs-24_11.url = "github:NixOS/nixpkgs/nixos-24.11-small";
 
     nil.url = "github:oxalica/nil";

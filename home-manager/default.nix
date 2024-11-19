@@ -265,6 +265,7 @@ in
     let
       sessionx = inputs.sessionx.packages.${system}.default;
       jujutsu = inputs.nixos-unstable.legacyPackages.${system}.jujutsu;
+      spacectl = inputs.nixpkgs-spacectl.legacyPackages.${system}.spacectl;
       personal_python = inputs.nixpkgs-24_11.legacyPackages.${system}.python3.withPackages (
         ps:
         # personal_python = inputs.nixpkgs-main.legacyPackages.${system}.python3.withPackages (ps:
