@@ -858,11 +858,11 @@
     },
     "nixpkgs-spacectl": {
       "locked": {
-        "lastModified": 1732035043,
-        "narHash": "sha256-qgHa42VWZdQese7kNPP5TOOl9IQvHSFFv7V9Ztgs9qo=",
+        "lastModified": 1732037147,
+        "narHash": "sha256-IbO9By3gqFiU6uCdWzsN+Mgaaes0r2cBi7lHZCuynuU=",
         "owner": "znd4",
         "repo": "nixpkgs",
-        "rev": "23ec50204d02053efb785349b6dba3cc94a38751",
+        "rev": "b37d38a0a1b0571a5edec36c6e9e6f15f57d5b43",
         "type": "github"
       },
       "original": {
