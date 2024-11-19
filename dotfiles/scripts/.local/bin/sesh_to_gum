@@ -1,0 +1,18 @@
+#!/usr/bin/env nu
+def tmux_sessions [] {
+    mut lines = sesh list -i -t | lines
+    if ($lines | length) >= 2 {
+        let first = $lines | select 0
+        let second = $lines | select 1
+        $lines | update 0 $second | update 1 $first
+    } else {
+        $lines
+    }
+}
+
+def main [] {
+  tmux_sessions
+  | append (sesh list -i -z | lines)
+  | to text
+  | gum filter --limit 1 --no-sort --fuzzy --placeholder 'Pick a sesh' --height 50 --prompt='⚡'
+}

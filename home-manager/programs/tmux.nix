@@ -19,9 +19,8 @@
     # tmuxp.enable = true;
     extraConfig = ''
       set -g default-command ${pkgs.fish}/bin/fish
-      bind -n M-d display-popup -E -w 40% "sesh connect \"$(
-        sesh list -i | gum filter --limit 1 --no-sort --fuzzy --placeholder 'Pick a sesh' --height 50 --prompt='⚡'
-      )\""
+      # sesh_to_gum is a custom package in pkgs
+      bind -n M-d display-popup -E -w 40% "sesh connect \"$(sesh_to_gum)\""
       bind -n M-a run-shell "sesh connect $(
         sesh list -tz | fzf-tmux -p 55%,60% \
         		--no-sort --border-label ' sesh ' --prompt '⚡  ' \
