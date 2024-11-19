@@ -333,6 +333,7 @@ in
       sessionx
       skim
       sops
+      spacectl
       stow
       stylua
       talosctl
