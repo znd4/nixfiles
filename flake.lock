@@ -856,22 +856,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-spacectl": {
-      "locked": {
-        "lastModified": 1732037466,
-        "narHash": "sha256-SYEOOEx4LT1O1DaAyOGgU/h0CrUn6y4Ih+LIqhxqLq4=",
-        "owner": "znd4",
-        "repo": "nixpkgs",
-        "rev": "7a1656b23006f6573b0ff29f8890a5d55295216e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "znd4",
-        "ref": "spacectl_completions",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixpkgs-stable": {
       "locked": {
         "lastModified": 1730741070,
@@ -884,6 +868,22 @@
       "original": {
         "owner": "NixOS",
         "ref": "nixos-24.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-trunk": {
+      "locked": {
+        "lastModified": 1732115355,
+        "narHash": "sha256-quGU6mpcXhUdadUg1KBWkNdsb5X6YfdWPoQBC+DrgAs=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "5624e1334b26ddc18da37e132b6fa8e93b481468",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "master",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -994,7 +994,7 @@
         "nixos-unstable": "nixos-unstable",
         "nixpkgs": "nixpkgs_5",
         "nixpkgs-24_11": "nixpkgs-24_11",
-        "nixpkgs-spacectl": "nixpkgs-spacectl",
+        "nixpkgs-trunk": "nixpkgs-trunk",
         "sessionx": "sessionx",
         "xdg-config": "xdg-config"
       }
