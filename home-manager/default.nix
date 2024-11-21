@@ -293,6 +293,7 @@ in
       cargo
       clipboard-jh
       cobra-cli
+      cue
       delta
       devbox
       devenv
