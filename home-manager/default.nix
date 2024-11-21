@@ -263,6 +263,7 @@ in
   home.packages =
     with pkgs;
     let
+      akuity = inputs.self.packages.${system}.akuity;
       sessionx = inputs.sessionx.packages.${system}.default;
       jujutsu = inputs.nixos-unstable.legacyPackages.${system}.jujutsu;
       spacectl = inputs.nixpkgs-trunk.legacyPackages.${system}.spacectl;
@@ -285,6 +286,7 @@ in
       # kmonad
       age
       alejandra
+      akuity
       asdf
       awsume
       bat
