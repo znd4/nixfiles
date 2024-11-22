@@ -287,6 +287,7 @@ in
       age
       alejandra
       akuity
+      argocd
       asdf
       awsume
       bat
