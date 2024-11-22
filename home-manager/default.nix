@@ -264,6 +264,7 @@ in
     with pkgs;
     let
       akuity = inputs.self.packages.${system}.akuity;
+      argocd = inputs.argocd-nixpkgs.legacyPackages.${system}.argocd;
       sessionx = inputs.sessionx.packages.${system}.default;
       jujutsu = inputs.nixos-unstable.legacyPackages.${system}.jujutsu;
       spacectl = inputs.nixpkgs-trunk.legacyPackages.${system}.spacectl;
