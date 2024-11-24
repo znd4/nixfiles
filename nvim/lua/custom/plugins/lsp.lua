@@ -129,6 +129,16 @@ return {
     },
     config = function()
       -- This is where all the LSP shenanigans will live
+      local configs = require 'lspconfig.configs'
+      if not configs.cuepls then
+        configs.cuepls = {
+          default_config = {
+            cmd = { 'cuepls' },
+            filetypes = { 'cue' },
+            root_dir = require('lspconfig.util').root_pattern 'cue.mod',
+          },
+        }
+      end
       local lsp_zero = require 'lsp-zero'
       lsp_zero.extend_lspconfig()
 
@@ -201,6 +211,7 @@ return {
         'regal',
         'terraformls',
         'tilt_ls',
+        'cuepls',
         'tsserver',
       }
     end,
