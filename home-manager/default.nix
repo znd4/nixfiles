@@ -302,6 +302,7 @@ in
       devbox
       devenv
       fd
+      fnm
       gcc
       git
       git-credential-oauth
@@ -414,6 +415,7 @@ in
         set -g SHELL ${pkgs.fish}/bin/fish
         abbr -a by --position anywhere --set-cursor "% | bat -l yaml"
         abbr -a bh --position anywhere --set-cursor "% | bat -l help"
+        ${pkgs.fnm}/bin/fnm env --use-on-cd --shell fish | source
       ''
       + (
         (if system == "aarch64-darwin" then "" else "\nset -q SSH_AUTH_SOCK")
