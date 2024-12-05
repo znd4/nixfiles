@@ -28,6 +28,7 @@ let
     {
       nix = "NO_COLOR=1 command nix";
       bathelp = "bat -l help";
+      awsume = ". awsume";
       ipython = ipython;
       ipy = ipython;
       bh = "bat -l help";
