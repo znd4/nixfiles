@@ -347,6 +347,7 @@ in
       stylua
       talosctl
       terraform
+      terraform-docs
       terragrunt
       thefuck
       unzip
