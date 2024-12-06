@@ -3,7 +3,6 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     # nixpkgs.url = nixos_unstable_url;
-    argocd-nixpkgs.url = "github:znd4/nixpkgs/argocd-2.13";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11-small";
     nixpkgs-trunk.url = "github:NixOS/nixpkgs/master";
     nixpkgs-24_11.url = "github:NixOS/nixpkgs/nixos-24.11-small";
