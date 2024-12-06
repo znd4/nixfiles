@@ -318,6 +318,7 @@ in
         ]
       ))
       gum
+      helmfile
       home-manager
       htop
       jc
