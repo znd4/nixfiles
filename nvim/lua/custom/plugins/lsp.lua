@@ -210,6 +210,7 @@ return {
         -- 'marksman',
         'nushell',
         'regal',
+        'nixd',
         'terraformls',
         'tilt_ls',
         'cuepls',
