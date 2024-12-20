@@ -308,6 +308,7 @@ in
       git
       git-credential-oauth
       git-open
+      git-town
       glab
       glow
       gnumake
@@ -422,6 +423,7 @@ in
       j = "just";
       nfl = "nix flake update --commit-lock-file";
       g = "git";
+      gt = "git-town";
       kk = "k9s";
       kr = "kubectl --context rancher-desktop";
       pc = "pre-commit";
