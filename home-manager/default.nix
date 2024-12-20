@@ -29,6 +29,7 @@ let
       nix = "NO_COLOR=1 command nix";
       bathelp = "bat -l help";
       awsume = ". awsume";
+      kvalid = "kubeconform -summary -verbose -ignore-missing-schemas -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' -schema-location default";
       ipython = ipython;
       ipy = ipython;
       bh = "bat -l help";
