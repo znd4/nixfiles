@@ -407,6 +407,7 @@ in
     configFile.source = "${dotConfig}/nushell/config.nu";
     shellAliases = shellAliases;
   };
+  programs.man.generateCaches = true;
   programs.fish = {
     enable = true;
     # plugins = [
