@@ -58,6 +58,20 @@ setup_pyenv() {
 }
 setup_pyenv
 
+
+# PUT this here
+layout_poetry() {
+  if [[ ! -f pyproject.toml ]]; then
+    log_error 'No pyproject.toml found.  Use `poetry new` or `poetry init` to create one first.'
+    exit 2
+  fi
+
+  local VENV=$(dirname $(poetry run which python))
+  export VIRTUAL_ENV=$(echo "$VENV" | rev | cut -d'/' -f2- | rev)
+  export POETRY_ACTIVE=1
+  PATH_add "$VENV"
+}
+
 PATH_add "$PYENV_ROOT/bin"
 PATH_add "$PYENV_ROOT/shims"
 PATH_add "${KREW_ROOT:-$HOME/.krew}/bin"
