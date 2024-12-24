@@ -211,6 +211,7 @@ return {
         'nushell',
         'regal',
         'nixd',
+        'nil',
         'terraformls',
         'tilt_ls',
         'cuepls',
