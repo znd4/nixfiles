@@ -233,11 +233,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1735223581,
-        "narHash": "sha256-KOYKJDcrtVlSNDj68xoYLj5mvNGvxuIYpsHjekxk6fA=",
+        "lastModified": 1735223973,
+        "narHash": "sha256-jR2A9qxbC+lIXX2QfAdK5SNmNbOsEh7Kuy3Nn1jxyXs=",
         "owner": "znd4",
         "repo": "git-town",
-        "rev": "dbd83a6d5d5fa87aa84005ba3679b2bc2333c5aa",
+        "rev": "22274414f89af79a47c8efb0ffce299c5109d28e",
         "type": "github"
       },
       "original": {
