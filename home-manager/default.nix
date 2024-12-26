@@ -49,6 +49,7 @@ in
     ./darwin
     ./nixos
     ./programs
+    inputs.git-town-znd4.homeManagerModules.default
   ];
 
   nix.package = pkgs.nix;
@@ -78,6 +79,10 @@ in
     config = import ./nixpkgs-config.nix;
   };
 
+  programs.git-town = {
+    enable = true;
+    enableAllAliases = true;
+  };
   programs.ripgrep = {
     enable = true;
     arguments = [
