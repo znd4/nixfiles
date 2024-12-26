@@ -1312,11 +1312,11 @@
     "xdg-config": {
       "flake": false,
       "locked": {
-        "lastModified": 1735013469,
-        "narHash": "sha256-cN6emlao1SqEfCoHsdeTAJStE9aRwVj0gw0yZqDMdBw=",
+        "lastModified": 1735229168,
+        "narHash": "sha256-PogHoz/H22Z6c500MkSETFrNRrgzXgafwWpikNKxu6M=",
         "owner": "znd4",
         "repo": "xdg-config",
-        "rev": "9cc8ecc4a79ffa143f1ee3bc90568625ea4ae397",
+        "rev": "8c474a8a4fcb73be291946908a59a502ff85adf1",
         "type": "github"
       },
       "original": {
