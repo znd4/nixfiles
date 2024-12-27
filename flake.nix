@@ -2,6 +2,10 @@
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    ghostty = {
+      url = "github:ghostty-org/ghostty";
+    };
+    ghostty-hm-module.url = "github:znd4/ghostty-hm-module";
     # nixpkgs.url = nixos_unstable_url;
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11-small";
     git-town-znd4.url = "github:znd4/git-town/home-manager";
