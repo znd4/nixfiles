@@ -301,6 +301,7 @@ in
       bat
       bottom
       broot
+      buildpack
       cargo
       clipboard-jh
       cobra-cli
