@@ -309,6 +309,7 @@ in
       devbox
       devenv
       fd
+      flyctl
       fnm
       gcc
       git
@@ -339,6 +340,7 @@ in
       opentofu
       personal_python
       personal_scripts
+      pnpm
       podman-compose
       pre-commit
       python-launcher
