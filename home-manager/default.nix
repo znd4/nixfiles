@@ -462,6 +462,7 @@ in
         abbr -a by --position anywhere --set-cursor "% | bat -l yaml"
         abbr -a bh --position anywhere --set-cursor "% | bat -l help"
         ${pkgs.fnm}/bin/fnm env --use-on-cd --shell fish | source
+        set -gx fish_complete_path $fish_complete_path ${config.home.profileDirectory}/share/fish/vendor_completions.d
       ''
       + (
         (if system == "aarch64-darwin" then "" else "\nset -q SSH_AUTH_SOCK")
