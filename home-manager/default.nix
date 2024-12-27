@@ -424,18 +424,19 @@ in
     # }
     # ];
     shellAbbrs = {
-      k = "kubectl";
-      n = "nvim -c 'Telescope oldfiles'";
-      ky = "kubectl get -o yaml";
-      tg = "terragrunt";
-      hm = "home-manager switch --flake .";
-      j = "just";
-      nfl = "nix flake update --commit-lock-file";
       g = "git";
       gt = "git-town";
+      fly = "flyctl";
+      hm = "home-manager switch --flake .";
+      j = "just";
+      k = "kubectl";
       kk = "k9s";
       kr = "kubectl --context rancher-desktop";
+      ky = "kubectl get -o yaml";
+      n = "nvim -c 'Telescope oldfiles'";
+      nfl = "nix flake update --commit-lock-file";
       pc = "pre-commit";
+      tg = "terragrunt";
     };
     shellAliases = shellAliases // fishAliases;
     functions = {
