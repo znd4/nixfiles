@@ -21,6 +21,7 @@
       theme = "tokyonight-storm";
       shell-integration-features = "no-cursor";
       font-family = "MonaspiceAr Nerd Font Mono";
+      macos-titlebar-style = "hidden";
       font-style = "Medium";
       font-family-italic = "MonaspiceRn Nerd Font Mono";
       font-style-italic = "Italic";
