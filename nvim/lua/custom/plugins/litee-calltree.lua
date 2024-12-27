@@ -24,6 +24,9 @@ return {
     },
     config = function(_, opts)
       require('litee.calltree').setup(opts)
+      require('which-key').add {
+        { '<M-h>', vim.lsp.buf.incoming_calls, desc = 'Incoming call tree' },
+      }
     end,
   },
 }
