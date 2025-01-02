@@ -132,6 +132,14 @@
                                 };
                                 n = {
                                   "<cr>" = new_enter;
+                                  "<esc>" = {
+                                    __raw = ''
+                                      function(prompt_bufnr)
+                                        require("telescope.actions").close(prompt_bufnr)
+                                        vim.cmd.quit()
+                                      end
+                                    '';
+                                  };
                                 };
                               };
                             layout_config = {

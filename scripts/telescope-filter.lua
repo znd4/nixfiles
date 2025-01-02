@@ -5,7 +5,6 @@ local input_file = vim.g.search_input_file
 if not input_file then
     error("search_input_file not set")
 end
-vim.print({ "input_file_contents", vim.fn.readfile(input_file) })
 
 local output_file = vim.g.search_output_file
 if not output_file then
@@ -20,5 +19,3 @@ local opts = {
 }
 local picker = pickers.new(opts)
 picker:find()
-
-vim.print({ "output_file_contents", vim.fn.readfile(output_file) })
