@@ -9,6 +9,7 @@
     }
   ),
   buildGoApplication ? pkgs.buildGoApplication,
+  ...
 }:
 
 buildGoApplication {

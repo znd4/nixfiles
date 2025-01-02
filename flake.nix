@@ -2,6 +2,7 @@
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixvim.url = "github:nix-community/nixvim";
     ghostty = {
       url = "github:ghostty-org/ghostty";
     };
@@ -86,11 +87,123 @@
       lib = nixpkgs.lib;
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
+      imports = [
+        inputs.flake-parts.flakeModules.easyOverlay
+      ];
       perSystem =
-        { config, pkgs, ... }:
+        {
+          config,
+          pkgs,
+          ...
+        }:
         {
           formatter = pkgs.nixfmt-rfc-style;
-          packages = (import ./pkgs pkgs) // {
+          overlayAttrs = {
+            inherit (config.packages) telescope-filter;
+          };
+          packages = (import ./pkgs { inherit pkgs inputs; }) // {
+            telescope-filter = (
+              pkgs.writeShellApplication (
+                let
+                  nvim_temp = inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvim {
+                    plugins = {
+                      web-devicons.enable = true;
+                      telescope = {
+                        enable = true;
+                        settings = {
+                          defaults = {
+                            mappings =
+                              let
+                                new_enter = {
+                                  __raw = ''
+                                    function(prompt_bufnr)
+                                      local entry = require('telescope.actions.state').get_selected_entry()
+                                      vim.print({"selected_entry", entry})
+                                      vim.fn.writefile({ entry.value }, vim.g.search_output_file )
+                                      require("telescope.actions").close(prompt_bufnr)
+                                      vim.cmd.quit()
+                                    end
+                                  '';
+                                };
+                              in
+                              {
+                                i = {
+                                  "<cr>" = new_enter;
+                                };
+                                n = {
+                                  "<cr>" = new_enter;
+                                };
+                              };
+                            layout_config = {
+                              horizontal = {
+                                height = 0.99;
+                                width = 0.99;
+                              };
+                              vertical = {
+                                height = 0.99;
+                                width = 0.99;
+                              };
+                            };
+                          };
+                        };
+                      };
+                    };
+                  };
+                  script = pkgs.writeText "lua-script" (
+                    builtins.readFile "${inputs.self}/scripts/telescope-filter.lua"
+                  );
+                in
+                {
+                  name = "telescope-filter";
+                  runtimeInputs = [
+                    nvim_temp
+                    script
+                  ];
+                  text = ''
+                    #!/usr/bin/env bash
+                    set -euo pipefail
+                    # set -x
+                    input=$(mktemp)
+                    cat - > "$input"
+                    output=$(mktemp)
+                    if [ ! -t 0 ]; then
+                      ${nvim_temp}/bin/nvim \
+                        -c "let g:search_output_file='$output'" \
+                        -c "let g:search_input_file='$input'" \
+                        -c "lua assert(loadfile('${script}'))()" \
+                        < /dev/tty > /dev/tty
+                    fi
+
+                    cat "$output"
+                  '';
+                }
+              )
+            );
+            nixos-rebuild-switch = pkgs.writeShellApplication {
+              name = "nixos-rebuild-switch";
+              runtimeInputs = with pkgs; [
+                expect
+                nix-output-monitor
+              ];
+              text = ''
+                #!/usr/bin/env bash
+                which nix-darwin
+                sudo unbuffer nixos-rebuild switch --flake "''${1:-.}" |& nom
+              '';
+            };
+            nix-darwin-switch = pkgs.writeShellApplication {
+              name = "nix-darwin-switch";
+              runtimeInputs = with pkgs; [
+                expect
+                darwin.packages.${pkgs.system}.default
+                nix-output-monitor
+              ];
+              text = ''
+                #!/usr/bin/env bash
+                which nix-darwin
+                unbuffer nix-darwin switch --flake "''${1:-.}" |& nom
+              '';
+            };
             home-manager-switch = pkgs.writeShellApplication {
               name = "home-manager-switch";
               runtimeInputs = with pkgs; [

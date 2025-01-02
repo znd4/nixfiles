@@ -74,6 +74,7 @@ in
       #     patches = [ ./change-hello-to-hi.patch ];
       #   });
       # })
+      outputs.overlays.default
     ];
     # Configure your nixpkgs instance
     config = import ./nixpkgs-config.nix;
@@ -356,6 +357,7 @@ in
       stow
       stylua
       talosctl
+      telescope-filter
       terraform
       terraform-docs
       terragrunt

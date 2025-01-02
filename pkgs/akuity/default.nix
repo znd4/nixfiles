@@ -1,4 +1,7 @@
-pkgs:
+{
+  pkgs,
+  ...
+}:
 let
   system = pkgs.stdenv.hostPlatform.system;
   perSystem = {

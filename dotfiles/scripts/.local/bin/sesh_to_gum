@@ -14,5 +14,5 @@ def main [] {
   tmux_sessions
   | append (sesh list -i -z | lines)
   | to text
-  | gum filter --limit 1 --no-sort --fuzzy --placeholder 'Pick a sesh' --height 50 --prompt='⚡'
+  | telescope-filter
 }
