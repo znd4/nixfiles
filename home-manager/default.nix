@@ -75,6 +75,9 @@ in
       #   });
       # })
       outputs.overlays.default
+      (final: prev: {
+        telescope-filter = outputs.packages.${system}.telescope-filter;
+      })
     ];
     # Configure your nixpkgs instance
     config = import ./nixpkgs-config.nix;
