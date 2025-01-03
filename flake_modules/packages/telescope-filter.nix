@@ -22,23 +22,7 @@
             nvim_temp = inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvim {
               plugins = {
                 web-devicons.enable = true;
-                telescope = {
-                  enable = true;
-                  settings = {
-                    defaults = {
-                      layout_config = {
-                        horizontal = {
-                          height = 0.99;
-                          width = 0.99;
-                        };
-                        vertical = {
-                          height = 0.99;
-                          width = 0.99;
-                        };
-                      };
-                    };
-                  };
-                };
+                telescope.enable = true;
               };
             };
           in
