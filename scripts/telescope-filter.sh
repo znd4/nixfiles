@@ -24,6 +24,9 @@ require('telescope.pickers').new({
     attach_mappings = function(prompt_bufnr, map)
         local function send_to_output(prompt_bufnr)
             local selection = require('telescope.actions.state').get_selected_entry()
+            if not selection then -- results haven't loaded yet
+                return
+            end
             vim.fn.writefile({selection.value}, '$output')
             require('telescope.actions').close(prompt_bufnr)
             vim.cmd.quit()
