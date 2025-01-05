@@ -77,6 +77,30 @@ in
       outputs.overlays.default
       (final: prev: {
         telescope-filter = outputs.packages.${system}.telescope-filter;
+        sesh = (
+          pkgs.buildGoModule rec {
+            pname = "sesh";
+            version = "2.7.1-znd4";
+
+            src = inputs.sesh;
+
+            vendorHash = "sha256-a45P6yt93l0CnL5mrOotQmE/1r0unjoToXqSJ+spimg=";
+
+            ldflags = [
+              "-s"
+              "-w"
+            ];
+
+            meta = {
+              description = "Smart session manager for the terminal";
+              homepage = "https://github.com/joshmedeski/sesh";
+              changelog = "https://github.com/joshmedeski/sesh/releases/tag/${src.rev}";
+              license = lib.licenses.mit;
+              maintainers = with lib.maintainers; [ gwg313 ];
+              mainProgram = "sesh";
+            };
+          }
+        );
       })
     ];
     # Configure your nixpkgs instance

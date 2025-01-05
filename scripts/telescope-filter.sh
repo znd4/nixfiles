@@ -5,8 +5,9 @@ NVIM="${NVIM:-nvim}"
 input=$(mktemp)
 cat - > "$input"
 output=$(mktemp)
+
 script=$(mktemp)
-echo "
+cat << EFO > "$script"
 require('telescope.pickers').new({
     finder = require('telescope.finders').new_oneshot_job({'cat', '$input'}),
     sorter = require('telescope.sorters').get_generic_fuzzy_sorter(),
@@ -38,10 +39,13 @@ require('telescope.pickers').new({
         return true
     end,
 }):find()
-" > "$script"
+EFO
+
 if [ ! -t 0 ]; then
-  ${NVIM?} \
-    -c "lua assert(loadfile('${script}'))()" \
-    < /dev/tty > /dev/tty
+    {
+        ${NVIM?} \
+            -c "lua assert(loadfile('${script}'))()" \
+            < /dev/tty > /dev/tty
+    } <&-
 fi
 cat "$output"

@@ -1514,6 +1514,7 @@
         "nixpkgs-24_11": "nixpkgs-24_11",
         "nixpkgs-trunk": "nixpkgs-trunk",
         "nixvim": "nixvim",
+        "sesh": "sesh",
         "sessionx": "sessionx",
         "xdg-config": "xdg-config"
       }
@@ -1536,6 +1537,22 @@
       "original": {
         "owner": "oxalica",
         "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "sesh": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1736039088,
+        "narHash": "sha256-s13rgiYs8yF2933TAlwPBnvEa74rQr7wylNDHcvxW1c=",
+        "owner": "znd4",
+        "repo": "sesh",
+        "rev": "3acc158f36608be60cbcd767b8ecdacb9b7b992b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "znd4",
+        "repo": "sesh",
         "type": "github"
       }
     },

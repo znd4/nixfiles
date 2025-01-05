@@ -3,6 +3,10 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixvim.url = "github:nix-community/nixvim";
+    sesh = {
+      url = "github:znd4/sesh";
+      flake = false;
+    };
     ghostty = {
       url = "github:ghostty-org/ghostty";
     };
