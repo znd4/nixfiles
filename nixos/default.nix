@@ -135,8 +135,6 @@ in
   hardware.bluetooth.enable = true; # enables support for Bluetooth
   hardware.bluetooth.powerOnBoot = true; # powers up the default Bluetooth controller on boot
 
-  # Enable sound with pipewire.
-  sound.enable = true;
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
@@ -204,13 +202,6 @@ in
   #   enable = true;
   #   enableSSHSupport = true;
   # };
-  programs._1password-cli.enable = true;
-  programs._1password-gui = {
-    enable = true;
-    # Certain features, including CLI integration and system authentication support,
-    # require enabling PolKit integration on some desktop environments (e.g. Plasma).
-    polkitPolicyOwners = [ username ];
-  };
   programs.fish.enable = lib.mkForce true;
 
   # List services that you want to enable:
