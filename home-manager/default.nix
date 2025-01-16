@@ -21,9 +21,17 @@ let
   };
   dotConfig = "${inputs.self}/dotfiles/xdg-config/.config";
   system = pkgs.stdenv.system;
+  personal_python = inputs.nixpkgs-24_11.legacyPackages.${system}.python3.withPackages (
+    ps:
+    # personal_python = inputs.nixpkgs-main.legacyPackages.${system}.python3.withPackages (ps:
+    with ps; [
+      ipython
+      pipx
+    ]
+  );
   shellAliases =
     let
-      ipython = "ipython --TerminalInteractiveShell.editing_mode=vi";
+      ipython = "${personal_python}/bin/ipython --TerminalInteractiveShell.editing_mode=vi";
     in
     {
       nix = "NO_COLOR=1 command nix";
@@ -303,14 +311,6 @@ in
       sessionx = inputs.sessionx.packages.${system}.default;
       jujutsu = inputs.nixos-unstable.legacyPackages.${system}.jujutsu;
       spacectl = inputs.nixpkgs-trunk.legacyPackages.${system}.spacectl;
-      personal_python = inputs.nixpkgs-24_11.legacyPackages.${system}.python3.withPackages (
-        ps:
-        # personal_python = inputs.nixpkgs-main.legacyPackages.${system}.python3.withPackages (ps:
-        with ps; [
-          ipython
-          pipx
-        ]
-      );
       personal_scripts = (
         buildEnv {
           name = "myScripts";
