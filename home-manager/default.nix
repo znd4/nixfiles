@@ -389,6 +389,7 @@ in
       terraform-docs
       terragrunt
       thefuck
+      tilt
       unzip
       uv
       vale
