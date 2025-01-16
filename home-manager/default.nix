@@ -308,6 +308,7 @@ in
     let
       akuity = inputs.self.packages.${system}.akuity;
       argocd = inputs.nixos-unstable.legacyPackages.${system}.argocd;
+      tilt = inputs.nixpkgs-tilt-completions.legacyPackages.${system}.tilt;
       sessionx = inputs.sessionx.packages.${system}.default;
       jujutsu = inputs.nixos-unstable.legacyPackages.${system}.jujutsu;
       spacectl = inputs.nixpkgs-trunk.legacyPackages.${system}.spacectl;

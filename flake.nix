@@ -13,6 +13,7 @@
     ghostty-hm-module.url = "github:znd4/ghostty-hm-module";
     # nixpkgs.url = nixos_unstable_url;
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11-small";
+    nixpkgs-tilt-completions.url = "github:znd4/nixpkgs/feat/tilt-completions";
     git-town-znd4.url = "github:znd4/git-town/home-manager";
     nixpkgs-trunk.url = "github:NixOS/nixpkgs/master";
     nixpkgs-24_11.url = "github:NixOS/nixpkgs/nixos-24.11-small";
@@ -139,7 +140,10 @@
               text = ''
                 #!/usr/bin/env bash
                 which home-manager
-                unbuffer home-manager switch --flake "''${1:-.}" |& nom
+
+                # shellcheck disable=SC2046 # Intended splitting of OPTIONS
+                read -ra options <<<"''${1:-.}"
+                unbuffer home-manager switch --flake "''${options[@]}" |& nom
               '';
             };
           };

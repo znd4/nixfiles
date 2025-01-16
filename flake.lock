@@ -1290,6 +1290,22 @@
         "type": "github"
       }
     },
+    "nixpkgs-tilt-completions": {
+      "locked": {
+        "lastModified": 1737048342,
+        "narHash": "sha256-62EXgXwks8Qln40LoANvbo/TVU+Y+Qu0h3qKAOIQ5mQ=",
+        "owner": "znd4",
+        "repo": "nixpkgs",
+        "rev": "67bd3cc9108dde4b47f6823a6b55897af1b9b4d4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "znd4",
+        "ref": "feat/tilt-completions",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs-trunk": {
       "locked": {
         "lastModified": 1735183193,
@@ -1512,6 +1528,7 @@
         "nixos-unstable": "nixos-unstable",
         "nixpkgs": "nixpkgs_6",
         "nixpkgs-24_11": "nixpkgs-24_11",
+        "nixpkgs-tilt-completions": "nixpkgs-tilt-completions",
         "nixpkgs-trunk": "nixpkgs-trunk",
         "nixvim": "nixvim",
         "sesh": "sesh",
