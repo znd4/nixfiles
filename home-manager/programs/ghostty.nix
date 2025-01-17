@@ -8,9 +8,6 @@
   home.packages = lib.mkIf pkgs.stdenv.isLinux [
     inputs.ghostty.packages.${pkgs.stdenv.system}.ghostty
   ];
-  imports = [
-    inputs.ghostty-hm-module.homeModules.default
-  ];
   programs.ghostty = {
     enable = true;
     shellIntegration = {
