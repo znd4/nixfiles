@@ -372,6 +372,7 @@ in
       personal_scripts
       pnpm
       podman-compose
+      poetry
       pre-commit
       python-launcher
       ruff
