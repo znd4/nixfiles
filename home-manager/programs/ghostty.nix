@@ -10,9 +10,10 @@
   ];
   programs.ghostty = {
     enable = true;
-    shellIntegration = {
-      enable = true;
-    };
+    enableBashIntegration = true;
+    enableFishIntegration = true;
+    enableZshIntegration = true;
+    package = inputs.ghostty.packages.${pkgs.stdenv.system}.ghostty;
     settings = {
       window-theme = "dark";
       theme = "tokyonight-storm";
