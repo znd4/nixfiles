@@ -4,6 +4,14 @@
   lib,
   ...
 }:
+let
+  ghosttyFlakePackage = inputs.ghostty.packages.${pkgs.stdenv.system}.ghostty;
+  ghosttyPkg =
+    if (builtins.elem pkgs.stdenv.system ghosttyFlakePackage.meta.platforms) then
+      ghosttyFlakePackage
+    else
+      pkgs.emptyDirectory;
+in
 {
   home.packages = lib.mkIf pkgs.stdenv.isLinux [
     inputs.ghostty.packages.${pkgs.stdenv.system}.ghostty
@@ -13,7 +21,7 @@
     enableBashIntegration = true;
     enableFishIntegration = true;
     enableZshIntegration = true;
-    package = inputs.ghostty.packages.${pkgs.stdenv.system}.ghostty;
+    package = ghosttyPkg;
     settings = {
       window-theme = "dark";
       theme = "tokyonight-storm";

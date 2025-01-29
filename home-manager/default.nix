@@ -390,6 +390,7 @@ in
       terraform
       terraform-docs
       terragrunt
+      tflint
       thefuck
       tilt
       unzip
@@ -450,12 +451,17 @@ in
   programs.man.generateCaches = true;
   programs.fish = {
     enable = true;
-    # plugins = [
-    # {
-    #     name = "fzf-fish";
-    #   src = pkgs.fetchFromGithub{owner="patrickf1"; repo="fzf.fish";};
-    # }
-    # ];
+    plugins = [
+      {
+        name = "fish-completion-sync";
+        src = pkgs.fetchFromGitHub {
+          owner = "pfgray";
+          repo = "fish-completion-sync";
+          rev = "ba70b6457228af520751eab48430b1b995e3e0e2";
+          sha256 = "sha256-JdOLsZZ1VFRv7zA2i/QEZ1eovOym/Wccn0SJyhiP9hI=";
+        };
+      }
+    ];
     shellAbbrs = {
       g = "git";
       gt = "git-town";
