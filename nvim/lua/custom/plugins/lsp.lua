@@ -213,6 +213,7 @@ return {
         'regal',
         'nixd',
         'nil',
+        'taplo',
         'terraformls',
         'tilt_ls',
         'cuepls',
