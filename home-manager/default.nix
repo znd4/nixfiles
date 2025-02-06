@@ -399,6 +399,7 @@ in
       vulnix
       wget
       xh
+      yamale
       zenith
       # zig
       zoxide
