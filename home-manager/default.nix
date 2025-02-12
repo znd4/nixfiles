@@ -332,6 +332,7 @@ in
       broot
       buildpack
       cargo
+      chart-testing
       clipboard-jh
       cobra-cli
       cue
