@@ -133,6 +133,7 @@ in
   programs.thefuck = {
     enable = true;
   };
+  programs.atuin.enable = true;
   programs.awscli = {
     enable = true;
     package = inputs.nixpkgs-24_11.legacyPackages.${system}.awscli2;
