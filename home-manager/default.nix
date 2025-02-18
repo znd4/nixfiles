@@ -507,6 +507,7 @@ in
         abbr -a bh --position anywhere --set-cursor "% | bat -l help"
         ${pkgs.fnm}/bin/fnm env --use-on-cd --shell fish | source
         set -gx fish_complete_path $fish_complete_path ${config.home.profileDirectory}/share/fish/vendor_completions.d
+        set --unpath JSONNET_PATH
       ''
       + (
         (if system == "aarch64-darwin" then "" else "\nset -q SSH_AUTH_SOCK")
