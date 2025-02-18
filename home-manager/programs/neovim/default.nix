@@ -20,7 +20,7 @@ in
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixfiles/home-manager/programs/neovim/lazy-lock.json"
     );
     # "nvim/lazy-lock.json".enable = false;
-    "nvim/".source = "${inputs.xdg-config}/nvim/";
+    "nvim/".source = "${inputs.self}/xdg-config/nvim/";
     "nvim/".recursive = true;
   };
   home.sessionVariables = {

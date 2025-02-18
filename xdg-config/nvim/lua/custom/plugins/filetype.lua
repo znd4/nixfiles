@@ -52,6 +52,7 @@ return {
         tpl = tpl_filetype,
         yaml = yaml_filetype,
         yml = yaml_filetype,
+        libsonnet = 'jsonnet',
       },
       filename = {
         ['.devcontainer.json'] = 'jsonc',
