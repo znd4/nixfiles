@@ -363,6 +363,7 @@ in
       htop
       jc
       jq
+      jsonnet-bundler
       just
       kubectl
       kubernetes-helm
@@ -388,6 +389,7 @@ in
       stow
       stylua
       talosctl
+      tanka
       telescope-filter
       terraform
       terraform-docs
