@@ -1,0 +1,25 @@
+default_shell "fish"
+keybinds {
+	normal {
+		unbind "Ctrl g"
+		unbind "Ctrl p"
+		unbind "Ctrl t"
+		unbind "Ctrl n"
+		unbind "Ctrl h"
+		// unbind "Ctrl s"
+		unbind "Ctrl o"
+		unbind "Ctrl q"
+
+		unbind "Ctrl b"
+		bind "Ctrl a" {SwitchToMode "Tmux"; }
+
+	}
+	tmux {
+		unbind "Ctrl p"
+		unbind "Ctrl n"
+
+		bind "p" { SwitchToMode "Pane"; }
+		bind "r" { SwitchToMode "Resize"; }
+	}
+}
+

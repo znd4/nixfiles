@@ -1,0 +1,67 @@
+[gpg]
+format = "ssh"
+
+[alias]
+    a="add"
+    d="diff"
+    s="status"
+    c="commit"
+    ck="checkout"
+    f="fetch"
+    pl="pull"
+    ps="push"
+    append = town append
+    compress = town compress
+    contribute = town contribute
+    diff-parent = town diff-parent
+    hack = town hack
+    kill = town kill
+    observe = town observe
+    park = town park
+    prepend = town prepend
+    propose = town propose
+    rename-branch = town rename-branch
+    repo = town repo
+    set-parent = town set-parent
+    ship = town ship
+    sync = town sync
+    ts = town switch
+
+[include]
+    path=~/.config/git/local
+
+[commit]
+gpgsign=true
+
+
+[core]
+    pager = delta
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true    # use n and N to move between diff sections
+
+    # delta detects terminal colors automatically; set one of these to disable auto-detection
+    # dark = true
+    # light = true
+
+[merge]
+    conflictstyle = diff3
+
+[diff]
+    colorMoved = default
+[pull]
+	rebase = false
+[push]
+    autoSetupRemote = true
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[init]
+	defaultBranch = main
+[git-town]
+	github-token = foo
