@@ -35,3 +35,4 @@ nix run ".#home-manager-switch" ".#$user@$hostname"
 ## Future plans
 
 - [] Config for VMs
+- [] disko config (Might be in dedicated repo)
