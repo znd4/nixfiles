@@ -340,6 +340,7 @@ in
       delta
       devbox
       devenv
+      dyff
       fd
       flyctl
       fnm
