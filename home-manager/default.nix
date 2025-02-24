@@ -405,6 +405,7 @@ in
       wget
       xh
       yamale
+      yq-go
       zenith
       # zig
       zoxide
