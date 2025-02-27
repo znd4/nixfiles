@@ -246,7 +246,7 @@ in
       )}";
       commit.gpgSign = true;
       push.autoSetupRemote = true;
-      pull.rebase = false;
+      pull.rebase = true;
       # credential.helper = [
       #   "cache --timeout 7200"
       #   "oauth"
