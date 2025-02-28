@@ -61,6 +61,9 @@ in
   ];
 
   nix.package = pkgs.nix;
+  home.packages = [
+    personal_python
+  ];
 
   nixpkgs = {
     # You can add overlays here
@@ -304,113 +307,6 @@ in
   };
 
   # Add stuff for your user as you see fit:
-  home.packages =
-    with pkgs;
-    let
-      akuity = inputs.self.packages.${system}.akuity;
-      argocd = inputs.nixos-unstable.legacyPackages.${system}.argocd;
-      tilt = inputs.nixpkgs-tilt-completions.legacyPackages.${system}.tilt;
-      sessionx = inputs.sessionx.packages.${system}.default;
-      jujutsu = inputs.nixos-unstable.legacyPackages.${system}.jujutsu;
-      spacectl = inputs.nixpkgs-trunk.legacyPackages.${system}.spacectl;
-      personal_scripts = (
-        buildEnv {
-          name = "myScripts";
-          paths = [ "${inputs.self}/dotfiles/scripts/.local" ];
-        }
-      );
-    in
-    [
-      # kmonad
-      age
-      alejandra
-      akuity
-      argocd
-      asdf
-      awsume
-      bat
-      bottom
-      broot
-      buildpack
-      cargo
-      chart-testing
-      clipboard-jh
-      cobra-cli
-      cue
-      delta
-      devbox
-      devenv
-      dyff
-      fd
-      flyctl
-      fnm
-      gcc
-      git
-      git-credential-oauth
-      git-open
-      git-town
-      glab
-      glow
-      gnumake
-      (google-cloud-sdk.withExtraComponents (
-        with google-cloud-sdk.components;
-        [
-          gke-gcloud-auth-plugin
-        ]
-      ))
-      gum
-      helmfile
-      home-manager
-      htop
-      jc
-      jq
-      jsonnet-bundler
-      just
-      kubectl
-      kubernetes-helm
-      nixfmt-rfc-style
-      nodejs
-      opam
-      opentofu
-      personal_python
-      personal_scripts
-      pnpm
-      podman-compose
-      poetry
-      pre-commit
-      python-launcher
-      ruff
-      rustc
-      sd
-      sesh
-      sessionx
-      skim
-      sops
-      spacectl
-      stow
-      stylua
-      talosctl
-      tanka
-      telescope-filter
-      terraform
-      terraform-docs
-      terragrunt
-      tflint
-      thefuck
-      tilt
-      unzip
-      uv
-      vale
-      vulnix
-      wget
-      xh
-      yamale
-      yq-go
-      zenith
-      # zig
-      zoxide
-      zsh
-    ];
 
   programs.skim =
     let
