@@ -16,6 +16,9 @@
           };
         }).claude-code;
     })
+    (final: prev: {
+      poetry = inputs.nixpkgs-unstable.legacyPackages.${system}.poetry;
+    })
   ];
 
   home.packages =
