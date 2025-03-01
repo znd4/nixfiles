@@ -51,6 +51,7 @@
       claude-code
       clipboard-jh
       cobra-cli
+      crossplane-cli
       cue
       delta
       devbox
