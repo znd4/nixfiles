@@ -4,6 +4,9 @@
   system,
   ...
 }:
+let
+  pkgs-hyprland = inputs.hyprland.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
+in
 {
   nix.settings = {
     substituters = [ "https://hyprland.cachix.org" ];
@@ -20,6 +23,9 @@
   programs.hyprland = {
     enable = true;
     xwayland.enable = true;
+    package = pkgs-hyprland.hyprland;
+    # make sure to also set the portal package, so that they are in sync
+    portalPackage = pkgs-hyprland.xdg-desktop-portal-hyprland;
   };
   environment.sessionVariables = {
     # to prevent invisible cursor
@@ -31,6 +37,13 @@
   hardware = {
     graphics.enable = true;
     nvidia.modesetting.enable = true;
+    opengl = {
+      package = pkgs-hyprland.mesa.drivers;
+
+      # if you also want 32-bit support (e.g for Steam)
+      driSupport32Bit = true;
+      package32 = pkgs-hyprland.pkgsi686Linux.mesa.drivers;
+    };
   };
 
   xdg.portal = {

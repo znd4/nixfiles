@@ -34,7 +34,6 @@ else
     nixpkgs.overlays = [
       # inputs.waybar.overlays.default
     ];
-    imports = [ inputs.hyprland.homeManagerModules.default ];
     services.gnome-keyring.enable = true;
     services.hypridle = {
       # https://github.com/hyprwm/hypridle/blob/main/nix/hm-module.nix
