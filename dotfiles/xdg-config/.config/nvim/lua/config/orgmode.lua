@@ -1,4 +1,0 @@
--- TODO: Convert :LSPLog to TODO list
--- TODO: Configure hypridle properly
--- TODO: Set up automated TODO processor on this website
--- TODO: Try setting up launcher with arguments (https://you.com/search?q=Which+Linux+launchers+allow+for+passing+arguments%3F&cid=c1_0b3143fc-e873-4c61-9f69-3900a6aa0ba0&tbm=youchat)
