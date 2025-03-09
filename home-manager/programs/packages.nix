@@ -18,6 +18,7 @@
     })
     (final: prev: {
       poetry = inputs.nixpkgs-unstable.legacyPackages.${system}.poetry;
+      dagger = inputs.dagger.packages.${system}.dagger;
     })
   ];
 
@@ -53,6 +54,7 @@
       cobra-cli
       crossplane-cli
       cue
+      dagger
       delta
       devbox
       devenv
