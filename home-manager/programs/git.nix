@@ -56,6 +56,9 @@ in
       )}";
       commit.gpgSign = true;
       push.autoSetupRemote = true;
+
+      git-town.sync-feature-strategy = "rebase";
+
       pull.rebase = true;
       # credential.helper = [
       #   "cache --timeout 7200"
