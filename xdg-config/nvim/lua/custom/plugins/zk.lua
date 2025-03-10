@@ -9,7 +9,7 @@ return {
           cmd = { 'zk', 'lsp', '--log', '/tmp/zk-lsp.log' },
           name = 'zk',
           on_attach = function()
-            require('cmp_nvim_lsp').default_capabilities()
+            require('blink.cmp').get_lsp_capabilities()
             -- key.nmap { 'gd', vim.lsp.buf.definition }
             -- keymaps()
           end,
