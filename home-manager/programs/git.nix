@@ -2,17 +2,10 @@
 # Use this to configure your home environment (it replaces ~/.config/nixpkgs/home.nix)
 {
   inputs,
-  outputs,
-  username,
-  lib,
-  config,
-  osConfig,
-  knownHosts,
   pkgs,
-  stateVersion,
   keys,
   ...
-}@args:
+}:
 let
   system = pkgs.stdenv.system;
 in
