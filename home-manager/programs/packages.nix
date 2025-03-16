@@ -52,6 +52,7 @@
       claude-code
       clipboard-jh
       cobra-cli
+      commitizen
       crossplane-cli
       cue
       dagger
