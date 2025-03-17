@@ -1466,11 +1466,11 @@
     },
     "nixpkgs-tilt-completions": {
       "locked": {
-        "lastModified": 1742143350,
-        "narHash": "sha256-soyFXygl9eq3kR9hHprzn0zk8/bL5fHbcqq1RoyBAs0=",
+        "lastModified": 1742215084,
+        "narHash": "sha256-0q0JIGgTI4il7yd2JW+/MHSdqAGS0nnHNoIKbbk9jrI=",
         "owner": "znd4",
         "repo": "nixpkgs",
-        "rev": "343c07c0fd0a77359077bab4c82f7dac6a60cf2e",
+        "rev": "a4c502875da7fe18166707deb1a12317b676b191",
         "type": "github"
       },
       "original": {
