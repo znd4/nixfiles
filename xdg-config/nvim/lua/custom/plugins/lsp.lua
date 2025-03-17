@@ -14,7 +14,7 @@ return {
   {
     'saghen/blink.cmp',
     -- optional: provides snippets for the snippet source
-    dependencies = 'rafamadriz/friendly-snippets',
+    dependencies = { 'rafamadriz/friendly-snippets', { 'L3MON4D3/LuaSnip', version = 'v2.*' } },
 
     -- use a release tag to download pre-built binaries
     version = '*',
@@ -23,6 +23,10 @@ return {
     -- If you use nix, you can build from source using latest nightly rust with:
     -- build = 'nix run .#build-plugin',
 
+    config = function()
+      -- add friendly snippets to luasnip
+      require('luasnip.loaders.from_vscode').lazy_load()
+    end,
     ---@module 'blink.cmp'
     ---@type blink.cmp.Config
     opts = {
