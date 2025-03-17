@@ -8,60 +8,96 @@ return {
     on_attach = function(bufnr)
       local wk = require 'which-key'
       local gitsigns = require 'gitsigns'
-      wk.register({
-        ["]"] = {
-          c = {
-            function()
-              if vim.wo.diff then
-                vim.cmd.normal { ']c', bang = true }
-              else
-                gitsigns.nav_hunk("next")
-              end
-            end,
-            "Jump to next [c]hange",
-          }
+      wk.add {
+        {
+          ']c',
+          function()
+            if vim.wo.diff then
+              vim.cmd.normal { ']c', bang = true }
+            else
+              gitsigns.nav_hunk 'next'
+            end
+          end,
+          desc = 'Jump to next [c]hange',
         },
-        ["["] = {
-          c = {
-            function()
-              if vim.wo.diff then
-                vim.cmd.normal { "[c", bang = true }
-              else
-                gitsigns.nav_hunk "prev"
-              end
-            end,
-            "Jump to previous [c]hange",
-          }
+        {
+          '[c',
+          function()
+            if vim.wo.diff then
+              vim.cmd.normal { '[c', bang = true }
+            else
+              gitsigns.nav_hunk 'prev'
+            end
+          end,
+          desc = 'Jump to previous [c]hange',
         },
-      })
-      wk.register({
-        h = {
-          s = { gitsigns.stage_hunk, 'git [s]tage hunk' },
-          r = { gitsigns.reset_hunk, 'git [r]eset hunk' },
-          S = { gitsigns.stage_buffer, 'git [S]tage buffer' },
-          u = { gitsigns.undo_stage_hunk, 'git [u]ndo stage hunk' },
-          R = { gitsigns.reset_buffer, 'git [R]eset buffer' },
-          p = { gitsigns.preview_hunk, 'git [p]review hunk' },
-          b = { gitsigns.blame_line, 'git [b]lame line' },
-          d = { gitsigns.diffthis, 'git [d]iff against index' },
-          D = {
-            function()
-              gitsigns.diffthis '@'
-            end,
-            'git [D]iff against last commit',
-          },
+      }
+      wk.add {
+        {
+          '<leader>hs',
+          gitsigns.stage_hunk,
+          desc = 'git [s]tage hunk',
         },
-        t = {
-          b = { gitsigns.toggle_current_line_blame, '[T]oggle git show [b]lame line' },
-          D = { gitsigns.toggle_deleted, '[T]oggle git show [D]eleted' },
+        {
+          '<leader>hs',
+          gitsigns.stage_hunk,
+          desc = 'git [s]tage hunk',
         },
-      }, { prefix = '<leader>' })
-      wk.register({
-        h = {
-          s = { function() gitsigns.stage_hunk { vim.fn.line('.'), vim.fn.line('v') } end, 'git [s]tage hunk' },
-          r = { function() gitsigns.reset_hunk { vim.fn.line('.'), vim.fn.line('v') } end, 'git [r]eset hunk' },
+        {
+          '<leader>hr',
+          gitsigns.reset_hunk,
+          desc = 'git [r]eset hunk',
+          mode = { 'v', 'n' },
         },
-      }, { prefix = '<leader>', mode = 'v' })
+        {
+          '<leader>hS',
+          gitsigns.stage_buffer,
+          desc = 'git [S]tage buffer',
+          mode = { 'v', 'n' },
+        },
+        {
+          '<leader>hu',
+          gitsigns.undo_stage_hunk,
+          desc = 'git [u]ndo stage hunk',
+        },
+        {
+          '<leader>hR',
+          gitsigns.reset_buffer,
+          desc = 'git [R]eset buffer',
+        },
+        {
+          '<leader>hp',
+          gitsigns.preview_hunk,
+          desc = 'git [p]review hunk',
+        },
+        {
+          '<leader>hb',
+          gitsigns.blame_line,
+          desc = 'git [b]lame line',
+        },
+        {
+          '<leader>hd',
+          gitsigns.diffthis,
+          desc = 'git [d]iff against index',
+        },
+        {
+          '<leader>hD',
+          function()
+            gitsigns.diffthis '@'
+          end,
+          desc = 'git [D]iff against last commit',
+        },
+        {
+          '<leader>tb',
+          gitsigns.toggle_current_line_blame,
+          desc = 'git [T]oggle git show [b]lame line',
+        },
+        {
+          '<leader>td',
+          gitsigns.toggle_deleted,
+          desc = 'git [T]oggle git show [D]eleted',
+        },
+      }
     end,
   },
   dependencies = {

@@ -52,6 +52,9 @@ return {
         nerd_font_variant = 'mono',
       },
 
+      -- preset snippets
+      snippets = { preset = 'luasnip' },
+
       -- Default list of enabled providers defined so that you can extend it
       -- elsewhere in your config, without redefining it, due to `opts_extend`
       sources = {
@@ -210,31 +213,78 @@ return {
           -- see :help lsp-zero-keybindings
           -- to learn the available actions
           local opts = { buffer = bufnr }
-          require('which-key').register({
-            g = {
-              d = { vim.lsp.buf.definition, '[g]o to [d]efinition' },
-              D = { vim.lsp.buf.declaration, '[g]o to [D]eclaration' },
-              i = { vim.lsp.buf.implementation, '[g]o to [i]mplementation' },
-              o = { vim.lsp.buf.type_definition, '[G][o] to type definition' },
-              r = { vim.lsp.buf.references, '[G]o to [r]eferences' },
-              s = { vim.lsp.buf.signature_help, '[G]o to [s]ignature' },
+          require('which-key').add {
+            {
+              {
+                'gd',
+                vim.lsp.buf.definition,
+                desc = '[g]o to [d]efinition',
+              },
+              {
+                'gD',
+                vim.lsp.buf.declaration,
+                desc = '[g]o to [D]eclaration',
+              },
+              {
+                'gi',
+                vim.lsp.buf.implementation,
+                desc = '[g]o to [i]mplementation',
+              },
+              {
+                'go',
+                vim.lsp.buf.type_definition,
+                desc = '[G][o] to type definition',
+              },
+              {
+                'gr',
+                vim.lsp.buf.references,
+                desc = '[G]o to [r]eferences',
+              },
+              {
+                'gs',
+                vim.lsp.buf.signature_help,
+                desc = '[G]o to [s]ignature',
+              },
               -- call hierarchy
-              I = { vim.lsp.buf.incoming_calls, '[I]ncoming calls' },
-              O = { vim.lsp.buf.outgoing_calls, '[O]utgoing calls' },
-              l = { vim.diagnostic.open_float, 'Open f[l]oat' },
+              {
+                'gI',
+                vim.lsp.buf.incoming_calls,
+                desc = '[I]ncoming calls',
+              },
+              {
+                'gO',
+                vim.lsp.buf.outgoing_calls,
+                desc = '[O]utgoing calls',
+              },
+              {
+                'gl',
+                vim.diagnostic.open_float,
+                desc = 'Open f[l]oat',
+              },
+              {
+                'K',
+                vim.lsp.buf.hover,
+                desc = 'Hover',
+              },
+              { '<F2>', vim.lsp.buf.rename, desc = 'Rename' },
+              { '<F4>', vim.lsp.buf.code_action, desc = 'Code actions' },
+              { '[d', vim.diagnostic.goto_prev, desc = 'previous diagnostic' },
+              { ']d', vim.diagnostic.goto_next, desc = 'next diagnostic' },
             },
-            K = { vim.lsp.buf.hover, 'Hover' },
-            ['<F2>'] = { vim.lsp.buf.rename, 'Rename' },
-            ['<F4>'] = { vim.lsp.buf.code_action, 'Code actions' },
-            ['[d'] = { vim.diagnostic.goto_prev, 'previous diagnostic' },
-            [']d'] = { vim.diagnostic.goto_next, 'next diagnostic' },
-          }, { buffer = bufnr })
-          require('which-key').register({
-            ['<F3>'] = { ':lua vim.lsp.buf.format({async=true})<cr>', 'format buffer' },
-          }, { buffer = bufnr, mode = { 'n', 'x' } })
-          require('which-key').register({
-            ['<C-k>'] = { vim.lsp.buf.signature_help, 'View argument signature' },
-          }, { buffer = bufnr, mode = { 'i' } })
+            {
+              { '<F3>', ':lua vim.lsp.buf.format({async=true})<cr>', desc = 'format buffer' },
+              mode = { 'n', 'x' },
+            },
+            {
+              {
+                '<C-k>',
+                vim.lsp.buf.signature_help,
+                desc = 'View argument signature',
+              },
+              mode = { 'i' },
+            },
+            buffer = bufnr,
+          }
         end,
       })
 
