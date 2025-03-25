@@ -23,7 +23,7 @@ return {
     -- If you use nix, you can build from source using latest nightly rust with:
     -- build = 'nix run .#build-plugin',
 
-    config = function()
+    init = function()
       -- add friendly snippets to luasnip
       require('luasnip.loaders.from_vscode').lazy_load()
     end,
