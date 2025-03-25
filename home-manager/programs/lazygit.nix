@@ -84,7 +84,7 @@
           loadingText = "Deleting Feature Branch";
         }
         {
-          key = "p";
+          key = "<c-P>";
           context = "localBranches";
           description = "Git-Town Propose (creates a pull request)";
           command = "git-town propose";
