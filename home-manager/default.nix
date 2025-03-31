@@ -229,6 +229,7 @@ in
     {
       enable = true;
       defaultCommand = fdCommand;
+      enableFishIntegration = false;
       fileWidgetCommand = fdCommand;
       changeDirWidgetCommand = "fd --type d --hidden --exclude '.git'";
       defaultOptions = [ "--cycle" ];
@@ -278,6 +279,15 @@ in
           sha256 = "sha256-JdOLsZZ1VFRv7zA2i/QEZ1eovOym/Wccn0SJyhiP9hI=";
         };
       }
+      {
+        name = "fzf.fish";
+        src = pkgs.fetchFromGitHub {
+          owner = "PatrickF1";
+          repo = "fzf.fish";
+          rev = "8920367cf85eee5218cc25a11e209d46e2591e7a"; # v10.3
+          sha256 = "sha256-T8KYLA/r/gOKvAivKRoeqIwE2pINlxFQtZJHpOy9GMM=";
+        };
+      }
     ];
     shellAbbrs = {
       g = "git";
@@ -313,6 +323,8 @@ in
     interactiveShellInit =
       ''
         fish_vi_key_bindings
+        # Use fzf.fish for C-t instead of raw fzf
+        fzf_configure_bindings --directory=\ct
         ${pkgs.uv}/bin/uv generate-shell-completion fish | source
         set -g SHELL ${pkgs.fish}/bin/fish
         abbr -a by --position anywhere --set-cursor "% | bat -l yaml"
