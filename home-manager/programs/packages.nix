@@ -19,6 +19,7 @@
     (final: prev: {
       poetry = inputs.nixpkgs-unstable.legacyPackages.${system}.poetry;
       dagger = inputs.dagger.packages.${system}.dagger;
+      uv = inputs.nixpkgs-unstable.legacyPackages.${system}.uv;
     })
   ];
 
