@@ -137,6 +137,8 @@ in
     enable = true;
   };
   programs.atuin.enable = true;
+  programs.atuin.enableFishIntegration = true;
+  programs.atuin.enableNushellIntegration = false;
   programs.awscli = {
     enable = true;
     package = inputs.nixpkgs-24_11.legacyPackages.${system}.awscli2;
