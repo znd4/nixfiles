@@ -21,6 +21,7 @@
       dagger = inputs.dagger.packages.${system}.dagger;
       uv = inputs.nixpkgs-unstable.legacyPackages.${system}.uv;
       opentofu = inputs.nixpkgs-unstable.legacyPackages.${system}.opentofu;
+      tflint = inputs.nixpkgs-unstable.legacyPackages.${system}.tflint;
     })
   ];
 
