@@ -92,6 +92,7 @@
       kubernetes-helm
       nixfmt-rfc-style
       nodejs
+      nodePackages_latest.cdk8s-cli
       opam
       opentofu
       personal_scripts
