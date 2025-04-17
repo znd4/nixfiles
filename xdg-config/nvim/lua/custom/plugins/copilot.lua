@@ -1,22 +1,23 @@
 return {
-  "zbirenbaum/copilot.lua",
-  event = "BufReadPre",
+  'zbirenbaum/copilot.lua',
+  event = 'BufReadPre',
   keys = {
     {
-      "<C-j>",
+      '<C-j>',
       function()
-        require("copilot.suggestion").accept()
+        require('copilot.suggestion').accept()
       end,
-      desc = "Accept suggestion",
-      mode = "i",
+      desc = 'Accept suggestion',
+      mode = 'i',
     },
   },
   opts = {
     filetypes = {
-      yaml = true
+      yaml = true,
     },
+    copilot_model = 'gpt-4-1',
     suggestion = {
-      auto_trigger = true
+      auto_trigger = true,
     },
   },
 }
