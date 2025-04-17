@@ -140,11 +140,12 @@
               ];
               text = ''
                 #!/usr/bin/env bash
+                set -euo pipefail
                 which home-manager
 
                 # shellcheck disable=SC2046 # Intended splitting of OPTIONS
                 read -ra options <<<"''${1:-.}"
-                unbuffer home-manager switch --flake "''${options[@]}" |& nom
+                unbuffer nix run nixpkgs#home-manager switch --flake "''${options[@]}" |& nom
               '';
             };
           };
@@ -301,6 +302,12 @@
                 {
                   username = "znd4";
                   hostname = "work";
+                  system = "aarch64-darwin";
+                  stateVersion = "24.11";
+                }
+                {
+                  username = "znd4";
+                  hostname = "mac-mini";
                   system = "aarch64-darwin";
                   stateVersion = "24.11";
                 }
