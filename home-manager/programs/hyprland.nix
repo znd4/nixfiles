@@ -251,9 +251,9 @@ else
             popups = true;
           };
 
-          drop_shadow = true;
-          shadow_range = 4;
-          shadow_render_power = 3;
+          # drop_shadow = true;
+          # shadow_range = 4;
+          # shadow_render_power = 3;
         };
 
         animations = {
@@ -304,13 +304,13 @@ else
         };
         master = {
           # See https://wiki.hyprland.org/Configuring/Master-Layout/ for more
-          new_is_master = true;
+          # new_is_master = true;
         };
 
         gestures = {
           workspace_swipe = true;
           workspace_swipe_forever = true;
-          workspace_swipe_numbered = true;
+          # workspace_swipe_numbered = true;
         };
 
         windowrule =
@@ -386,7 +386,6 @@ else
             "ALT, Q, killactive"
             "${mainMod}, S, togglefloating"
             "${mainMod}, D, fullscreen"
-            "${mainMod}, O, fakefullscreen"
             "${mainMod}, P, togglesplit"
             "${mainMod}, E, pseudo"
 
