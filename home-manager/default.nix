@@ -137,6 +137,8 @@ in
     enable = true;
   };
   programs.atuin.enable = true;
+  programs.atuin.enableFishIntegration = true;
+  programs.atuin.enableNushellIntegration = false;
   programs.awscli = {
     enable = true;
     package = inputs.nixpkgs-24_11.legacyPackages.${system}.awscli2;
@@ -202,92 +204,6 @@ in
       )
     ];
 
-  programs.lazygit = {
-    enable = true;
-    settings = {
-      gui.nerdFontsVersion = 3;
-      git.autoFetch = false;
-    };
-  };
-
-  programs.git = {
-    enable = true;
-    lfs.enable = true;
-
-    userName = "Zane Dufour";
-    userEmail = "zane@znd4.dev";
-    delta = {
-      enable = true;
-      options = {
-        pager = "less";
-      };
-    };
-    signing = {
-      signByDefault = true;
-      key = "${pkgs.writeText "github.com_id_rsa.pub" keys."github.com"}";
-    };
-    extraConfig = {
-      pager = {
-        diff = "delta";
-        log = "delta";
-        reflog = "delta";
-      };
-
-      # Configure commit signing with my ssh key
-      gpg.format = "ssh";
-      # TODO - configure this differently on MacOS
-      gpg.ssh.program =
-        if system == "aarch64-darwin" then
-          "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
-        else
-          "${pkgs._1password-gui}/bin/op-ssh-sign";
-      user.signingKey = "${pkgs.writeText "github.com_id_rsa.pub" keys."github.com"}";
-
-      init.defaultBranch = "main";
-      commit.template = "${pkgs.writeText "commit-template" (
-        builtins.readFile "${inputs.self}/dotfiles/xdg-config/.config/git/stCommitMsg"
-      )}";
-      commit.gpgSign = true;
-      push.autoSetupRemote = true;
-      pull.rebase = true;
-      # credential.helper = [
-      #   "cache --timeout 7200"
-      #   "oauth"
-      # ];
-      url = {
-        "ssh://git@github.com/".insteadOf = [
-          "https://github.com/"
-          "github:"
-          "gh:"
-        ];
-      };
-    };
-    aliases = {
-      a = "add";
-      pl = "pull";
-      c = "commit";
-      cm = "commit";
-      co = "checkout";
-      s = "status";
-      ps = "push";
-      d = "diff";
-      cedit = "config --global --edit";
-      undo-last-commit = "reset HEAD~1";
-      config-edit = "config --global --edit";
-      new-branch = "checkout -b";
-      conflicted = "!nvim +Conflicted";
-      cb = "branch --show-current";
-      root = "!pwd";
-      findall = ''
-        !f() { echo -e "
-        Found in refs:
-        "; git for-each-ref refs/ | grep $1; echo -e "
-        Found in commit messages:
-        "; git log --all --oneline --grep="$1"; echo -e "
-        Found in commit contents:
-        "; git log --all --oneline -S "$1"; }; f'';
-    };
-  };
   programs.ssh = {
     addKeysToAgent = "confirm";
     enable = true;
@@ -315,6 +231,7 @@ in
     {
       enable = true;
       defaultCommand = fdCommand;
+      enableFishIntegration = false;
       fileWidgetCommand = fdCommand;
       changeDirWidgetCommand = "fd --type d --hidden --exclude '.git'";
       defaultOptions = [ "--cycle" ];
@@ -364,6 +281,15 @@ in
           sha256 = "sha256-JdOLsZZ1VFRv7zA2i/QEZ1eovOym/Wccn0SJyhiP9hI=";
         };
       }
+      {
+        name = "fzf.fish";
+        src = pkgs.fetchFromGitHub {
+          owner = "PatrickF1";
+          repo = "fzf.fish";
+          rev = "8920367cf85eee5218cc25a11e209d46e2591e7a"; # v10.3
+          sha256 = "sha256-T8KYLA/r/gOKvAivKRoeqIwE2pINlxFQtZJHpOy9GMM=";
+        };
+      }
     ];
     shellAbbrs = {
       g = "git";
@@ -399,6 +325,8 @@ in
     interactiveShellInit =
       ''
         fish_vi_key_bindings
+        # Use fzf.fish for C-t instead of raw fzf
+        fzf_configure_bindings --directory=\ct
         ${pkgs.uv}/bin/uv generate-shell-completion fish | source
         set -g SHELL ${pkgs.fish}/bin/fish
         abbr -a by --position anywhere --set-cursor "% | bat -l yaml"
@@ -421,7 +349,6 @@ in
     enable = true;
     nix-direnv.enable = true;
   };
-  programs.k9s.enable = true;
 
   # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
   home.stateVersion = stateVersion;

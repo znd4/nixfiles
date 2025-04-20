@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
 
+# TODO: nixify all of these -- no need to have to actually write and chmod all of these scripts myself
+
 npx trello-cli "$@"

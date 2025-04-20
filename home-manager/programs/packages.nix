@@ -18,6 +18,10 @@
     })
     (final: prev: {
       poetry = inputs.nixpkgs-unstable.legacyPackages.${system}.poetry;
+      dagger = inputs.dagger.packages.${system}.dagger;
+      uv = inputs.nixpkgs-unstable.legacyPackages.${system}.uv;
+      opentofu = inputs.nixpkgs-unstable.legacyPackages.${system}.opentofu;
+      tflint = inputs.nixpkgs-unstable.legacyPackages.${system}.tflint;
     })
   ];
 
@@ -51,8 +55,10 @@
       claude-code
       clipboard-jh
       cobra-cli
+      commitizen
       crossplane-cli
       cue
+      dagger
       delta
       devbox
       devenv
@@ -86,6 +92,7 @@
       kubernetes-helm
       nixfmt-rfc-style
       nodejs
+      nodePackages_latest.cdk8s-cli
       opam
       opentofu
       personal_scripts
