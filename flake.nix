@@ -145,7 +145,7 @@
 
                 # shellcheck disable=SC2046 # Intended splitting of OPTIONS
                 read -ra options <<<"''${1:-.}"
-                unbuffer nix run nixpkgs#home-manager switch --flake "''${options[@]}" |& nom
+                unbuffer nix run nixpkgs#home-manager -- switch --flake "''${options[@]}" |& nom
               '';
             };
           };
