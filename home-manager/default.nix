@@ -294,6 +294,7 @@ in
     shellAbbrs = {
       g = "git";
       gt = "git-town";
+      gc = "git commit";
       fly = "flyctl";
       hm = "home-manager switch --flake .";
       j = "just";
