@@ -30,9 +30,6 @@ else
     programs.hyprland = {
       enable = true;
       xwayland.enable = true;
-      package = pkgs-hyprland.hyprland;
-      # make sure to also set the portal package, so that they are in sync
-      portalPackage = pkgs-hyprland.xdg-desktop-portal-hyprland;
     };
     environment.sessionVariables = {
       # to prevent invisible cursor
