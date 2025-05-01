@@ -81,14 +81,6 @@ in
       conflicted = "!nvim +Conflicted";
       cb = "branch --show-current";
       root = "!pwd";
-      findall = ''
-        !f() { echo -e "
-        Found in refs:
-        "; git for-each-ref refs/ | grep $1; echo -e "
-        Found in commit messages:
-        "; git log --all --oneline --grep="$1"; echo -e "
-        Found in commit contents:
-        "; git log --all --oneline -S "$1"; }; f'';
     };
   };
 }
