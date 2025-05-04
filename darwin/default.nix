@@ -21,7 +21,8 @@
       ];
     })
   ];
-  nix.settings.experimental-features = "nix-command flakes";
+
+  nix.settings.experimental-features = "nix-command flakes ca-derivations";
   nix.settings = {
     substituters = [
       "https://nix-community.cachix.org"
@@ -30,6 +31,10 @@
     trusted-public-keys = [
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
     ];
+    extra-platforms = [
+      "aarch64-linux"
+      "x86_64-linux"
+    ];
   };
   nix.package = pkgs.nix;
 
@@ -37,7 +42,7 @@
 
   services.nix-daemon.enable = true;
 
-  environment.systemPackages = with pkgs; [ ];
+  environment.systemPackages = with pkgs; [ qemu ];
 
   programs.fish.enable = true;
   programs.zsh.enable = true;
@@ -46,5 +51,5 @@
     enable = true;
     casks = [ "1password-cli" ];
   };
-  # environment.postBuild 
+  # environment.postBuild
 }
