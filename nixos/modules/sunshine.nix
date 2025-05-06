@@ -8,6 +8,7 @@
     capSysAdmin = true;
     openFirewall = true;
   };
+
   networking.firewall = {
     allowedTCPPorts = [
       47984
