@@ -17,7 +17,6 @@
     # nixpkgs.url = nixos_unstable_url;
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11-small";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
-    nixpkgs-tilt-completions.url = "github:znd4/nixpkgs/feat/tilt-completions";
     git-town-znd4.url = "github:znd4/git-town/home-manager";
     nixpkgs-trunk.url = "github:NixOS/nixpkgs/master";
     nixpkgs-24_11.url = "github:NixOS/nixpkgs/nixos-24.11-small";

@@ -29,9 +29,8 @@
     with pkgs;
     let
       argocd = inputs.nixos-unstable.legacyPackages.${system}.argocd;
-      tilt = inputs.nixpkgs-tilt-completions.legacyPackages.${system}.tilt;
       sessionx = inputs.sessionx.packages.${system}.default;
-      spacectl = inputs.nixpkgs-trunk.legacyPackages.${system}.spacectl;
+      spacectl = inputs.nixpkgs-unstable.legacyPackages.${system}.spacectl;
       personal_scripts = (
         buildEnv {
           name = "myScripts";
