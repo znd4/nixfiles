@@ -67,21 +67,7 @@
       url = "github:LnL7/nix-darwin/nix-darwin-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    kmonad = {
-      url = "github:kmonad/kmonad?dir=nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    miryoku_kmonad = {
-      url = "github:znd4/miryoku_kmonad/add-nix-support";
-      inputs.kmonad.follows = "kmonad";
-    };
   };
-
-  # inputs.kmonad = {
-  #   url = "github:kmonad/kmonad";
-  #   flake = false;
-  # };
-  # inputs.kmonad.inputs.nixpkgs.follows = "nixpkgs";
 
   outputs =
     {
