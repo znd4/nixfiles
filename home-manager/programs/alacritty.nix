@@ -7,12 +7,7 @@
 {
   home.packages = with pkgs; [
     monaspace
-    (nerdfonts.override {
-      fonts = [
-        "Monaspace"
-        # Hello, what's up with you?
-      ];
-    })
+    nerd-fonts.monaspace
   ];
   programs.alacritty = {
     enable = true;

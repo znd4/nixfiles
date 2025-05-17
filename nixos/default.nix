@@ -63,13 +63,9 @@ in
 
   # font
   fonts.packages = with pkgs; [
-    (nerdfonts.override {
-      fonts = [
-        "FiraCode"
-        "VictorMono"
-        "NerdFontsSymbolsOnly"
-      ];
-    })
+    nerd-fonts.fira-code
+    nerd-fonts.victor-mono
+    nerd-fonts.symbols-only
   ];
 
   networking.hostName = hostname; # Define your hostname.

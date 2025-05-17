@@ -1,10 +1,11 @@
 {
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
-    nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixvim.url = "github:nix-community/nixvim";
+    nixvim.inputs.nixpkgs.follows = "nixpkgs";
     sesh = {
       url = "github:znd4/sesh";
+      inputs.nixpkgs.follows = "nixpkgs";
       flake = false;
     };
     ghostty = {
@@ -14,41 +15,30 @@
     dagger.inputs.nixpkgs.follows = "nixpkgs";
 
     ghostty-hm-module.url = "github:znd4/ghostty-hm-module";
-    # nixpkgs.url = nixos_unstable_url;
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11-small";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
     git-town-znd4.url = "github:znd4/git-town/home-manager";
+
+    home-manager = {
+      url = "github:nix-community/home-manager/release-24.11"; # Match your nixpkgs version
+      inputs.nixpkgs.follows = "nixpkgs"; # Ensure it uses the same nixpkgs
+    };
+
+    # nixpkgs.url = nixos_unstable_url;
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05-small";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
+    nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-trunk.url = "github:NixOS/nixpkgs/master";
     nixpkgs-24_11.url = "github:NixOS/nixpkgs/nixos-24.11-small";
 
     nil.url = "github:oxalica/nil";
+    nil.inputs.nixpkgs.follows = "nixpkgs";
     nixd = {
       url = "github:nix-community/nixd";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    hyprland = {
-      # url = "github:hyprwm/Hyprland";
-      type = "github";
-      owner = "hyprwm";
-      repo = "Hyprland";
-      # ref = "v0.38.1";
-      ref = "v0.47.2";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     xdg-config = {
       url = "github:znd4/xdg-config";
       flake = false;
-    };
-
-    # waybar.url = "github:Alexays/Waybar";
-    # waybar.inputs.nixpkgs.follows = "nixpkgs";
-
-    hyprland-plugins.url = "github:hyprwm/hyprland-plugins";
-    hyprlock = {
-      url = "github:hyprwm/hyprlock";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     gh-s = {

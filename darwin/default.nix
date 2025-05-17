@@ -14,12 +14,8 @@
     isHidden = false;
   };
   fonts.packages = with pkgs; [
-    (nerdfonts.override {
-      fonts = [
-        "FiraCode"
-        "VictorMono"
-      ];
-    })
+    nerd-fonts.fira-code
+    nerd-fonts.victor-mono
   ];
 
   nix.settings.experimental-features = "nix-command flakes ca-derivations";
