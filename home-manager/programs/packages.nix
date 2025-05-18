@@ -129,6 +129,7 @@
       yq-go
       zenith
       # zig
+      zk
       zoxide
       zsh
     ];
