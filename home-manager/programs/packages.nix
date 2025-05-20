@@ -45,6 +45,7 @@
       argocd
       asdf
       awsume
+      aws-sso-util
       bat
       bottom
       broot
