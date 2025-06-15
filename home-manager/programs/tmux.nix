@@ -19,8 +19,7 @@
     # tmuxp.enable = true;
     extraConfig = ''
       set -g default-command ${pkgs.fish}/bin/fish
-      bind -n M-d display-popup -E -w 60% "sesh connect \"$(sesh l -t -s -z | telescope-filter)\""
-      bind -n M-a run-shell "sesh connect $(
+      bind -n M-d run-shell "sesh connect $(
         sesh list -tz | fzf-tmux -p 55%,60% \
         		--no-sort --border-label ' sesh ' --prompt '⚡  ' \
         		--header '  ^a all ^t tmux ^x zoxide ^f find' \
