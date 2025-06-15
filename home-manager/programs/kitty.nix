@@ -17,14 +17,10 @@ else
     fonts.fontconfig.enable = true;
     home.packages = with pkgs; [
       monaspace
-      (nerdfonts.override {
-        fonts = [
-          "FiraCode"
-          "VictorMono"
-          "Monaspace"
-          "NerdFontsSymbolsOnly"
-        ];
-      })
+      nerd-fonts.fira-code
+      nerd-fonts.victor-mono
+      nerd-fonts.monaspace
+      nerd-fonts.symbols-only
     ];
     programs.kitty = {
       enable = true;
@@ -62,8 +58,7 @@ else
       };
       themeFile = "tokyo_night_moon"; # "tokyo_night_{moon,storm}"
       font = {
-        package = pkgs.nerdfonts;
-        name = "MonaspiceAr NFM";
+        package = pkgs.nerd-fonts.monaspace;
       };
     };
   }
