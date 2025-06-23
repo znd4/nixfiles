@@ -4,6 +4,8 @@ PATH_add $HOME/.rd/bin
 PATH_add $HOME/.krew/bin
 PATH_add $HOME/go/bin
 
+PATH_add $HOME/.nix-profile/bin
+
 export XDG_CONFIG_HOME="$HOME/.config"
 export RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgreprc"
 
