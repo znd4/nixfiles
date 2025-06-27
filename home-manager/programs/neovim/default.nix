@@ -1,5 +1,6 @@
 {
   pkgs,
+  system,
   inputs,
   lib,
   config,
@@ -13,6 +14,7 @@ let
       debugpy
     ]
   );
+  tofu-ls = inputs.nixos-unstable.legacyPackages.${system}.tofu-ls;
 in
 {
   xdg.configFile = {
@@ -52,7 +54,7 @@ in
         ruff
         rust-analyzer-unwrapped
         taplo
-        terraform-ls
+        tofu-ls
         tree-sitter
         yaml-language-server
       ]
