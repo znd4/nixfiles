@@ -19,12 +19,13 @@ return { -- Highlight, edit, and navigate code
   config = function(_, opts)
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     vim.opt.foldmethod = 'expr'
-    vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-    vim.opt.foldtext = ""
+    vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+    vim.opt.foldtext = ''
     vim.opt.foldenable = false -- don't start folded
 
     vim.treesitter.language.register('starlark', { 'tiltfile' })
     vim.treesitter.language.register('python', { 'pipx' })
+    vim.treesitter.language.register('terraform', { 'opentofu' })
     -- Prefer git instead of curl in order to improve connectivity in some environments
     require('nvim-treesitter.install').prefer_git = true
     ---@diagnostic disable-next-line: missing-fields
