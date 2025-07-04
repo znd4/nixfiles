@@ -56,7 +56,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     darwin = {
-      url = "github:LnL7/nix-darwin/nix-darwin-24.11";
+      url = "github:LnL7/nix-darwin/nix-darwin-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -91,7 +91,6 @@
               ];
               text = ''
                 #!/usr/bin/env bash
-                which nix-darwin
                 sudo unbuffer nixos-rebuild switch --flake "''${1:-.}" |& nom
               '';
             };
@@ -99,13 +98,14 @@
               name = "nix-darwin-switch";
               runtimeInputs = with pkgs; [
                 expect
-                darwin.packages.${pkgs.system}.default
+                darwin.packages.${pkgs.system}.darwin-rebuild
                 nix-output-monitor
               ];
               text = ''
                 #!/usr/bin/env bash
-                which nix-darwin
-                unbuffer nix-darwin switch --flake "''${1:-.}" |& nom
+                set -euo pipefail
+                set -x
+                unbuffer darwin-rebuild switch --flake "''${1:-.}" |& nom
               '';
             };
             home-manager-switch = pkgs.writeShellApplication {
