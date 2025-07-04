@@ -2,7 +2,7 @@ print 'Loading filetype configuration...'
 vim.filetype.add {
   extension = {
     ['tfstate.backup'] = 'json',
-    gotmpl = 'gotmpl',
+    -- gotmpl = 'gotmpl',
     hcl = 'hcl',
     kbd = 'clojure',
     plist = 'xml',
