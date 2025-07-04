@@ -1,3 +1,4 @@
+print 'Loading filetype configuration...'
 vim.filetype.add {
   extension = {
     ['tfstate.backup'] = 'json',
