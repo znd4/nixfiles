@@ -36,13 +36,16 @@
 
   system.stateVersion = stateVersion;
 
-  services.nix-daemon.enable = true;
+  ids.gids.nixbld = 350;
 
-  environment.systemPackages = with pkgs; [ qemu ];
+  environment.systemPackages = with pkgs; [
+    qemu
+  ];
 
   programs.fish.enable = true;
   programs.zsh.enable = true;
 
+  system.primaryUser = username;
   homebrew = {
     enable = true;
     casks = [ "1password-cli" ];
