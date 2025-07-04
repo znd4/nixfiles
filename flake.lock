@@ -426,18 +426,18 @@
         "type": "github"
       }
     },
-    "nixpkgs-git-town-21_1_0": {
+    "nixpkgs-git-town-21_2_0": {
       "locked": {
-        "lastModified": 1750721509,
-        "narHash": "sha256-L69El+1vd0VJWkpjh5wCWwGQE00NqahItKbHlF/04Ic=",
-        "owner": "nixos",
+        "lastModified": 1751653599,
+        "narHash": "sha256-o3bmoTfHgbNo6QEmcf4V+WOpyaf6VqJKFYyCANCsGG4=",
+        "owner": "znd4",
         "repo": "nixpkgs",
-        "rev": "34519077d01423e5739550e02db0062ed28ef651",
+        "rev": "642f9edd7c44239ba4044de0b0af5c99fba4eac6",
         "type": "github"
       },
       "original": {
-        "owner": "nixos",
-        "ref": "pull/419405/head",
+        "owner": "znd4",
+        "ref": "git-town-21.2.0",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -621,7 +621,7 @@
         "nixos-unstable": "nixos-unstable",
         "nixpkgs": "nixpkgs_3",
         "nixpkgs-24_11": "nixpkgs-24_11",
-        "nixpkgs-git-town-21_1_0": "nixpkgs-git-town-21_1_0",
+        "nixpkgs-git-town-21_2_0": "nixpkgs-git-town-21_2_0",
         "nixpkgs-trunk": "nixpkgs-trunk",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "nixvim": "nixvim",

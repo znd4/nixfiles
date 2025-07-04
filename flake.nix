@@ -28,7 +28,8 @@
     nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-trunk.url = "github:NixOS/nixpkgs/master";
     nixpkgs-24_11.url = "github:NixOS/nixpkgs/nixos-24.11-small";
-    nixpkgs-git-town-21_1_0.url = "github:nixos/nixpkgs/pull/419405/head";
+    # nixpkgs-git-town-21_1_0.url = "github:nixos/nixpkgs/pull/419405/head";
+    nixpkgs-git-town-21_2_0.url = "github:znd4/nixpkgs/git-town-21.2.0";
 
     nil.url = "github:oxalica/nil";
     nil.inputs.nixpkgs.follows = "nixpkgs";
