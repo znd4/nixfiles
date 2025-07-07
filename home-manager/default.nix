@@ -130,8 +130,6 @@ in
     ];
   };
   # TODO: Enable saved WIFI connection credentials
-  programs.jujutsu.enable = true; # TODO - try this out
-  programs.jujutsu.package = inputs.nixos-unstable.legacyPackages.${system}.jujutsu;
   programs.thefuck = {
     enable = true;
   };
