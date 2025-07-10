@@ -31,6 +31,34 @@ cd pkgs/hy-auth && nix develop          # Enter dev environment
 cd pkgs/sesh-new-project && nix build  # Build package
 ```
 
+### GitHub CLI (gh) Commands
+```shell
+# Repository information and management
+gh repo view                            # View repository details
+gh repo clone <repo>                    # Clone repository
+gh api repos/owner/repo                 # Access GitHub API directly
+
+# Issues and pull requests
+gh issue list                           # List issues
+gh issue create --title "Title" --body "Body"  # Create issue
+gh pr list                              # List pull requests
+gh pr create --title "Title" --body "Body"     # Create pull request
+gh pr view <number>                     # View PR details
+gh pr merge <number>                    # Merge PR
+
+# Search across GitHub
+gh search repos --topic nix            # Search repositories by topic
+gh search code "nix flake" --language nix      # Search code
+gh search issues "bug" --state open    # Search issues
+gh search prs "feature" --author znd4   # Search pull requests
+
+# Workflow and releases
+gh workflow list                        # List GitHub Actions workflows
+gh workflow run <name>                  # Trigger workflow
+gh release list                         # List releases
+gh release view <tag>                   # View release details
+```
+
 ## Architecture
 
 This is a **Nix flakes-based system configuration repository** managing multiple machines and environments:
