@@ -121,6 +121,7 @@
       tflint
       thefuck
       tilt
+      timoni
       unzip
       uv
       vale
