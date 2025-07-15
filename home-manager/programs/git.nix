@@ -16,6 +16,9 @@ in
 
     userName = "Zane Dufour";
     userEmail = "zane@znd4.dev";
+    ignores = [
+      "**/.claude/settings.local.json"
+    ];
     delta = {
       enable = true;
       options = {

@@ -31,6 +31,12 @@ cd pkgs/hy-auth && nix develop          # Enter dev environment
 cd pkgs/sesh-new-project && nix build  # Build package
 ```
 
+### Documentation
+```shell
+# Home Manager configuration reference
+man home-configuration.nix                  # Complete home-manager options reference
+```
+
 ### GitHub CLI (gh) Commands
 ```shell
 # Repository information and management

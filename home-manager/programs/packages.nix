@@ -24,7 +24,6 @@
       tflint = inputs.nixpkgs-unstable.legacyPackages.${system}.tflint;
       kubernetes-helm = inputs.nixpkgs-unstable.legacyPackages.${system}.kubernetes-helm;
     })
-    (import ./overlays/opencode.nix { inherit pkgs; })
   ];
 
   home.packages =
@@ -96,7 +95,6 @@
       nodejs
       nodePackages_latest.cdk8s-cli
       opam
-      opencode
       opentofu
       personal_scripts
       pnpm
