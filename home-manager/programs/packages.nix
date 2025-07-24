@@ -96,6 +96,7 @@
       nodePackages_latest.cdk8s-cli
       opam
       opentofu
+      pay-respects
       personal_scripts
       pnpm
       podman-compose
@@ -119,7 +120,6 @@
       terraform-docs
       terragrunt
       tflint
-      thefuck
       tilt
       timoni
       unzip
