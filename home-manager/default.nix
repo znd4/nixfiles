@@ -131,9 +131,6 @@ in
     ];
   };
   # TODO: Enable saved WIFI connection credentials
-  programs.thefuck = {
-    enable = true;
-  };
   programs.atuin.enable = true;
   programs.atuin.enableFishIntegration = true;
   programs.atuin.enableNushellIntegration = false;
@@ -321,23 +318,22 @@ in
         '';
       };
     };
-    interactiveShellInit =
-      ''
-        fish_vi_key_bindings
-        # Use fzf.fish for C-t instead of raw fzf
-        fzf_configure_bindings --directory=\ct
-        ${pkgs.uv}/bin/uv generate-shell-completion fish | source
-        set -g SHELL ${pkgs.fish}/bin/fish
-        abbr -a by --position anywhere --set-cursor "% | bat -l yaml"
-        abbr -a bh --position anywhere --set-cursor "% | bat -l help"
-        ${pkgs.fnm}/bin/fnm env --use-on-cd --shell fish | source
-        set -gx fish_complete_path $fish_complete_path ${config.home.profileDirectory}/share/fish/vendor_completions.d
-        set --unpath JSONNET_PATH
-      ''
-      + (
-        (if system == "aarch64-darwin" then "" else "\nset -q SSH_AUTH_SOCK")
-        + "\nset -g SSH_AUTH_SOCK ${authSocks.${system}}"
-      );
+    interactiveShellInit = ''
+      fish_vi_key_bindings
+      # Use fzf.fish for C-t instead of raw fzf
+      fzf_configure_bindings --directory=\ct
+      ${pkgs.uv}/bin/uv generate-shell-completion fish | source
+      set -g SHELL ${pkgs.fish}/bin/fish
+      abbr -a by --position anywhere --set-cursor "% | bat -l yaml"
+      abbr -a bh --position anywhere --set-cursor "% | bat -l help"
+      ${pkgs.fnm}/bin/fnm env --use-on-cd --shell fish | source
+      set -gx fish_complete_path $fish_complete_path ${config.home.profileDirectory}/share/fish/vendor_completions.d
+      set --unpath JSONNET_PATH
+    ''
+    + (
+      (if system == "aarch64-darwin" then "" else "\nset -q SSH_AUTH_SOCK")
+      + "\nset -g SSH_AUTH_SOCK ${authSocks.${system}}"
+    );
   };
 
   programs.starship = {
