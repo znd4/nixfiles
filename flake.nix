@@ -145,6 +145,8 @@
           '';
         };
         keys = {
+        };
+        defaultKeys = {
           "github.com" =
             "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDDDi6qJg5OogDltfP/moQSc35an6xT+3N7JpIO36ct+LBcwJ0FydXO7OFceTxKQh4Pztm4VY3Odlk8M8VLaBuPac4Au//GjUFtU1aYmYgraEpzVwkRtla6VP7wLp0bHihtHNUVfvFCBnhGfz066qNck7k6ntJwXGqWeedtdjMZrhA0HQHsJDbgi12sFyY2aizuzNgBK3I0hHvTYG+ApD8nCbQjukxY6DpMjdwPLkLcCuvvbYeVGie6EuztXlqxpI1aM8vMnTKXn6wUmbvOYeBGONe4qzNiRy+Z453AK6k0tqVxgWWnPvgAcMIO1DvY5a8LaEvI5MDSvrqPJyYRIqMOcQThIvubb1CbMpkgOcEmYfrUOFZOHtOIZDEzahS3ggLMkAb3VWRlfRz+e0ESraQ+aMxUr0xNWpIeFz10xSRO6FZu0Qlu5+1dPMI7WNI190FyD+nqHedZYrSmHXpsaJ0YrUeUSu1DNpavVwtJ3e34fEWwzsZ36uf1Tcv8OCJNpAsXmkQHff77+GFk5O4tEyguAqtxJjvtFwJuh3BCyCHAvXyUNbB6qm/Wyr5sKiGEb/G9wpyS8cw/1FpgMsVw+v+e8GVdOz/zE/jYiVbHvDFkSE34LoSd+/mrHYkHlZeUsUQaAKeqLL/C/uR9XzoXbPV54IgKSN/gYfLsRyysKo6Txw==";
           "desktop.local" =
@@ -226,8 +228,10 @@
             username,
             hostname,
             stateVersion,
+            certificateAuthorities ? [ ],
             knownHosts ? self.knownHosts,
             outputs ? self,
+            defaultKeys ? self.defaultKeys,
             keys ? self.keys,
             extraModules ? [ ],
           }:
@@ -242,8 +246,15 @@
                 username
                 hostname
                 stateVersion
-                keys
                 ;
+              keys = defaultKeys // (keys."${hostname}" or { });
+              certificateAuthority =
+                if certificateAuthorities != [ ] then
+                  (builtins.toFile "certificate-authority.pem" (
+                    lib.strings.concatStringsSep "\n" certificateAuthorities
+                  ))
+                else
+                  null;
             };
             modules = [ self.homeModules.default ] ++ extraModules;
           };
@@ -254,6 +265,7 @@
                 {
                   username,
                   hostname,
+                  certificateAuthorities ? [ ],
                   system ? "x86_64-linux",
                   stateVersion ? "23.11",
                 }:
@@ -264,6 +276,7 @@
                       system
                       username
                       hostname
+                      certificateAuthorities
                       ;
                   }
                 ))

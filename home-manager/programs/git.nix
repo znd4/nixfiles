@@ -4,6 +4,8 @@
   inputs,
   pkgs,
   keys,
+  certificateAuthority,
+  lib,
   ...
 }:
 let
@@ -35,15 +37,11 @@ in
         log = "delta";
         reflog = "delta";
       };
+      core.longPaths = true;
 
       # Configure commit signing with my ssh key
       gpg.format = "ssh";
       # TODO - configure this differently on MacOS
-      gpg.ssh.program =
-        if system == "aarch64-darwin" then
-          "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
-        else
-          "${pkgs._1password-gui}/bin/op-ssh-sign";
       user.signingKey = "${pkgs.writeText "github.com_id_rsa.pub" keys."github.com"}";
 
       init.defaultBranch = "main";
@@ -61,13 +59,15 @@ in
       #   "oauth"
       # ];
       url = {
-        "ssh://git@github.com/".insteadOf = [
-          "https://github.com/"
-          "github:"
-          "gh:"
+        "ssh://git@github.com/protectai".insteadOf = [
+          "https://github.com/protectai"
+        ];
+        "ssh://git@github.com/znd4".insteadOf = [
+          "https://github.com/znd4"
         ];
       };
     };
+    extraConfig.http.sslCAInfo = lib.mkIf (certificateAuthority != null) certificateAuthority;
     aliases = {
       a = "add";
       pl = "pull";

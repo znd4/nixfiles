@@ -17,7 +17,8 @@ let
   authSocks = {
     x86_64-linux = "${config.home.homeDirectory}/.1password/agent.sock";
     aarch64-linux = "${config.home.homeDirectory}/.1password/agent.sock";
-    aarch64-darwin = "\"${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock\"";
+    aarch64-darwin = "${config.home.homeDirectory}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
+
   };
   dotConfig = "${inputs.self}/dotfiles/xdg-config/.config";
   system = pkgs.stdenv.system;
