@@ -17,8 +17,8 @@ return {
     end
 
     ---GLBrowse: Opens the current file or directory in GitLab/GitHub.
-    -- @param is_visual (boolean, optional) A flag passed from the keymap to indicate if it was called from visual mode.
-    local function GLBrowse(is_visual)
+    -- @param range (table, optional) A table with {start, finish} line numbers for a visual selection.
+    local function GLBrowse(range)
       -- Helper function to execute a shell command and return its output.
       local function get_cmd_output(cmd)
         local handle = io.popen(cmd)
@@ -92,18 +92,15 @@ return {
 
       -- Determine the line range for the URL anchor.
       local line_anchor = ''
-      if is_visual then
-        print 'is visual'
-        -- If called from visual mode, use the visual selection marks '< and '>
-        local _, start_line = unpack(vim.fn.getpos "'<")
-        local _, end_line = unpack(vim.fn.getpos "'>")
-        if start_line and end_line and start_line ~= end_line then
-          line_anchor = ('#L%d-%d'):format(start_line, end_line)
-        elseif start_line then
-          line_anchor = ('#L%d'):format(start_line)
+      if range then
+        -- If a range table is passed, we are in visual mode.
+        if range.start and range.finish and range.start ~= range.finish then
+          line_anchor = ('#L%d-%d'):format(range.start, range.finish)
+        elseif range.start then
+          line_anchor = ('#L%d'):format(range.start)
         end
       else
-        -- If called from normal mode, use the current cursor line.
+        -- If no range, we are in normal mode. Use the current cursor line.
         local line_num = vim.api.nvim_win_get_cursor(0)[1]
         line_anchor = ('#L%d'):format(line_num)
       end
@@ -116,10 +113,15 @@ return {
 
     -- Setup keymaps
     vim.keymap.set('n', '<leader>gl', function()
-      GLBrowse(false)
+      -- In normal mode, call with no arguments.
+      GLBrowse()
     end, { desc = 'GitLab: Browse current line' })
+
     vim.keymap.set('v', '<leader>gl', function()
-      GLBrowse(true)
+      -- In visual mode, capture the marks *immediately* and pass them.
+      local _, start_line = unpack(vim.fn.getpos "'<")
+      local _, end_line = unpack(vim.fn.getpos "'>")
+      GLBrowse { start = start_line, finish = end_line }
     end, { desc = 'GitLab: Browse visual selection' })
   end,
 }
