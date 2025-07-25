@@ -165,7 +165,7 @@ return {
     local Job = require 'plenary.job'
 
     -- To make this function available as a command in Neovim, you can add:
-    vim.api.nvim_create_user_command('GLBrowse', GLBrowse, {})
+    vim.api.nvim_create_user_command('GLBrowse', GLBrowse, { range = '%' })
     vim.keymap.set('n', '<leader>go', GLBrowse, { desc = 'Open in GitLab' })
 
     vim.api.nvim_create_user_command('GHBrowse', function()
