@@ -170,7 +170,7 @@ return {
 
     -- To make this function available as a command in Neovim, you can add:
     vim.api.nvim_create_user_command('GLBrowse', GLBrowse, { range = '%' })
-    vim.keymap.set('n', '<leader>go', GLBrowse, { desc = 'Open in GitLab' })
+    vim.keymap.set({ 'n', 'v', 'V' }, '<leader>go', GLBrowse, { desc = 'Open in GitLab' })
 
     vim.api.nvim_create_user_command('GHBrowse', function()
       local position = get_cursor_position()
