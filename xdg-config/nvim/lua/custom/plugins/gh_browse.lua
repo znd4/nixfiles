@@ -93,6 +93,7 @@ return {
       -- Determine the line range for the URL anchor.
       local line_anchor = ''
       if is_visual then
+        print 'is visual'
         -- If called from visual mode, use the visual selection marks '< and '>
         local _, start_line = unpack(vim.fn.getpos "'<")
         local _, end_line = unpack(vim.fn.getpos "'>")
@@ -113,24 +114,11 @@ return {
       Job:new({ command = open_cmd, args = { final_url } }):start()
     end
 
-    -- Create user command (optional, but good practice)
-    vim.api.nvim_create_user_command('GLBrowse', function()
-      -- Check if the command was called with a range (from command line)
-      if vim.v.count > 0 then
-        GLBrowse(true)
-      else
-        GLBrowse(false)
-      end
-    end, {
-      range = '%',
-      desc = 'Open current file or selection in GitLab',
-    })
-
     -- Setup keymaps
     vim.keymap.set('n', '<leader>gl', function()
       GLBrowse(false)
     end, { desc = 'GitLab: Browse current line' })
-    vim.keymap.set('v', '<leader>gl', function()
+    vim.keymap.set({ 'v', 'V' }, '<leader>gl', function()
       GLBrowse(true)
     end, { desc = 'GitLab: Browse visual selection' })
   end,
