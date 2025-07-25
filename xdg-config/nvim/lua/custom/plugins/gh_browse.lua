@@ -118,7 +118,7 @@ return {
     vim.keymap.set('n', '<leader>gl', function()
       GLBrowse(false)
     end, { desc = 'GitLab: Browse current line' })
-    vim.keymap.set({ 'v', 'V' }, '<leader>gl', function()
+    vim.keymap.set('v', '<leader>gl', function()
       GLBrowse(true)
     end, { desc = 'GitLab: Browse visual selection' })
   end,
