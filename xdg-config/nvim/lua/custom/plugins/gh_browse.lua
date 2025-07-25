@@ -1,7 +1,7 @@
 return {
   -- This is a local plugin that depends on plenary and oil
-  'your-username/your-plugin-name', -- You can name this whatever you like
-  dependencies = { 'nvim-lua/plenary.nvim', 'stevearc/oil.nvim' },
+  'nvim-lua/plenary.nvim',
+  dependencies = { 'stevearc/oil.nvim' },
   config = function()
     local Path = require 'plenary.path'
     local Job = require 'plenary.job'
