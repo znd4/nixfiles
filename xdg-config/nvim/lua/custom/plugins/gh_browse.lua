@@ -125,13 +125,17 @@ local function GLBrowse()
   local line_anchor = ''
 
   if mode == 'n' then
+    print 'normal mode'
     -- Normal mode: get the current cursor line.
     local line_num = vim.fn.line '.'
     line_anchor = '#L' .. line_num
   elseif mode == 'v' or mode == 'V' then
+    print 'visual mode'
     -- Visual mode (line or character): get the start and end of the selection.
     local _, start_line, _, _ = unpack(vim.fn.getpos "'<")
     local _, end_line, _, _ = unpack(vim.fn.getpos "'>")
+    print('start_line', start_line)
+    print('end_line', end_line)
     if start_line and end_line and start_line ~= end_line then
       line_anchor = '#L' .. start_line .. '-' .. end_line
     elseif start_line then
