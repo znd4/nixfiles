@@ -20,7 +20,7 @@
     extraConfig = ''
       set -g default-command ${pkgs.fish}/bin/fish
       bind -n M-d run-shell "sesh connect $(
-        sesh list -tz | fzf-tmux -p 55%,60% \
+        sesh list -tzs | fzf-tmux -p 55%,60% \
         		--no-sort --border-label ' sesh ' --prompt '⚡  ' \
         		--header '  ^a all ^t tmux ^x zoxide ^f find' \
         		--bind 'tab:down,btab:up' \
