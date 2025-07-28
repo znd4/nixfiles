@@ -1,4 +1,35 @@
-print 'Loading filetype configuration...'
+local Path = require 'plenary.path'
+
+local function is_helm_file(path)
+  local check = vim.fs.find('Chart.yaml', { path = vim.fs.dirname(path), upward = true })
+  if vim.tbl_isempty(check) then
+    return false
+  end
+
+  local values_yaml = Path:new(check[1]):parent():joinpath('values.yaml'):normalize()
+  local file_path = Path:new(path):normalize()
+  return file_path ~= values_yaml
+end
+
+--@private
+--@return string
+local function yaml_filetype(path, bufname)
+  local is_helm = is_helm_file(path)
+  return is_helm and 'helm' or 'yaml'
+end
+
+--@private
+--@return string
+local function tmpl_filetype(path, bufname)
+  return is_helm_file(path) and 'helm' or 'template'
+end
+
+--@private
+--@return string
+local function tpl_filetype(path, bufname)
+  return is_helm_file(path) and 'helm' or 'smarty'
+end
+
 vim.filetype.add {
   extension = {
     ['tfstate.backup'] = 'json',
@@ -11,6 +42,10 @@ vim.filetype.add {
     tfstate = 'json',
     tfvars = 'opentofu-vars',
     libsonnet = 'jsonnet',
+    tmpl = tpl_filetype,
+    tpl = tpl_filetype,
+    yaml = yaml_filetype,
+    yml = yaml_filetype,
   },
   filename = {
     ['.devcontainer.json'] = 'jsonc',
@@ -25,8 +60,6 @@ vim.filetype.add {
   },
   pattern = {
     ['${HOME}/%.ssh/config%.d/.*'] = 'sshconfig',
-    ['.*/templates/.*%.tpl'] = 'helm',
-    ['.*/templates/.*%.ya?ml'] = 'helm',
     ['helmfile.*%.ya?ml'] = 'helm',
     ['.*'] = {
       priority = -math.huge,
