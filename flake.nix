@@ -234,6 +234,7 @@
             defaultKeys ? self.defaultKeys,
             keys ? self.keys,
             extraModules ? [ ],
+            extraSpecialArgs ? { },
           }:
           home-manager.lib.homeManagerConfiguration {
             pkgs = nixpkgs.legacyPackages.${system};
@@ -255,7 +256,8 @@
                   ))
                 else
                   null;
-            };
+            }
+            // extraSpecialArgs;
             modules = [ self.homeModules.default ] ++ extraModules;
           };
         homeConfigurations = (
