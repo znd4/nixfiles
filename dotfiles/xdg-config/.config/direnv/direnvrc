@@ -43,6 +43,7 @@ if has thefuck; then
 fi
 
 PATH_add /opt/local/bin
+PATH_add /opt/homebrew/bin
 PATH_add /opt/local/sbin
 
 setup_pyenv() {
