@@ -23,6 +23,7 @@ return {
       python = { 'ruff_format', 'ruff_fix' },
       terraform = { 'tofu_fmt' },
       yaml = { 'dprint' },
+      nix = { 'nixfmt' },
       -- we've got marksman now
       -- markdown = { prettier },
     },
