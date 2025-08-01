@@ -33,15 +33,9 @@
       )"
 
       bind -n M-c run-shell "_sesh-cl-fuzzy \
-        --gitlab [${
-          lib.strings.concatStringsSep " " seshClConfig.gitlabHosts
-        }] \
-        --github_orgs [${
-          lib.strings.concatStringsSep " " seshClConfig.githubOrgs
-        }] \
-        --parent-directory [${
-          lib.strings.concatStringsSep " " seshClConfig.parentDirectories
-        }]
+        --gitlab '[${lib.strings.concatStringsSep " " seshClConfig.gitlabHosts}]' \
+        --github_orgs '[${lib.strings.concatStringsSep " " seshClConfig.githubOrgs}]' \
+        --parent-directory '[${lib.strings.concatStringsSep " " seshClConfig.parentDirectories}]'
       "
 
 
