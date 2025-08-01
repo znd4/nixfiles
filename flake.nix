@@ -228,6 +228,7 @@
             username,
             hostname,
             stateVersion,
+            seshClConfig ? { },
             certificateAuthorities ? [ ],
             knownHosts ? self.knownHosts,
             outputs ? self,
@@ -256,6 +257,11 @@
                   ))
                 else
                   null;
+              seshClConfig = {
+                gitlabHosts = [];
+                githubOrgs = [];
+                parentDirectories = ["~"];
+              } // seshClConfig;
             }
             // extraSpecialArgs;
             modules = [ self.homeModules.default ] ++ extraModules;

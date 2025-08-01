@@ -2,6 +2,7 @@
   pkgs,
   inputs,
   system,
+  seshClConfig,
   ...
 }:
 {
@@ -29,6 +30,19 @@
         		--bind 'ctrl-x:change-prompt(📁  )+reload(sesh list -z)' \
         		--bind 'ctrl-f:change-prompt(🔎  )+reload(fd -H -d 2 -t d -E .Trash . ~)'
       )"
+
+      bind -n M-c run-shell "_sesh-cl-fuzzy \
+        --gitlab [${
+          lib.strings.concatStringsSep " " seshClConfig.gitlabHosts
+        }] \
+        --github_orgs [${
+          lib.strings.concatStringsSep " " seshClConfig.githubOrgs
+        }] \
+        --parent-directory [${
+          lib.strings.concatStringsSep " " seshClConfig.parentDirectories
+        }]
+      "
+
 
       # use alt+vim movement between panes
       bind -n M-h select-pane -L
