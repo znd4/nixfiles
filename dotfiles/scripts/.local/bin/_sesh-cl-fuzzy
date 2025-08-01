@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 def get_url [] {
-	input "Paste git URI and hit enter"
+    input "Paste git URI and hit enter"
 }
 
 def get_remote_from_github [github_orgs: list<string>]: any -> string {
@@ -9,7 +9,7 @@ def get_remote_from_github [github_orgs: list<string>]: any -> string {
         op plugin run gh -- repo ls
         --json nameWithOwner
         --jq '.[].nameWithOwner' --limit 100000
-		| complete
+        | complete
     )
 
     if $user_repos_result.exit_code > 0 {
@@ -23,29 +23,29 @@ def get_remote_from_github [github_orgs: list<string>]: any -> string {
             # Note the corrected command syntax.
             # No '^' is needed, as par-each will capture the error.
             op plugin run gh -- repo ls $github_org --json nameWithOwner --jq '.[].nameWithOwner' --limit 100000
-			| complete
+            | complete
         }
     )
 
     # 4. If an error was found, halt the script immediately.
-	for failed in $org_repo_stream {
-		if $failed.exit_code == 0 {
-			continue
-		}
-		print -e $failed.stderr
-		
-		exit $failed.exit_code
+    for failed in $org_repo_stream {
+        if $failed.exit_code == 0 {
+            continue
+        }
+        print -e $failed.stderr
+        
+        exit $failed.exit_code
     }
 
     # 5. If we reach here, all commands succeeded. Process the results.
     let successful_org_repos = (
         $org_repo_stream
-		| each {
-			|result|
-			$result.stdout
-			| lines
-        	| compact --empty
-		} | flatten
+        | each {
+            |result|
+            $result.stdout
+            | lines
+            | compact --empty
+        } | flatten
     )
 
     # 6. Combine and return everything.
@@ -53,17 +53,17 @@ def get_remote_from_github [github_orgs: list<string>]: any -> string {
         ...($user_repos_result.stdout | lines | compact --empty)
         ...$successful_org_repos
     ] | flatten
-	| input list --fuzzy "Select github repo"
-	| $"git@github.com:($in)"
+    | input list --fuzzy "Select github repo"
+    | $"git@github.com:($in)"
 }
 
 def get_remote_from_github_working [github_orgs: list<string>] {
     # First, get the user's default repos
     # The 'try/catch' ensures we handle a failure here gracefully, if needed.
     let user_repos = try {
-		(
-			op plugin run gh -- repo ls --json nameWithOwner --jq '.[].nameWithOwner' --limit 100000
-		)
+        (
+            op plugin run gh -- repo ls --json nameWithOwner --jq '.[].nameWithOwner' --limit 100000
+        )
     } catch {
         error make { msg: "Failed to get user repositories", cause: $in }
     }
@@ -84,105 +84,106 @@ def get_remote_from_github_working [github_orgs: list<string>] {
 }
 
 def get_remote_from_github_bkp [github_orgs: list<string>] {
-	[
-		(
-			op plugin run gh -- repo ls
-			--json nameWithOwner
-			--jq '.[].nameWithOwner' --limit 100000
-		)
-		...($github_orgs | each {
-			|github_org|
-				(
-					op plugin run gh -- repo ls
-					--owner $github_org
-					--json nameWithOwner
-					--jq '.[].nameWithOwner' --limit 100000
-				)
+    [
+        (
+            op plugin run gh -- repo ls
+            --json nameWithOwner
+            --jq '.[].nameWithOwner' --limit 100000
+        )
+        ...($github_orgs | each {
+            |github_org|
+                (
+                    op plugin run gh -- repo ls
+                    --owner $github_org
+                    --json nameWithOwner
+                    --jq '.[].nameWithOwner' --limit 100000
+                )
 
-		}) 
-	] | each {
-		|result|
-		if $result.exit_code > 0 {
-			error make $result.stderr
-		} else {
-			$result.stdout
-			| lines
-			| compact --empty
-		}
-	} | flatten
+        }) 
+    ] | each {
+        |result|
+        if $result.exit_code > 0 {
+            error make $result.stderr
+        } else {
+            $result.stdout
+            | lines
+            | compact --empty
+        }
+    } | flatten
 }
 
 def get_remote [gitlab_hosts: list<string>, github_orgs: list<string>]: any -> string {
-	let gitlab_instances = (
-		$gitlab_hosts
-		| each {
-			|host| {
-			display: $"GITLAB_HOST=($host) glab ...",
-			host: $host,
-		}}
-	)
-	const github_com = "gh ..."
-	const url = "Type URL"
-	# 1. Do you want to clone from github, a gitlab instance
-	let gitlab_hosts = (
-		$gitlab_instances
-		| each {|x| $x.display}
-	)
-	let source  = (gum filter --header "How would you like to select" $url ...$gitlab_hosts $github_com)
-	# check if github_com or url
-	if $source == $url {
-		return  (get_url)
-	} else if $source == $github_com {
-		return (get_remote_from_github $github_orgs)
-	} else if $source in $gitlab_hosts  {
-		let gitlab_host = (
-			$gitlab_instances
-			| filter {|x| $x.host == $source}
-			| select host
-			| first
-		)
-		return (get_remote_from_gitlab $gitlab_host)
-	} else {
-		error make {
-			msg: "unknown source -- this is an internal error"
-		}
-	}
+    let gitlab_instances = (
+        $gitlab_hosts
+        | each {
+            |host| {
+            display: $"GITLAB_HOST=($host) glab ...",
+            host: $host,
+        }}
+    )
+    const github_com = "gh ..."
+    const url = "Type URL"
+    # 1. Do you want to clone from github, a gitlab instance
+    let gitlab_hosts = (
+        $gitlab_instances
+        | each {|x| $x.display}
+    )
+    let source  = (gum filter --header "How would you like to select" $url ...$gitlab_hosts $github_com)
+    # check if github_com or url
+    if $source == $url {
+        return  (get_url)
+    } else if $source == $github_com {
+        return (get_remote_from_github $github_orgs)
+    } else if $source in $gitlab_hosts  {
+        let gitlab_host = (
+            $gitlab_instances
+            | filter {|x| $x.host == $source}
+            | select host
+            | first
+        )
+        return (get_remote_from_gitlab $gitlab_host)
+    } else {
+        error make {
+            msg: "unknown source -- this is an internal error"
+        }
+    }
 }
 
 def select_parent_directory [parent_directory_candidates: list<string>] {
-	$parent_directory_candidates
-	| input list --fuzzy "Please select a parent directory in which to run git clone"
+    $parent_directory_candidates
+    | input list --fuzzy "Please select a parent directory in which to run git clone"
 }
 
 
 def main [--gitlab-hosts: string = "[]", --parent-directory: string, --github-orgs: string = "[]"] {
-	if ($parent_directory | is-empty) {
-		error make {
-			msg: $"Must pass non-empty nuon list to `--parent-directory`"
-		}
+    if ($parent_directory | is-empty) {
+        error make {
+            msg: $"Must pass non-empty nuon list to `--parent-directory`"
+        }
 
-	}
-	for dir in $parent_directory {
-		if ($dir | path type) != "dir" {
-			error make {
-				msg: $"Directory does not exist: ($dir)"
-			}
-		}
-	}
-	let remote: string = (get_remote 
-		($gitlab_hosts | from nuon)
-		($github_orgs | from nuon)
-	)
+    }
+    let parent_directory_candidates = ($parent_directory | from nuon)
+    for dir in $parent_directory_candidates {
+        if ($dir | path type) != "dir" {
+            error make {
+                msg: $"Directory does not exist: ($dir)"
+            }
+        }
+    }
+    let remote: string = (get_remote 
+        ($gitlab_hosts | from nuon)
+        ($github_orgs | from nuon)
+    )
 
-	let selected_parent_directory = (select_parent_directory ($parent_directory | from nuon))
-	let clone_name = (input "Repo name (leave empty for default behavior): ")
-	let sesh_clone_options = [
-		"--cmdDir" $selected_parent_directory
-		...(
-			if ( $clone_name | str trim) != "" {
-				["--dir"  $clone_name]
-			} else { [] }
-		)
-	]
-	sesh cl ...$sesh_clone_options $remote
+    let selected_parent_directory = (select_parent_directory $parent_directory_candidates)
+    let clone_name = (input "Repo name (leave empty for default behavior): ")
+    let sesh_clone_options = [
+        "--cmdDir" $selected_parent_directory
+        ...(
+            if ( $clone_name | str trim) != "" {
+                ["--dir"  $clone_name]
+            } else { [] }
+        )
+    ]
+    sesh cl ...$sesh_clone_options $remote
 }
