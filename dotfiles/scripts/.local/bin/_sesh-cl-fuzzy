@@ -155,7 +155,7 @@ def select_parent_directory [parent_directory_candidates: list<string>] {
 }
 
 
-def main [--gitlab: list<string> = [], --parent-directory: list<string>, --github_orgs: list<string> = []] {
+def main [--gitlab-hosts: string = "[]", --parent-directory: string, --github-orgs: string = "[]"] {
 	if ($parent_directory | is-empty) {
 		error make {
 			msg: $"Must pass non-empty nuon list to `--parent-directory`"
@@ -170,11 +170,11 @@ def main [--gitlab: list<string> = [], --parent-directory: list<string>, --githu
 		}
 	}
 	let remote: string = (get_remote 
-		$gitlab
-		$github_orgs
+		($gitlab_hosts | from nuon)
+		($github_orgs | from nuon)
 	)
 
-	let selected_parent_directory = (select_parent_directory $parent_directory)
+	let selected_parent_directory = (select_parent_directory ($parent_directory | from nuon))
 	let clone_name = (input "Repo name (leave empty for default behavior): ")
 	let sesh_clone_options = [
 		"--cmdDir" $selected_parent_directory

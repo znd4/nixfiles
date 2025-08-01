@@ -33,8 +33,8 @@
       )"
 
       bind -n M-c display-popup -E "_sesh-cl-fuzzy \
-        --gitlab '[${lib.strings.concatStringsSep " " seshClConfig.gitlabHosts}]' \
-        --github_orgs '[${lib.strings.concatStringsSep " " seshClConfig.githubOrgs}]' \
+        --gitlab-hosts '[${lib.strings.concatStringsSep " " seshClConfig.gitlabHosts}]' \
+        --github-orgs '[${lib.strings.concatStringsSep " " seshClConfig.githubOrgs}]' \
         --parent-directory '[${lib.strings.concatStringsSep " " seshClConfig.parentDirectories}]'
       "
 
