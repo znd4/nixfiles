@@ -39,6 +39,7 @@ in
     extraPackages =
       with pkgs;
       [
+        basedpyright
         dprint
         gcc
         glow
