@@ -310,7 +310,7 @@ in
       ]
       ++ (
         if certificateAuthority != null then
-          [ "set -gx NODE_EXTRA_CA_CERTS=${certificateAuthority}" ]
+          [ "set -gx NODE_EXTRA_CA_CERTS ${certificateAuthority}" ]
         else
           [ ]
       )
