@@ -1,4 +1,6 @@
 #!/usr/bin/env nu
+use std log
+
 def get_url [] {
     input "Paste git URI and hit enter: "
 }
@@ -185,8 +187,9 @@ def main [--gitlab-hosts: string = "[]", --parent-directory: string, --github-or
             } else { [] }
         )
     ]
-    print -e  $"sesh_clone_options: ($sesh_clone_options)"
-    print -e $"remote: ($remote)"
+    # uncomment for debugging
+    log debug $"sesh_clone_options: ($sesh_clone_options)"
+    log debug $"remote: ($remote)"
     cd $selected_parent_directory
     sesh cl ...$sesh_clone_options $remote
 }
