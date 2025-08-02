@@ -86,7 +86,9 @@ return {
             },
           },
         },
-        jsonls = {},
+        jsonls = {
+          cmd = { 'vscode-json-languageserver', '--stdio' },
+        },
         jsonnet_ls = {},
         lua_ls = {},
         nil_ls = {},

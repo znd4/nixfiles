@@ -43,6 +43,7 @@ in
         dprint
         gcc
         glow
+        helm-ls
         jsonnet-language-server
         lua-language-server
         marksman
@@ -56,6 +57,7 @@ in
         rust-analyzer-unwrapped
         taplo
         tofu-ls
+        typescript-language-server
         tree-sitter
         yaml-language-server
       ]
