@@ -59,10 +59,10 @@ in
       #   "oauth"
       # ];
       url = {
-        "ssh://git@github.com:protectai".insteadOf = [
+        "git@github.com:protectai".insteadOf = [
           "https://github.com/protectai"
         ];
-        "ssh://git@github.com:znd4".insteadOf = [
+        "git@github.com:znd4".insteadOf = [
           "https://github.com/znd4"
         ];
       };
