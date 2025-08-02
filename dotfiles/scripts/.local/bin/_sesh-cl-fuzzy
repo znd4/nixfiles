@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 def get_url [] {
-    input "Paste git URI and hit enter"
+    input "Paste git URI and hit enter: "
 }
 
 def get_remote_from_github [github_orgs: list<string>]: any -> string {
