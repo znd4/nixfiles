@@ -185,5 +185,7 @@ def main [--gitlab-hosts: string = "[]", --parent-directory: string, --github-or
             } else { [] }
         )
     ]
+    print -e  $"sesh_clone_options: ($sesh_clone_options)"
+    print -e $"remote: ($remote)"
     sesh cl ...$sesh_clone_options $remote
 }
