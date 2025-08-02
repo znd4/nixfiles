@@ -178,7 +178,7 @@ def main [--gitlab-hosts: string = "[]", --parent-directory: string, --github-or
     let selected_parent_directory = (select_parent_directory $parent_directory_candidates)
     let clone_name = (input "Repo name (leave empty for default behavior): ")
     let sesh_clone_options = [
-        "--cmdDir" $selected_parent_directory
+        # "--cmdDir" $selected_parent_directory
         ...(
             if ( $clone_name | str trim) != "" {
                 ["--dir"  $clone_name]
@@ -187,5 +187,6 @@ def main [--gitlab-hosts: string = "[]", --parent-directory: string, --github-or
     ]
     print -e  $"sesh_clone_options: ($sesh_clone_options)"
     print -e $"remote: ($remote)"
+    cd $selected_parent_directory
     sesh cl ...$sesh_clone_options $remote
 }
