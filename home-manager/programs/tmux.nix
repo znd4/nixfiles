@@ -32,7 +32,7 @@
         		--bind 'ctrl-f:change-prompt(🔎  )+reload(fd -H -d 2 -t d -E .Trash . ~)'
       )"
 
-      bind -n M-k display-popup -E "_sesh-cl-fuzzy \
+      bind -n M-m display-popup -E "_sesh-cl-fuzzy \
         --gitlab-hosts '[${lib.strings.concatStringsSep " " seshClConfig.gitlabHosts}]' \
         --github-orgs '[${lib.strings.concatStringsSep " " seshClConfig.githubOrgs}]' \
         --parent-directory '[${lib.strings.concatStringsSep " " seshClConfig.parentDirectories}]'
