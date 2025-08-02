@@ -11,6 +11,7 @@
   pkgs,
   stateVersion,
   keys,
+  certificateAuthority,
   ...
 }@args:
 let
@@ -303,6 +304,17 @@ in
       tg = "terragrunt";
     };
     shellAliases = shellAliases // fishAliases;
+    shellInit = lib.strings.concatStringsSep "\n" (
+      [
+        # put hard-coded init configuration in here
+      ]
+      ++ (
+        if certificateAuthority != null then
+          [ "set -gx NODE_EXTRA_CA_CERTS=${certificateAuthority}" ]
+        else
+          [ ]
+      )
+    );
     functions = {
       fish_vi_cursor = {
         onVariable = "fish_bind_mode";

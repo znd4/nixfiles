@@ -258,10 +258,11 @@
                 else
                   null;
               seshClConfig = {
-                gitlabHosts = [];
-                githubOrgs = [];
-                parentDirectories = ["~"];
-              } // seshClConfig;
+                gitlabHosts = [ ];
+                githubOrgs = [ ];
+                parentDirectories = [ "~" ];
+              }
+              // seshClConfig;
             }
             // extraSpecialArgs;
             modules = [ self.homeModules.default ] ++ extraModules;
