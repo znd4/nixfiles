@@ -48,7 +48,6 @@ let
       vi = "nvim";
       terraform = "tofu";
       openai = "op plugin run -- openai";
-      gh = lib.mkDefault "op plugin run -- gh";
     };
   fishAliases = {
     awsume = "source (which awsume.fish)";
