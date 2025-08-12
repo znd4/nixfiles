@@ -266,6 +266,18 @@ in
   programs.man.generateCaches = true;
   programs.fish = {
     enable = true;
+    functions = {
+      filedump = ''
+        for file in $argv
+            # Check if the argument is a regular file before trying to read it.
+            if test -f "$file"
+                echo "---- $file ----"
+                cat "$file"
+            end
+        end
+      '';
+
+    };
     plugins = [
       {
         name = "fish-completion-sync";
