@@ -267,7 +267,7 @@ in
   programs.fish = {
     enable = true;
     functions = {
-      filedump = ''
+      flump = ''
         for file in $argv
             # Check if the argument is a regular file before trying to read it.
             if test -f "$file"
