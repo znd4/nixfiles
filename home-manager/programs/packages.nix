@@ -75,6 +75,7 @@
       glab
       glow
       gnumake
+      go-task
       (google-cloud-sdk.withExtraComponents (
         with google-cloud-sdk.components;
         [
