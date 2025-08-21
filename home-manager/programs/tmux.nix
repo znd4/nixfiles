@@ -38,6 +38,12 @@
         --parent-directory '[${lib.strings.concatStringsSep " " seshClConfig.parentDirectories}]'
       "
 
+      bind -n M-M display-popup "_sesh-cl-fuzzy \
+        --gitlab-hosts '[${lib.strings.concatStringsSep " " seshClConfig.gitlabHosts}]' \
+        --github-orgs '[${lib.strings.concatStringsSep " " seshClConfig.githubOrgs}]' \
+        --parent-directory '[${lib.strings.concatStringsSep " " seshClConfig.parentDirectories}]'
+      "
+
 
       # use alt+vim movement between panes
       bind -n M-h select-pane -L
