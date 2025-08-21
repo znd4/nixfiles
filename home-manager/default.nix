@@ -52,6 +52,12 @@ let
   fishAliases = {
     awsume = "source (which awsume.fish)";
   };
+  envMap =
+    { }
+    // (lib.attrsets.optionalAttrs (certificateAuthority != null) {
+      NODE_EXTRA_CA_CERTS = certificateAuthority;
+      REQUESTS_CA_BUNDLE = certificateAuthority;
+    });
 in
 {
   imports = [
@@ -248,8 +254,12 @@ in
     initExtra = ''
       setopt interactivecomments
     '';
+    sessionVariables = envMap;
   };
-  programs.bash.enable = true;
+  programs.bash = {
+    enable = true;
+    sessionVariables = envMap;
+  };
   # Enable home-manager and git
   programs.fzf = {
     enable = true;
@@ -262,6 +272,7 @@ in
     envFile.source = "${dotConfig}/nushell/env.nu";
     configFile.source = "${dotConfig}/nushell/config.nu";
     shellAliases = shellAliases;
+    environmentVariables = envMap;
   };
   programs.man.generateCaches = true;
   programs.fish = {
@@ -319,12 +330,7 @@ in
       [
         # put hard-coded init configuration in here
       ]
-      ++ (
-        if certificateAuthority != null then
-          [ "set -gx NODE_EXTRA_CA_CERTS ${certificateAuthority}" ]
-        else
-          [ ]
-      )
+      ++ (lib.attrsets.mapAttrsToList (name: value: "set -gx ${name} ${value}") envMap)
     );
     functions = {
       fish_vi_cursor = {
