@@ -57,6 +57,7 @@
       clipboard-jh
       cobra-cli
       commitizen
+      conftest
       crossplane-cli
       cue
       dagger
@@ -97,6 +98,7 @@
       nodePackages_latest.cdk8s-cli
       opam
       opentofu
+      parallel
       pay-respects
       personal_scripts
       pnpm
