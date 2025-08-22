@@ -53,11 +53,22 @@ let
     awsume = "source (which awsume.fish)";
   };
   envMap =
-    { }
-    // (lib.attrsets.optionalAttrs (certificateAuthority != null) {
-      NODE_EXTRA_CA_CERTS = certificateAuthority;
-      REQUESTS_CA_BUNDLE = certificateAuthority;
-    });
+    {
+      # Add hardcoded environment variables here
+    }
+    // (lib.attrsets.optionalAttrs (certificateAuthority != null) (
+      let
+        caBundlePath = pkgs.concatTextFile {
+          name = "ca-bundle-combined";
+          files = [ "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt" certificateAuthority ];
+        };
+      in
+      {
+        NODE_EXTRA_CA_CERTS = caBundlePath;
+        REQUESTS_CA_BUNDLE = caBundlePath;
+        SSL_CERT_FILE = caBundlePath;
+      }
+    ));
 in
 {
   imports = [
