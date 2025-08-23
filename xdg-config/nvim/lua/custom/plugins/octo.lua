@@ -1,4 +1,5 @@
 return {
+  enabled = false,
   'pwntester/octo.nvim',
   dependencies = {
     'nvim-lua/plenary.nvim',
@@ -8,9 +9,9 @@ return {
     'folke/which-key.nvim',
   },
   init = function()
-    require('which-key').add({
-      { "<leader>so", "<cmd>Octo actions<cr>", desc = "Octo actions" },
-    })
+    require('which-key').add {
+      { '<leader>so', '<cmd>Octo actions<cr>', desc = 'Octo actions' },
+    }
   end,
   config = true,
 }
