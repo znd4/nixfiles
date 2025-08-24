@@ -139,9 +139,13 @@ return {
     end, { desc = 'Git: Browse current line' })
 
     vim.keymap.set('v', '<leader>gb', function()
-      -- In visual mode, capture the marks *immediately* and pass them.
-      local _, start_line = unpack(vim.fn.getpos "'<")
-      local _, end_line = unpack(vim.fn.getpos "'>")
+      -- In visual mode, get the current selection bounds
+      local start_line = vim.fn.line('v')
+      local end_line = vim.fn.line('.')
+      -- Ensure start_line <= end_line for backwards selections
+      if start_line > end_line then
+        start_line, end_line = end_line, start_line
+      end
       GLBrowse { start = start_line, finish = end_line }
     end, { desc = 'Git: Browse visual selection' })
   end,
