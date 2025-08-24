@@ -45,16 +45,27 @@ return {
         return
       end
 
+      -- Helper function to parse remote URL to HTTPS format
+      local function parse_remote_url(url)
+        -- Handles SSH format: git@host:group/repo[.git]
+        local domain, repo_path = url:match 'git@(.*):(.*)'
+        if domain then
+          -- Remove .git suffix if present
+          repo_path = repo_path:gsub('%.git$', '')
+          return 'https://' .. domain .. '/' .. repo_path
+        end
+
+        -- Handles HTTPS format
+        if url:match 'https?://' then
+          return url:gsub('%.git$', '')
+        end
+
+        return nil
+      end
+
       -- 3. Parse the remote URL to build a base HTTPS URL.
-      local base_url
-      -- Handles SSH format: git@host:group/repo.git
-      local domain, repo_path = remote_url:match 'git@(.*):(.*)%.git$'
-      if domain then
-        base_url = 'https://' .. domain .. '/' .. repo_path
-      -- Handles HTTPS format
-      elseif remote_url:match 'https?://' then
-        base_url = remote_url:gsub('%.git$', '')
-      else
+      local base_url = parse_remote_url(remote_url)
+      if not base_url then
         vim.notify('Error: Unsupported remote URL format: ' .. remote_url, vim.log.levels.ERROR)
         return
       end
@@ -112,16 +123,16 @@ return {
     end
 
     -- Setup keymaps
-    vim.keymap.set('n', '<leader>gl', function()
+    vim.keymap.set('n', '<leader>gb', function()
       -- In normal mode, call with no arguments.
       GLBrowse()
-    end, { desc = 'GitLab: Browse current line' })
+    end, { desc = 'Git: Browse current line' })
 
-    vim.keymap.set('v', '<leader>gl', function()
+    vim.keymap.set('v', '<leader>gb', function()
       -- In visual mode, capture the marks *immediately* and pass them.
       local _, start_line = unpack(vim.fn.getpos "'<")
       local _, end_line = unpack(vim.fn.getpos "'>")
       GLBrowse { start = start_line, finish = end_line }
-    end, { desc = 'GitLab: Browse visual selection' })
+    end, { desc = 'Git: Browse visual selection' })
   end,
 }
