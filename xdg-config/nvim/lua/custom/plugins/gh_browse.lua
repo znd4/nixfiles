@@ -73,13 +73,19 @@ return {
       -- Determine the system's open command
       local open_cmd = vim.fn.has 'macunix' and 'open' or 'xdg-open'
       local current_branch = get_current_branch()
+      
+      -- Determine URL format based on domain
+      local domain = base_url:match('https://([^/]+)')
+      local is_github = domain == 'github.com' or domain:match('github%..*%.com$')
+      local tree_path = is_github and '/tree/' or '/-/tree/'
+      local blob_path = is_github and '/blob/' or '/-/blob/'
 
       -- 4. Handle oil.nvim buffers
       if vim.bo.filetype == 'oil' then
         local oil_dir = require('oil').get_current_dir()
         if oil_dir then
           local relative_dir = Path:new(oil_dir):make_relative(git_root)
-          local final_url = base_url .. '/-/tree/' .. current_branch .. '/' .. relative_dir
+          local final_url = base_url .. tree_path .. current_branch .. '/' .. relative_dir
           vim.notify('Opening URL: ' .. final_url)
           Job:new({ command = open_cmd, args = { final_url } }):start()
         end
@@ -117,7 +123,7 @@ return {
       end
 
       -- Construct the final URL with the file path and line anchor.
-      local final_url = base_url .. '/-/blob/' .. current_branch .. '/' .. relative_path .. line_anchor
+      local final_url = base_url .. blob_path .. current_branch .. '/' .. relative_path .. line_anchor
       vim.notify('Opening URL: ' .. final_url)
       Job:new({ command = open_cmd, args = { final_url } }):start()
     end
