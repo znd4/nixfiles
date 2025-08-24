@@ -112,7 +112,11 @@ return {
       if range then
         -- If a range table is passed, we are in visual mode.
         if range.start and range.finish and range.start ~= range.finish then
-          line_anchor = ('#L%d-%d'):format(range.start, range.finish)
+          if is_github then
+            line_anchor = ('#L%d-L%d'):format(range.start, range.finish)
+          else
+            line_anchor = ('#L%d-%d'):format(range.start, range.finish)
+          end
         elseif range.start then
           line_anchor = ('#L%d'):format(range.start)
         end
