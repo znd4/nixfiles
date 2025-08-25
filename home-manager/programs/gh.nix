@@ -1,6 +1,7 @@
 {
   pkgs,
   config,
+  options,
   lib,
   ...
 }:
@@ -18,21 +19,24 @@ in
     };
   };
   config = mkIf cfg.enable {
-    home.packages = with pkgs; [
-      (pkgs.writeShellApplication {
-        name = "gh";
-        runtimeInputs = [
-          pkgs._1password-cli
-          pkgs.gh
-        ];
-        text = ''
-          #!${pkgs.runtimeShell}
-          # 'exec' replaces the shell process with the 'op' process, which is
-          # more efficient and handles signals correctly.
-          # "$@" forwards all arguments, preserving spaces and special characters.
-          exec op plugin run -- gh "$@"
-        '';
+    nixpkgs.overlays = [
+      (final: prev: {
+        gh = final.writeShellApplication {
+          name = "gh";
+          runtimeInputs = [
+            final._1password-cli
+            prev.gh
+          ];
+          text = ''
+            #!${final.runtimeShell}
+            # 'exec' replaces the shell process with the 'op' process, which is
+            # more efficient and handles signals correctly.
+            # "$@" forwards all arguments, preserving spaces and special characters.
+            exec op plugin run -- gh "$@"
+          '';
+        };
       })
     ];
+    home.packages = with pkgs; [ gh ];
   };
 }
