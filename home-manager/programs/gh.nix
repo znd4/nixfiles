@@ -23,7 +23,7 @@ in
         name = "gh";
         runtimeInputs = [
           pkgs._1password-cli
-          prev.gh
+          pkgs.gh
         ];
         text = ''
           #!${pkgs.runtimeShell}
