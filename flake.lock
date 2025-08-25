@@ -621,6 +621,22 @@
         "type": "github"
       }
     },
+    "pre-commit": {
+      "locked": {
+        "lastModified": 1756082380,
+        "narHash": "sha256-bxJzj6KuVq4C2Pd7LsL1Ptn/C5fNjY4nkuTNlDwrghU=",
+        "owner": "znd4",
+        "repo": "nixpkgs",
+        "rev": "6d81a2fe0d89833eba1f6a3eaed8b1fdbee0ba4f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "znd4",
+        "ref": "feat/pre-commit/add-pip-system-certs",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "dagger": "dagger",
@@ -642,6 +658,7 @@
         "nixpkgs-trunk": "nixpkgs-trunk",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "nixvim": "nixvim",
+        "pre-commit": "pre-commit",
         "sesh": "sesh",
         "sessionx": "sessionx",
         "xdg-config": "xdg-config"
