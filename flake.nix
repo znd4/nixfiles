@@ -22,6 +22,7 @@
       inputs.nixpkgs.follows = "nixpkgs"; # Ensure it uses the same nixpkgs
     };
 
+    pre-commit.url = "github:znd4/nixpkgs/feat/pre-commit/add-pip-system-certs";
     # nixpkgs.url = nixos_unstable_url;
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05-small";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
