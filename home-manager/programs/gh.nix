@@ -7,7 +7,7 @@
 }:
 let
   inherit (lib) mkIf;
-  cfg = config.programs.okta-aws-cli-assume-role;
+  cfg = config.programs.op-gh;
 in
 {
   options.programs.op-gh = {
