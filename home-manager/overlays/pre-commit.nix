@@ -1,6 +1,6 @@
-{ inputs, system, ... }:
+{ ... }:
 #./pre-commit-cert-overlay.nix
 final: prev: {
-  # Override the pre-commit package to include pip-system-certs
-  pre-commit = inputs.pre-commit.legacyPackages.${system}.pre-commit;
+  # Override pre-commit to use our uv-based wrapper with system certs
+  pre-commit = prev.callPackage ../pkgs/pre-commit-system-certs.nix { };
 }
