@@ -85,6 +85,18 @@ def get_remote_from_github_working [github_orgs: list<string>] {
     [ ($user_repos | lines | compact --empty) ...$org_repos ] | flatten
 }
 
+def get_remote_from_gitlab [gitlab_host: record]: any -> string {
+    let host = $gitlab_host.host
+    let user_repos_result = (
+        glab repo list --output=json
+        | from json
+    )
+
+    $user_repos_result
+    | input list --fuzzy "Select GitLab repo" --display path_with_namespace
+    | get ssh_url_to_repo
+}
+
 def get_remote_from_github_bkp [github_orgs: list<string>] {
     [
         (
@@ -139,8 +151,7 @@ def get_remote [gitlab_hosts: list<string>, github_orgs: list<string>]: any -> s
     } else if $source in $gitlab_hosts  {
         let gitlab_host = (
             $gitlab_instances
-            | filter {|x| $x.host == $source}
-            | select host
+            | filter {|x| $x.display == $source}
             | first
         )
         return (get_remote_from_gitlab $gitlab_host)
