@@ -43,7 +43,6 @@
       buildpack
       cargo
       chart-testing
-      claude-code
       clipboard-jh
       cobra-cli
       commitizen
