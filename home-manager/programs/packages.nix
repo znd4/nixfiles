@@ -7,16 +7,6 @@
 {
   nixpkgs.overlays = [
     (final: prev: {
-      claude-code =
-        (import inputs.nixpkgs-unstable {
-          inherit system;
-          config = {
-            allowUnfree = true;
-            allowUnfreePredicate = _: true;
-          };
-        }).claude-code;
-    })
-    (final: prev: {
       poetry = inputs.nixpkgs-unstable.legacyPackages.${system}.poetry;
       dagger = inputs.dagger.packages.${system}.dagger;
       uv = inputs.nixpkgs-unstable.legacyPackages.${system}.uv;
