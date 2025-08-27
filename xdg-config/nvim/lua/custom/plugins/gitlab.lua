@@ -3,7 +3,7 @@ return {
   -- Activate when a file is created/opened
   event = { 'BufReadPre', 'BufNewFile' },
   -- Activate when a supported filetype is open
-  ft = { 'go', 'javascript', 'python', 'ruby' },
+  ft = { 'go', 'javascript', 'python', 'ruby', 'yaml' },
   cond = function()
     -- Only activate if token is present in environment variable.
     -- Remove this line to use the interactive workflow.
