@@ -88,7 +88,7 @@ def get_remote_from_github_working [github_orgs: list<string>] {
 def get_remote_from_gitlab [gitlab_host: record]: any -> string {
     let host = $gitlab_host.host
     let user_repos_result = (
-        glab repo list --output=json
+        glab repo list --output=json -P 1000
         | from json
     )
 
