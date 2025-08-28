@@ -57,14 +57,13 @@ let
     };
   };
 
-
   # Build the configuration
   glabConfig = {
     git_protocol = cfg.gitProtocol;
     editor = if cfg.editor != null then cfg.editor else "";
     browser = if cfg.browser != null then cfg.browser else "";
     glamour_style = cfg.glamourStyle;
-    check_update = cfg.checkUpdate;
+    check_update = false; # we're managing this with nix, glab, can't autoupdate
     display_hyperlinks = cfg.displayHyperlinks;
     host = cfg.host;
     no_prompt = cfg.noPrompt;
@@ -135,12 +134,6 @@ in
       description = "Set your desired Markdown renderer style";
     };
 
-    checkUpdate = mkOption {
-      type = types.bool;
-      default = true;
-      description = "Allow glab to automatically check for updates and notify you when there are new updates";
-    };
-
     displayHyperlinks = mkOption {
       type = types.bool;
       default = false;
@@ -188,7 +181,7 @@ in
 
     xdg.configFile."glab-cli/config.yml" = {
       source = (pkgs.formats.yaml { }).generate "glab-config.yml" glabConfig;
+      mode = "0600";
     };
   };
 }
-
