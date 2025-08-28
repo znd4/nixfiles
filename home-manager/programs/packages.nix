@@ -62,7 +62,6 @@
       git-credential-oauth
       git-open
       git-town
-      glab
       glow
       gnumake
       go-task
