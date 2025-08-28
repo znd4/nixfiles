@@ -8,7 +8,7 @@ def get_url [] {
 def get_remote_from_github [github_orgs: list<string>]: any -> string {
     # 1. Get the user's repos first.
     let user_repos_result = (
-        op plugin run gh -- repo ls
+        gh repo ls
         --json nameWithOwner
         --jq '.[].nameWithOwner' --limit 100000
         | complete
@@ -24,7 +24,7 @@ def get_remote_from_github [github_orgs: list<string>]: any -> string {
         | par-each { |github_org|
             # Note the corrected command syntax.
             # No '^' is needed, as par-each will capture the error.
-            op plugin run gh -- repo ls $github_org --json nameWithOwner --jq '.[].nameWithOwner' --limit 100000
+            gh repo ls $github_org --json nameWithOwner --jq '.[].nameWithOwner' --limit 100000
             | complete
         }
     )
@@ -64,7 +64,7 @@ def get_remote_from_github_working [github_orgs: list<string>] {
     # The 'try/catch' ensures we handle a failure here gracefully, if needed.
     let user_repos = try {
         (
-            op plugin run gh -- repo ls --json nameWithOwner --jq '.[].nameWithOwner' --limit 100000
+            gh repo ls --json nameWithOwner --jq '.[].nameWithOwner' --limit 100000
         )
     } catch {
         error make { msg: "Failed to get user repositories", cause: $in }
@@ -77,7 +77,7 @@ def get_remote_from_github_working [github_orgs: list<string>] {
     for org in $github_orgs {
         # Run the command WITHOUT ^ to ensure it fails immediately.
         # Note the corrected syntax for 'gh repo ls'
-        let result = (op plugin run gh -- repo ls --owner $org --json nameWithOwner --jq '.[].nameWithOwner' --limit 100000)
+        let result = (gh repo ls --owner $org --json nameWithOwner --jq '.[].nameWithOwner' --limit 100000)
         $org_repos ++= ($result | lines | compact --empty)
     }
 
@@ -100,14 +100,14 @@ def get_remote_from_gitlab [gitlab_host: record]: any -> string {
 def get_remote_from_github_bkp [github_orgs: list<string>] {
     [
         (
-            op plugin run gh -- repo ls
+            gh repo ls
             --json nameWithOwner
             --jq '.[].nameWithOwner' --limit 100000
         )
         ...($github_orgs | each {
             |github_org|
                 (
-                    op plugin run gh -- repo ls
+                    gh repo ls
                     --owner $github_org
                     --json nameWithOwner
                     --jq '.[].nameWithOwner' --limit 100000
