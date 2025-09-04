@@ -57,6 +57,10 @@
       url = "github:omerxx/tmux-sessionx";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    terragrunt-atlantis-config = {
+      url = "github:transcend-io/terragrunt-atlantis-config/v1.20.0";
+      flake = false;
+    };
     darwin = {
       url = "github:LnL7/nix-darwin/nix-darwin-25.05";
       inputs.nixpkgs.follows = "nixpkgs";

@@ -661,6 +661,7 @@
         "pre-commit": "pre-commit",
         "sesh": "sesh",
         "sessionx": "sessionx",
+        "terragrunt-atlantis-config": "terragrunt-atlantis-config",
         "xdg-config": "xdg-config"
       }
     },
@@ -743,6 +744,23 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "terragrunt-atlantis-config": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1739067643,
+        "narHash": "sha256-PitChQlf0It9eGqLrTH5tVUg6m4RW9U1QGxHG1X1D+8=",
+        "owner": "transcend-io",
+        "repo": "terragrunt-atlantis-config",
+        "rev": "416fcb8fae75d149e02c64ac95e9432af2d23739",
+        "type": "github"
+      },
+      "original": {
+        "owner": "transcend-io",
+        "ref": "v1.20.0",
+        "repo": "terragrunt-atlantis-config",
         "type": "github"
       }
     },
