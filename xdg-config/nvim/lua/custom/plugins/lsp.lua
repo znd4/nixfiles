@@ -73,7 +73,6 @@ return {
           settings = {
             gopls = {
               gofumpt = true,
-              buildFlags = { '-tags=mage' },
             },
           },
         },
