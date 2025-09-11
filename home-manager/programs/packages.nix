@@ -97,6 +97,7 @@
       poetry
       pre-commit
       python-launcher
+      regal
       ruff
       rustc
       sd
