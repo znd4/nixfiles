@@ -88,6 +88,7 @@
       nodePackages_latest.cdk8s-cli
       opam
       opentofu
+      open-policy-agent
       parallel
       pay-respects
       personal_scripts
