@@ -43,6 +43,7 @@ let
       ipython = ipython;
       ipy = ipython;
       bh = "bat -l help";
+      gl = "glab";
       g = "git";
       by = "bat -l yaml";
       vi = "nvim";
