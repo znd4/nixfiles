@@ -327,6 +327,8 @@ in
       gl = "glab";
       gt = "git-town";
       gc = "git commit";
+      gpl = "git pull";
+      gps = "git push";
       fly = "flyctl";
       hm = "home-manager switch --flake .";
       j = "just";
