@@ -327,6 +327,7 @@ in
       gl = "glab";
       gt = "git-town";
       gc = "git commit";
+      gd = "git diff";
       gpl = "git pull";
       gps = "git push";
       fly = "flyctl";
