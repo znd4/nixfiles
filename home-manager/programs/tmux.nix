@@ -51,6 +51,9 @@
       bind -n M-k select-pane -U
       bind -n M-l select-pane -R
 
+      # open pull request in browser
+      bind -n M-p run-shell "_pull-request-open"
+
       set -s set-clipboard off
       if-shell "[ -z '$WAYLAND_DISPLAY' ]" \
           "set -s copy-command 'cb copy'" \

@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+
+# Script to open the current pull request in browser
+# Automatically detects GitHub vs GitLab and uses appropriate CLI
+
+set -euo pipefail
+
+# Function to detect forge type
+detect_forge() {
+    # First, check git remotes for github.com or gitlab.com
+    if git remote -v 2>/dev/null | grep -q "github\.com"; then
+        echo "github"
+        return
+    elif git remote -v 2>/dev/null | grep -q "gitlab\.com"; then
+        echo "gitlab"
+        return
+    fi
+    
+    # Check git-town configuration
+    local forge_type
+    forge_type=$(git config --get git-town.forge-type 2>/dev/null || echo "")
+    if [[ -n "$forge_type" ]]; then
+        case "$forge_type" in
+            github) echo "github"; return ;;
+            gitlab) echo "gitlab"; return ;;
+        esac
+    fi
+    
+    # Check .git-branches.toml for forge-type
+    if [[ -f ".git-branches.toml" ]]; then
+        forge_type=$(grep -E '^\s*forge-type\s*=' .git-branches.toml 2>/dev/null | sed -E 's/.*=\s*"?([^"]*)"?.*/\1/' || echo "")
+        if [[ -n "$forge_type" ]]; then
+            case "$forge_type" in
+                github) echo "github"; return ;;
+                gitlab) echo "gitlab"; return ;;
+            esac
+        fi
+    fi
+    
+    echo "unknown"
+}
+
+# Main execution
+main() {
+    # Check if we're in a git repository
+    if ! git rev-parse --git-dir >/dev/null 2>&1; then
+        echo "Error: Not in a git repository" >&2
+        exit 1
+    fi
+    
+    # Detect forge type
+    local forge
+    forge=$(detect_forge)
+    
+    case "$forge" in
+        github)
+            if command -v gh >/dev/null 2>&1; then
+                gh pr view -w
+            else
+                echo "Error: gh CLI not found. Please install GitHub CLI." >&2
+                exit 1
+            fi
+            ;;
+        gitlab)
+            if command -v glab >/dev/null 2>&1; then
+                glab mr view -w
+            else
+                echo "Error: glab CLI not found. Please install GitLab CLI." >&2
+                exit 1
+            fi
+            ;;
+        unknown)
+            echo "Error: Could not determine forge type (GitHub vs GitLab)" >&2
+            echo "Tried checking:" >&2
+            echo "  - Git remotes for github.com/gitlab.com" >&2
+            echo "  - git config git-town.forge-type" >&2
+            echo "  - .git-branches.toml forge-type setting" >&2
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"
