@@ -13,6 +13,7 @@
       opentofu = inputs.nixpkgs-unstable.legacyPackages.${system}.opentofu;
       tflint = inputs.nixpkgs-unstable.legacyPackages.${system}.tflint;
       kubernetes-helm = inputs.nixpkgs-unstable.legacyPackages.${system}.kubernetes-helm;
+      terragrunt = inputs.nixpkgs-unstable.legacyPackages.${system}.terragrunt;
     })
   ];
 
