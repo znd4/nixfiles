@@ -323,6 +323,7 @@ in
       }
     ];
     shellAbbrs = {
+      dc = "docker compose";
       g = "git";
       gl = "glab";
       gt = "git-town";
