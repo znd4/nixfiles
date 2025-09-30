@@ -67,7 +67,7 @@ in
         ];
       };
     };
-    # extraConfig.http.sslCAInfo = lib.mkIf (certificateAuthority != null) certificateAuthority;
+    extraConfig.http.sslCAInfo = lib.mkIf (certificateAuthority != null) certificateAuthority;
     aliases = {
       a = "add";
       pl = "pull";
