@@ -323,6 +323,7 @@ in
       }
     ];
     shellAbbrs = {
+      bh = "bat -l help";
       dc = "docker compose";
       g = "git";
       gl = "glab";
@@ -372,7 +373,6 @@ in
       ${pkgs.uv}/bin/uv generate-shell-completion fish | source
       set -g SHELL ${pkgs.fish}/bin/fish
       abbr -a by --position anywhere --set-cursor "% | bat -l yaml"
-      abbr -a bh --position anywhere --set-cursor "% | bat -l help"
       ${pkgs.fnm}/bin/fnm env --use-on-cd --shell fish | source
       set -gx fish_complete_path $fish_complete_path ${config.home.profileDirectory}/share/fish/vendor_completions.d
       set --unpath JSONNET_PATH
