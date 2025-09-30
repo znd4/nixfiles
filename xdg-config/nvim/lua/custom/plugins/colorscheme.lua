@@ -48,6 +48,9 @@ local catppuccin = {
     styles = {
       comments = { 'italic' },
     },
+    background = {
+      dark = 'frappe',
+    },
     integrations = {
       cmp = true,
       gitsigns = true,
@@ -59,4 +62,4 @@ local catppuccin = {
     },
   },
 }
-return starry
+return catppuccin
