@@ -262,9 +262,15 @@
               keys = defaultKeys // (keys."${hostname}" or { });
               certificateAuthority =
                 if certificateAuthorities != [ ] then
-                  (builtins.toFile "certificate-authority.pem" (
-                    lib.strings.concatStringsSep "\n" certificateAuthorities
-                  ))
+                  (nixpkgs.legacyPackages.${system}.concatTextFile {
+                    name = "ca-bundle-combined";
+                    files = [
+                      "${nixpkgs.legacyPackages.${system}.cacert}/etc/ssl/certs/ca-bundle.crt"
+                      (builtins.toFile "custom-ca.pem" (
+                        lib.strings.concatStringsSep "\n" certificateAuthorities
+                      ))
+                    ];
+                  })
                 else
                   null;
               seshClConfig = {
