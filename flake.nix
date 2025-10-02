@@ -262,15 +262,18 @@
               keys = defaultKeys // (keys."${hostname}" or { });
               certificateAuthority =
                 if certificateAuthorities != [ ] then
-                  (nixpkgs.legacyPackages.${system}.concatTextFile {
-                    name = "ca-bundle-combined";
-                    files = [
-                      "${nixpkgs.legacyPackages.${system}.cacert}/etc/ssl/certs/ca-bundle.crt"
-                      (builtins.toFile "custom-ca.pem" (
-                        lib.strings.concatStringsSep "\n" certificateAuthorities
-                      ))
-                    ];
-                  })
+                  let
+                    combinedCA = nixpkgs.legacyPackages.${system}.concatTextFile {
+                      name = "ca-bundle-combined";
+                      files = [
+                        "${nixpkgs.legacyPackages.${system}.cacert}/etc/ssl/certs/ca-bundle.crt"
+                        (builtins.toFile "custom-ca.pem" (
+                          lib.strings.concatStringsSep "\n" certificateAuthorities
+                        ))
+                      ];
+                    };
+                  in
+                  "${combinedCA}"
                 else
                   null;
               seshClConfig = {
