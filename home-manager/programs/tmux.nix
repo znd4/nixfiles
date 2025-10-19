@@ -105,7 +105,10 @@
       battery
       {
         plugin = catppuccin;
-        extraConfig = "set -g @catppuccin_flavor 'macchiato'";
+        extraConfig = ''
+          set -g @catppuccin_flavor 'macchiato'
+          set -g @catppuccin_window_status_style 'rounded'
+        '';
       }
       pain-control
       sensible
