@@ -103,6 +103,10 @@
 
     plugins = with pkgs.tmuxPlugins; [
       battery
+      {
+        plugin = catppuccin;
+        extraConfig = "set -g @catppuccin_flavor 'macchiato'";
+      }
       catppuccin
       pain-control
       sensible
