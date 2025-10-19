@@ -107,7 +107,6 @@
         plugin = catppuccin;
         extraConfig = "set -g @catppuccin_flavor 'macchiato'";
       }
-      catppuccin
       pain-control
       sensible
       tmux-fzf
