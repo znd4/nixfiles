@@ -16,6 +16,9 @@ in
   home.packages = lib.mkIf pkgs.stdenv.isLinux [
     inputs.ghostty.packages.${pkgs.stdenv.system}.ghostty
   ];
+  xdg.configFile."ghostty/config/themes/catppuccin-macchiato.conf" = {
+    source = "${inputs.catppuccin-ghostty}/themes/catppuccin-macchiato.conf";
+  };
   programs.ghostty = {
     enable = true;
     enableBashIntegration = true;
@@ -24,7 +27,7 @@ in
     package = ghosttyPkg;
     settings = {
       window-theme = "dark";
-      theme = "tokyonight-storm";
+      theme = "catppuccin-macchiato.conf";
       shell-integration-features = "no-cursor";
       desktop-notifications = true;
       font-family = "MonaspiceAr Nerd Font Mono";

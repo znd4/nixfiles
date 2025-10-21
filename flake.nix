@@ -1,5 +1,9 @@
 {
   inputs = {
+    catppuccin-ghostty = {
+      url = "github:catppuccin/ghostty";
+      flake = false;
+    };
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixvim.url = "github:nix-community/nixvim";
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
@@ -267,9 +271,7 @@
                       name = "ca-bundle-combined";
                       files = [
                         "${nixpkgs.legacyPackages.${system}.cacert}/etc/ssl/certs/ca-bundle.crt"
-                        (builtins.toFile "custom-ca.pem" (
-                          lib.strings.concatStringsSep "\n" certificateAuthorities
-                        ))
+                        (builtins.toFile "custom-ca.pem" (lib.strings.concatStringsSep "\n" certificateAuthorities))
                       ];
                     };
                   in
