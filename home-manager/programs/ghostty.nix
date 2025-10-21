@@ -16,7 +16,7 @@ in
   home.packages = lib.mkIf pkgs.stdenv.isLinux [
     inputs.ghostty.packages.${pkgs.stdenv.system}.ghostty
   ];
-  xdg.configFile."ghostty/config/themes/catppuccin-macchiato.conf" = {
+  xdg.configFile."ghostty/themes/catppuccin-macchiato.conf" = {
     source = "${inputs.catppuccin-ghostty}/themes/catppuccin-macchiato.conf";
   };
   programs.ghostty = {
