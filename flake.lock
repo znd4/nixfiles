@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "catppuccin-ghostty": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1760987875,
+        "narHash": "sha256-+1B9rgK1n8eHQdQTwkNj9JmKiPfTAR5jllkPBxOr3M8=",
+        "owner": "catppuccin",
+        "repo": "ghostty",
+        "rev": "cb8a578322f7f20418c79255b9b347f716522be5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "catppuccin",
+        "repo": "ghostty",
+        "type": "github"
+      }
+    },
     "dagger": {
       "inputs": {
         "nixpkgs": [
@@ -639,6 +655,7 @@
     },
     "root": {
       "inputs": {
+        "catppuccin-ghostty": "catppuccin-ghostty",
         "dagger": "dagger",
         "darwin": "darwin",
         "flake-parts": "flake-parts",
