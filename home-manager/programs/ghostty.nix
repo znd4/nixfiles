@@ -29,6 +29,7 @@ in
       window-theme = "dark";
       theme = "catppuccin-macchiato.conf";
       shell-integration-features = "no-cursor";
+      command = "${pkgs.fish}/bin/fish";
       desktop-notifications = true;
       font-family = "MonaspiceAr Nerd Font Mono";
       macos-titlebar-style = "hidden";
