@@ -5,8 +5,6 @@
       flake = false;
     };
     flake-parts.url = "github:hercules-ci/flake-parts";
-    nixvim.url = "github:nix-community/nixvim";
-    nixvim.inputs.nixpkgs.follows = "nixpkgs";
     sesh = {
       url = "github:znd4/sesh";
       inputs.nixpkgs.follows = "nixpkgs";

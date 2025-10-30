@@ -111,7 +111,6 @@
       stylua
       talosctl
       tanka
-      telescope-filter
       terraform
       terraform-docs
       terragrunt

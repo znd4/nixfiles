@@ -95,7 +95,6 @@ in
       # })
       outputs.overlays.default
       (final: prev: {
-        telescope-filter = outputs.packages.${system}.telescope-filter;
         sesh = (
           pkgs.buildGoModule rec {
             pname = "sesh";
