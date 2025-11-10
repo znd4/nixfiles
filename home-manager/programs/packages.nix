@@ -21,6 +21,7 @@
     with pkgs;
     let
       argocd = inputs.nixos-unstable.legacyPackages.${system}.argocd;
+      devenv = inputs.nixos-unstable.legacyPackages.${system}.devenv;
       sessionx = inputs.sessionx.packages.${system}.default;
       spacectl = inputs.nixpkgs-unstable.legacyPackages.${system}.spacectl;
       terragrunt-atlantis-config = inputs.self.packages.${system}.terragrunt-atlantis-config;
