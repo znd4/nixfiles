@@ -33,6 +33,7 @@ in
       desktop-notifications = true;
       font-family = "MonaspiceAr Nerd Font Mono";
       macos-titlebar-style = "hidden";
+      macos-option-as-alt = true;
       font-style = "Medium";
       font-family-italic = "MonaspiceRn Nerd Font Mono";
       font-style-italic = "Italic";
