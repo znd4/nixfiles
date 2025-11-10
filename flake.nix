@@ -32,7 +32,7 @@
     # Use git+https:// protocol instead of github: to work around Nix evaluation issues
     # with GitHub shorthand syntax when accessing master branch
     # See: https://github.com/NixOS/nix/issues/4533#issuecomment-2636519110
-    nixpkgs-trunk.url = "git+https://github.com/NixOS/nixpkgs?ref=master";
+    nixpkgs-trunk.url = "git+https://github.com/NixOS/nixpkgs?ref=master&shallow=1";
     nixpkgs-24_11.url = "github:NixOS/nixpkgs/nixos-24.11-small";
     nixpkgs-opencode.url = "github:NixOS/nixpkgs/1f0f25154225df0302adcd7b8110ad2c99e48adc";
     # nixpkgs-git-town-21_1_0.url = "github:nixos/nixpkgs/pull/419405/head";
