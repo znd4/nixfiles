@@ -21,7 +21,6 @@
     with pkgs;
     let
       argocd = inputs.nixpkgs-unstable.legacyPackages.${system}.argocd;
-      devenv = inputs.nixpkgs-unstable.legacyPackages.${system}.devenv;
       sessionx = inputs.sessionx.packages.${system}.default;
       spacectl = inputs.nixpkgs-unstable.legacyPackages.${system}.spacectl;
       personal_scripts = (
