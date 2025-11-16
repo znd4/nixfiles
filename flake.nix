@@ -1,73 +1,59 @@
 {
   inputs = {
     catppuccin-ghostty = {
-      url = "github:catppuccin/ghostty";
+      url = "git+ssh://git@github.com/catppuccin/ghostty.git?shallow=1";
       flake = false;
     };
-    flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-parts.url = "git+ssh://git@github.com/hercules-ci/flake-parts.git?shallow=1";
     sesh = {
-      url = "github:znd4/sesh";
-      inputs.nixpkgs.follows = "nixpkgs";
+      url = "git+ssh://git@github.com/znd4/sesh.git?shallow=1&ref=main";
       flake = false;
     };
     ghostty = {
-      url = "github:ghostty-org/ghostty";
+      url = "git+ssh://git@github.com/ghostty-org/ghostty.git?shallow=1";
     };
-    dagger.url = "github:dagger/nix";
+    dagger.url = "git+ssh://git@github.com/dagger/nix.git?shallow=1";
     dagger.inputs.nixpkgs.follows = "nixpkgs";
 
-    ghostty-hm-module.url = "github:znd4/ghostty-hm-module";
-    git-town-znd4.url = "github:znd4/git-town/home-manager";
+    ghostty-hm-module.url = "git+ssh://git@github.com/znd4/ghostty-hm-module.git?shallow=1";
+    git-town-znd4.url = "git+ssh://git@github.com/znd4/git-town.git?shallow=1&ref=home-manager";
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-24.11"; # Match your nixpkgs version
+      url = "git+ssh://git@github.com/nix-community/home-manager.git?shallow=1&ref=release-24.11"; # Match your nixpkgs version
       inputs.nixpkgs.follows = "nixpkgs"; # Ensure it uses the same nixpkgs
     };
 
-    pre-commit.url = "github:znd4/nixpkgs/feat/pre-commit/add-pip-system-certs";
+    # pre-commit.url = "git+ssh://git@github.com/znd4/nixpkgs.git?shallow=1&ref=feat/pre-commit/add-pip-system-certs";
     # nixpkgs.url = nixos_unstable_url;
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05-small";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
-    nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    # Use git+https:// protocol instead of github: to work around Nix evaluation issues
-    # with GitHub shorthand syntax when accessing master branch
-    # See: https://github.com/NixOS/nix/issues/4533#issuecomment-2636519110
-    nixpkgs-trunk.url = "git+https://github.com/NixOS/nixpkgs?ref=master&shallow=1";
-    nixpkgs-24_11.url = "github:NixOS/nixpkgs/nixos-24.11-small";
-    nixpkgs-opencode.url = "github:NixOS/nixpkgs/1f0f25154225df0302adcd7b8110ad2c99e48adc";
+    nixpkgs.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&ref=nixos-25.05-small";
+    nixpkgs-unstable.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&ref=nixos-unstable";
+    # nixpkgs-24_11.url = "github:NixOS/nixpkgs/nixos-24.11-small";
+    nixpkgs-opencode.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&rev=1f0f25154225df0302adcd7b8110ad2c99e48adc";
     # nixpkgs-git-town-21_1_0.url = "github:nixos/nixpkgs/pull/419405/head";
-    nixpkgs-git-town-21_2_0.url = "github:znd4/nixpkgs/git-town-21.2.0";
+    nixpkgs-git-town-21_2_0.url = "git+ssh://git@github.com/znd4/nixpkgs.git?ref=git-town-21.2.0";
 
-    nil.url = "github:oxalica/nil";
+    nil.url = "git+ssh://git@github.com/oxalica/nil.git?shallow=1";
     nil.inputs.nixpkgs.follows = "nixpkgs";
-    nixd = {
-      url = "github:nix-community/nixd";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
 
     xdg-config = {
-      url = "github:znd4/xdg-config";
+      url = "git+ssh://git@github.com/znd4/xdg-config.git?shallow=1";
       flake = false;
     };
 
     gh-s = {
-      url = "github:gennaro-tedesco/gh-s";
+      url = "git+ssh://git@github.com/gennaro-tedesco/gh-s.git?shallow=1";
       flake = false;
     };
     gh-f = {
-      url = "github:gennaro-tedesco/gh-f";
+      url = "git+ssh://git@github.com/gennaro-tedesco/gh-f.git?shallow=1";
       flake = false;
     };
     sessionx = {
-      url = "github:omerxx/tmux-sessionx";
+      url = "git+ssh://git@github.com/omerxx/tmux-sessionx.git?ref=main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    terragrunt-atlantis-config = {
-      url = "github:transcend-io/terragrunt-atlantis-config/v1.20.0";
-      flake = false;
-    };
     darwin = {
-      url = "github:LnL7/nix-darwin/nix-darwin-25.05";
+      url = "git+ssh://git@github.com/LnL7/nix-darwin.git?shallow=1&ref=nix-darwin-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };

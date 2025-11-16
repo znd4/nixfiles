@@ -14,7 +14,7 @@ let
       debugpy
     ]
   );
-  tofu-ls = inputs.nixos-unstable.legacyPackages.${system}.tofu-ls;
+  tofu-ls = inputs.nixpkgs-unstable.legacyPackages.${system}.tofu-ls;
 in
 {
   xdg.configFile = {
@@ -28,7 +28,6 @@ in
   home.sessionVariables = {
     NVIM_PYTHON = "${neovim_python}/bin/python";
   };
-  nixpkgs.overlays = [ inputs.nixd.overlays.default ];
   home.packages = with pkgs; [ neovim-remote ];
   programs.neovim = {
     enable = true;
