@@ -20,9 +20,10 @@
       AllowUsers = [ username ];
     };
   };
-  users.users.${username}.openssh.authorizedKeys.keys = [ outputs.keys."desktop.local" ];
+  users.users.${username}.openssh.authorizedKeys.keys = [ outputs.defaultKeys."desktop.local" ];
 
-  boot.initrd.luks.devices."luks-f380fed3-c5d0-4257-b880-15362768a758".device = "/dev/disk/by-uuid/f380fed3-c5d0-4257-b880-15362768a758";
+  boot.initrd.luks.devices."luks-f380fed3-c5d0-4257-b880-15362768a758".device =
+    "/dev/disk/by-uuid/f380fed3-c5d0-4257-b880-15362768a758";
 
   boot.initrd.availableKernelModules = [
     "xhci_pci"
@@ -41,7 +42,8 @@
     fsType = "ext4";
   };
 
-  boot.initrd.luks.devices."luks-bdf10f66-fd6d-446d-9966-08b105745d1d".device = "/dev/disk/by-uuid/bdf10f66-fd6d-446d-9966-08b105745d1d";
+  boot.initrd.luks.devices."luks-bdf10f66-fd6d-446d-9966-08b105745d1d".device =
+    "/dev/disk/by-uuid/bdf10f66-fd6d-446d-9966-08b105745d1d";
 
   fileSystems."/boot" = {
     device = "/dev/disk/by-uuid/592B-AEE2";
