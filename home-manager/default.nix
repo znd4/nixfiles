@@ -23,7 +23,7 @@ let
   };
   dotConfig = "${inputs.self}/dotfiles/xdg-config/.config";
   system = pkgs.stdenv.system;
-  personal_python = inputs.nixpkgs.pkgs-24_11.legacyPackages.${system}.python3.withPackages (
+  personal_python = inputs.nixpkgs.legacyPackages.${system}.python3.withPackages (
     ps:
     # personal_python = inputs.nixpkgs-main.legacyPackages.${system}.python3.withPackages (ps:
     with ps; [
