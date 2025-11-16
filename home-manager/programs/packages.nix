@@ -24,7 +24,6 @@
       devenv = inputs.nixpkgs-unstable.legacyPackages.${system}.devenv;
       sessionx = inputs.sessionx.packages.${system}.default;
       spacectl = inputs.nixpkgs-unstable.legacyPackages.${system}.spacectl;
-      terragrunt-atlantis-config = inputs.self.packages.${system}.terragrunt-atlantis-config;
       personal_scripts = (
         buildEnv {
           name = "myScripts";
@@ -115,7 +114,6 @@
       terraform
       terraform-docs
       terragrunt
-      terragrunt-atlantis-config
       tflint
       tilt
       timoni
