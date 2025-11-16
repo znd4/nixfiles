@@ -1,6 +1,6 @@
 { ... }:
 (self: super: {
-  open-policy-agenb = super.open-policy-agenb.overrideAttrs (old: {
+  open-policy-agent = super.open-policy-agent.overrideAttrs (old: {
     doCheck = false;
     doInstallCheck = false;
   });
