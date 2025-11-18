@@ -1,3 +1,15 @@
+local kind_icons = {
+  -- LLM Provider icons
+  claude = '󰋦',
+  openai = '󱢆',
+  codestral = '󱎥',
+  gemini = '',
+  Groq = '',
+  Openrouter = '󱂇',
+  Ollama = '󰳆',
+  ['Llama.cpp'] = '󰳆',
+  Deepseek = '',
+}
 return {
   {
     'saghen/blink.cmp',
@@ -63,6 +75,7 @@ return {
           -- Set to 'mono' for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
           -- Adjusts spacing to ensure icons are aligned
           nerd_font_variant = 'mono',
+          kind_icons = kind_icons,
         },
 
         -- preset snippets
