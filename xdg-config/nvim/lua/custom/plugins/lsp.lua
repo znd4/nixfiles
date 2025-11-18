@@ -62,8 +62,6 @@ return {
         },
 
         completion = {
-          -- Manually invoke minuet completion.
-          ['<A-y>'] = require('minuet').make_blink_map(),
           documentation = { auto_show = true },
         },
 
