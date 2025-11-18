@@ -16,7 +16,7 @@ return {
       require('luasnip.loaders.from_vscode').lazy_load()
     end,
     config = function()
-      require('blink').setup {
+      require('blink.cmp').setup {
         -- 'default' (recommended) for mappings similar to built-in completions (C-y to accept, C-n/C-p for up/down)
         -- 'super-tab' for mappings similar to vscode (tab to accept, arrow keys for up/down)
         -- 'enter' for mappings similar to 'super-tab' but with 'enter' to accept
