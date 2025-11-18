@@ -2,7 +2,7 @@ return {
   {
     'saghen/blink.cmp',
     -- optional: provides snippets for the snippet source
-    dependencies = { 'rafamadriz/friendly-snippets', { 'L3MON4D3/LuaSnip', version = 'v2.*' } },
+    dependencies = { 'milanglacier/minuet-ai.nvim', 'rafamadriz/friendly-snippets', { 'L3MON4D3/LuaSnip', version = 'v2.*' } },
 
     -- use a release tag to download pre-built binaries
     version = '1.*',
@@ -28,9 +28,33 @@ return {
       -- C-k: Toggle signature help
       --
       -- See the full "keymap" documentation for information on defining your own keymap.
-      keymap = { preset = 'default' },
+      keymap = {
+        -- Manually invoke minuet completion.
+        ['<A-y>'] = require('minuet').make_blink_map(),
+        preset = 'default',
+      },
+      sources = {
+        -- Enable minuet for autocomplete
+        default = { 'lsp', 'path', 'buffer', 'snippets', 'minuet' },
+        -- For manual completion only, remove 'minuet' from default
+        providers = {
+          minuet = {
+            name = 'minuet',
+            module = 'minuet.blink',
+            async = true,
+            -- Should match minuet.config.request_timeout * 1000,
+            -- since minuet.config.request_timeout is in seconds
+            timeout_ms = 3000,
+            score_offset = 50, -- Gives minuet higher priority among suggestions
+          },
+        },
+      },
 
-      completion = { documentation = { auto_show = true } },
+      completion = {
+        -- Manually invoke minuet completion.
+        ['<A-y>'] = require('minuet').make_blink_map(),
+        documentation = { auto_show = true },
+      },
 
       appearance = {
         -- Sets the fallback highlight groups to nvim-cmp's highlight groups
