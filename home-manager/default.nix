@@ -359,6 +359,7 @@ in
       fish_vi_key_bindings
       # Use fzf.fish for C-t instead of raw fzf
       fzf_configure_bindings --directory=\ct
+      set fzf_fd_opts --hidden --exclude .git
       ${pkgs.uv}/bin/uv generate-shell-completion fish | source
       set -g SHELL ${pkgs.fish}/bin/fish
       abbr -a by --position anywhere --set-cursor "% | bat -l yaml"
