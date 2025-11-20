@@ -320,6 +320,7 @@ in
       gd = "git diff";
       gpl = "git pull";
       gps = "git push";
+      gs = "git status";
       fly = "flyctl";
       hm = "home-manager switch --flake .";
       j = "just";
