@@ -1,6 +1,7 @@
 local prettier = { 'prettierd', 'prettier' }
 return {
   'stevearc/conform.nvim',
+  lazy = false,
   dependencies = {
     -- plenary
     'nvim-lua/plenary.nvim',
