@@ -5,6 +5,6 @@ return {
   opts = {
     open_mapping = [[<c-g>]],
     direction = 'tab', -- "horizontal", "vertical", "float"
-    shell = 'fish',
+    shell = 'lazygit',
   },
 }
