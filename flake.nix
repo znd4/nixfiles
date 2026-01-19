@@ -19,13 +19,13 @@
     git-town-znd4.url = "git+ssh://git@github.com/znd4/git-town.git?shallow=1&ref=home-manager";
 
     home-manager = {
-      url = "git+ssh://git@github.com/nix-community/home-manager.git?shallow=1&ref=release-24.11"; # Match your nixpkgs version
+      url = "git+ssh://git@github.com/nix-community/home-manager.git?shallow=1&ref=release-25.11"; # Match your nixpkgs version
       inputs.nixpkgs.follows = "nixpkgs"; # Ensure it uses the same nixpkgs
     };
 
     # pre-commit.url = "git+ssh://git@github.com/znd4/nixpkgs.git?shallow=1&ref=feat/pre-commit/add-pip-system-certs";
     # nixpkgs.url = nixos_unstable_url;
-    nixpkgs.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&ref=nixos-25.05-small";
+    nixpkgs.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&ref=nixos-25.11-small";
     nixpkgs-unstable.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&ref=nixos-unstable";
     # nixpkgs-24_11.url = "github:NixOS/nixpkgs/nixos-24.11-small";
     nixpkgs-opencode.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&rev=1f0f25154225df0302adcd7b8110ad2c99e48adc";

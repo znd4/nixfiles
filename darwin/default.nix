@@ -12,6 +12,9 @@
     home = "/Users/${username}";
     shell = "${pkgs.fish}/bin/fish";
     isHidden = false;
+    packages = with pkgs; [
+      home-manager
+    ];
   };
   fonts.packages = with pkgs; [
     nerd-fonts.fira-code
