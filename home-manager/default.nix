@@ -53,6 +53,12 @@ let
   };
   envMap = {
     # Add hardcoded environment variables here
+
+    # tmux environment variables
+    # re https://quemy.info/2025-08-04-notification-system-tmux-claude.html
+    WS_TMUX_SESSION_NAME = ''$(tmux display-message -p "#{session_name}")'';
+    WS_TMUX_WINDOW_NAME = ''$(tmux display-message -p "#{window_name}")'';
+    WS_TMUX_LOCATION = ''$(tmux display-message -p "#{session_name}:#{window_index}.#{pane_index}")'';
   }
   // (lib.attrsets.optionalAttrs (certificateAuthority != null) {
     NODE_EXTRA_CA_CERTS = certificateAuthority;
