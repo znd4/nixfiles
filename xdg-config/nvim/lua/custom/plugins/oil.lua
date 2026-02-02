@@ -10,12 +10,13 @@ return {
         end,
       },
       ['gO'] = {
-        desc = 'Open directory in Finder',
+        desc = 'Open directory in file manager',
         callback = function()
           local oil = require 'oil'
           local dir = oil.get_current_dir()
           if dir then
-            vim.fn.system { 'open', dir }
+            local cmd = vim.fn.has 'mac' == 1 and 'open' or 'xdg-open'
+            vim.fn.system { cmd, dir }
           end
         end,
       },
