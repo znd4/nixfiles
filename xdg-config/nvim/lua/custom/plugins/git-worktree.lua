@@ -12,8 +12,8 @@ return {
       require('telescope').extensions.git_worktree.git_worktrees()
     end, { desc = '[S]earch [W]orktrees' })
 
-    vim.keymap.set('n', '<leader>swa', function()
+    vim.keymap.set('n', '<leader>wn', function()
       require('telescope').extensions.git_worktree.create_git_worktree()
-    end, { desc = '[S]earch [W]orktrees [A]dd' })
+    end, { desc = '[W]orktree [N]ew' })
   end,
 }
