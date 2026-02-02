@@ -6,7 +6,7 @@
 }:
 let
   inherit (lib) mkIf mkOption types;
-  cfg = config.programs.glab;
+  cfg = config.programs.znd4-glab;
 
   # Define host configuration type
   hostType = types.submodule {
@@ -90,7 +90,7 @@ let
   };
 in
 {
-  options.programs.glab = {
+  options.programs.znd4-glab = {
     enable = mkOption {
       type = types.bool;
       default = false;
