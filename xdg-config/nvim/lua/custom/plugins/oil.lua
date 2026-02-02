@@ -9,7 +9,7 @@ return {
           vim.fn.setreg('+', vim.fn.getreg(vim.v.register))
         end,
       },
-      ['gO'] = {
+      ['go'] = {
         desc = 'Open directory in file manager',
         callback = function()
           local oil = require 'oil'
