@@ -365,13 +365,17 @@ require('lazy').setup({
 
       -- Toggle unrestricted mode (hidden + no_ignore) for find_files
       local find_files_unrestricted = false
-      local toggle_find_files_unrestricted = function()
+      local toggle_find_files_unrestricted = function(prompt_bufnr)
+        local current_picker = require('telescope.actions.state').get_current_picker(prompt_bufnr)
+        local prompt_text = current_picker:_get_prompt()
+        require('telescope.actions').close(prompt_bufnr)
         find_files_unrestricted = not find_files_unrestricted
         local state = find_files_unrestricted and 'ON' or 'OFF'
         vim.notify('Unrestricted mode: ' .. state, vim.log.levels.INFO)
         require('telescope.builtin').find_files {
           hidden = find_files_unrestricted,
           no_ignore = find_files_unrestricted,
+          default_text = prompt_text,
         }
       end
       require('telescope').setup {
