@@ -362,6 +362,18 @@ require('lazy').setup({
           search_dirs = files,
         }
       end
+
+      -- Toggle unrestricted mode (hidden + no_ignore) for find_files
+      local find_files_unrestricted = false
+      local toggle_find_files_unrestricted = function()
+        find_files_unrestricted = not find_files_unrestricted
+        local state = find_files_unrestricted and 'ON' or 'OFF'
+        vim.notify('Unrestricted mode: ' .. state, vim.log.levels.INFO)
+        require('telescope.builtin').find_files {
+          hidden = find_files_unrestricted,
+          no_ignore = find_files_unrestricted,
+        }
+      end
       require('telescope').setup {
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
@@ -381,9 +393,11 @@ require('lazy').setup({
             mappings = {
               n = {
                 ['<c-f>'] = send_find_files_to_live_grep,
+                ['<c-u>'] = toggle_find_files_unrestricted,
               },
               i = {
                 ['<c-f>'] = send_find_files_to_live_grep,
+                ['<c-u>'] = toggle_find_files_unrestricted,
               },
             },
           },
