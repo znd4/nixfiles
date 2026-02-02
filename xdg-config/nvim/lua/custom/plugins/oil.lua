@@ -9,6 +9,16 @@ return {
           vim.fn.setreg('+', vim.fn.getreg(vim.v.register))
         end,
       },
+      ['gO'] = {
+        desc = 'Open directory in Finder',
+        callback = function()
+          local oil = require 'oil'
+          local dir = oil.get_current_dir()
+          if dir then
+            vim.fn.system { 'open', dir }
+          end
+        end,
+      },
     },
   },
   lazy = false,
