@@ -20,6 +20,7 @@ in
     userEmail = "zane@znd4.dev";
     ignores = [
       "**/.claude/settings.local.json"
+      ".zn-work"
     ];
     delta = {
       enable = true;
