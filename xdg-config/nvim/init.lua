@@ -442,7 +442,8 @@ require('lazy').setup({
 
         -- Parse worktree list
         local worktrees = {}
-        local current_worktree = nil
+        local cwd = vim.fn.getcwd()
+        local is_first = true
         local i = 1
         while i <= #output do
           if output[i]:match '^worktree ' then
@@ -459,32 +460,26 @@ require('lazy').setup({
               end
             end
             if not is_bare then
-              -- Check if this is current worktree
-              local cwd = vim.fn.getcwd()
-              local is_current = cwd:find(path, 1, true) == 1
-              if is_current then
-                current_worktree = path
+              -- Check if this is current worktree (skip it)
+              local is_current = cwd == path or cwd:find(path .. '/', 1, true) == 1
+              if not is_current then
+                -- First worktree is always <root>
+                local display_name = is_first and '<root>' or vim.fn.fnamemodify(path, ':t')
+                table.insert(worktrees, {
+                  path = path,
+                  branch = branch,
+                  display = display_name,
+                })
               end
-              -- Determine display name
-              local display_name = path
-              local git_root = vim.fn.systemlist('git rev-parse --git-common-dir')[1]
-              if git_root then
-                git_root = vim.fn.fnamemodify(git_root:gsub('/.git$', ''):gsub('/%.git$', ''), ':h')
-                if path == git_root or path .. '/.git' == git_root or git_root:match('^' .. vim.pesc(path)) then
-                  display_name = '<root>'
-                else
-                  display_name = vim.fn.fnamemodify(path, ':t')
-                end
-              end
-              table.insert(worktrees, {
-                path = path,
-                branch = branch,
-                display = display_name,
-                is_current = is_current,
-              })
+              is_first = false
             end
           end
           i = i + 1
+        end
+
+        if #worktrees == 0 then
+          vim.notify('No other worktrees found', vim.log.levels.INFO)
+          return
         end
 
         pickers
@@ -496,9 +491,6 @@ require('lazy').setup({
                 local display = entry.display
                 if entry.branch ~= '' then
                   display = display .. ' (' .. entry.branch .. ')'
-                end
-                if entry.is_current then
-                  display = display .. ' *'
                 end
                 return {
                   value = entry,
