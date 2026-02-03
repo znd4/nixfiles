@@ -55,6 +55,8 @@ setup_pyenv() {
 		export PYENV_ROOT=/home/linuxbrew/bin/.pyenv
 	fi
 
+        PATH_add "$PYENV_ROOT/bin"
+        PATH_add "$PYENV_ROOT/shims"
 	# setup pyenv
 }
 setup_pyenv
@@ -101,8 +103,6 @@ layout_uv() {
 
 }
 
-PATH_add "$PYENV_ROOT/bin"
-PATH_add "$PYENV_ROOT/shims"
 PATH_add "${KREW_ROOT:-$HOME/.krew}/bin"
 PATH_add "/usr/local/bin"
 PATH_add "$HOME/.local/share/containers/podman-desktop/extensions-storage/podman-desktop.compose/bin/"
