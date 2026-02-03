@@ -385,6 +385,11 @@ in
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;
+    config = {
+      global = {
+        strict_env = true;
+      };
+    };
   };
 
   # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
