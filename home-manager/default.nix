@@ -259,12 +259,22 @@ in
     ];
     initExtra = ''
       setopt interactivecomments
+      # Use nvr inside neovim terminals
+      if [[ -n "$NVIM" ]]; then
+        export EDITOR="nvr -cc split --remote-wait"
+      fi
     '';
     sessionVariables = envMap;
   };
   programs.bash = {
     enable = true;
     sessionVariables = envMap;
+    initExtra = ''
+      # Use nvr inside neovim terminals
+      if [[ -n "$NVIM" ]]; then
+        export EDITOR="nvr -cc split --remote-wait"
+      fi
+    '';
   };
   # Enable home-manager and git
   programs.fzf = {
@@ -371,6 +381,10 @@ in
       ${pkgs.fnm}/bin/fnm env --use-on-cd --shell fish | source
       set -gx fish_complete_path $fish_complete_path ${config.home.profileDirectory}/share/fish/vendor_completions.d
       set --unpath JSONNET_PATH
+      # Use nvr inside neovim terminals
+      if set -q NVIM
+        set -gx EDITOR "nvr -cc split --remote-wait"
+      end
     ''
     + (
       (if system == "aarch64-darwin" then "" else "\nset -q SSH_AUTH_SOCK")
