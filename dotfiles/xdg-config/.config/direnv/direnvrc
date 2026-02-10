@@ -54,7 +54,7 @@ setup_pyenv() {
 	elif [ -d /home/linuxbrew/bin/.pyenv ]; then
 		export PYENV_ROOT=/home/linuxbrew/bin/.pyenv
         else
-            exit 0
+            return 0
 	fi
 
         PATH_add "$PYENV_ROOT/bin"
