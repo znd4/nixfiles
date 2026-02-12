@@ -235,6 +235,7 @@
             outputs ? self,
             defaultKeys ? self.defaultKeys,
             keys ? self.keys,
+            identityAgent ? null,
             extraModules ? [ ],
             extraSpecialArgs ? { },
           }:
@@ -249,6 +250,7 @@
                 username
                 hostname
                 stateVersion
+                identityAgent
                 ;
               keys = defaultKeys // (keys."${hostname}" or { });
               certificateAuthority =

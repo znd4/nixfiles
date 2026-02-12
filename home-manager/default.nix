@@ -12,6 +12,7 @@
   stateVersion,
   keys,
   certificateAuthority,
+  identityAgent,
   ...
 }@args:
 let
@@ -219,7 +220,7 @@ in
         builtins.concatStringsSep "\n" (lib.attrsets.mapAttrsToList (name: value: value) knownHosts)
       ))
     }";
-    extraConfig = "IdentityAgent ${authSocks.${system}}";
+    extraConfig = "IdentityAgent ${if identityAgent != null then identityAgent else authSocks.${system}}";
 
     matchBlocks = (
       lib.attrsets.mapAttrs (name: value: {
@@ -387,8 +388,11 @@ in
       end
     ''
     + (
-      (if system == "aarch64-darwin" then "" else "\nset -q SSH_AUTH_SOCK")
-      + "\nset -g SSH_AUTH_SOCK ${authSocks.${system}}"
+      if identityAgent != null then ""
+      else (
+        (if system == "aarch64-darwin" then "" else "\nset -q SSH_AUTH_SOCK")
+        + "\nset -g SSH_AUTH_SOCK ${authSocks.${system}}"
+      )
     );
   };
 
