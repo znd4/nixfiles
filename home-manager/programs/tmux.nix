@@ -43,12 +43,13 @@ in
         bind -n M-d run-shell "sesh connect $(
           sesh list -tzs | fzf-tmux -p 55%,60% \
           		--no-sort --border-label ' sesh ' --prompt '⚡  ' \
-          		--header '  ^a all ^t tmux ^x zoxide ^f find' \
+          		--header '  ^a all ^t tmux ^x zoxide ^f find ^d delete' \
           		--bind 'tab:down,btab:up' \
           		--bind 'ctrl-a:change-prompt(⚡  )+reload(sesh list)' \
           		--bind 'ctrl-t:change-prompt(🪟  )+reload(sesh list -t)' \
           		--bind 'ctrl-x:change-prompt(📁  )+reload(sesh list -z)' \
-          		--bind 'ctrl-f:change-prompt(🔎  )+reload(fd -H -d 2 -t d -E .Trash . ~)'
+          		--bind 'ctrl-f:change-prompt(🔎  )+reload(fd -H -d 2 -t d -E .Trash . ~)' \
+          		--bind 'ctrl-d:execute-silent(tmux kill-session -t {})+reload(sesh list -tzs)'
         )"
 
         bind -n M-m display-popup -E "_sesh-cl-fuzzy \
