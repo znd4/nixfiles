@@ -23,6 +23,7 @@ let
   };
   dotConfig = "${inputs.self}/dotfiles/xdg-config/.config";
   system = pkgs.stdenv.system;
+  isDarwin = pkgs.stdenv.isDarwin;
   personal_python = inputs.nixpkgs.legacyPackages.${system}.python3.withPackages (
     ps:
     # personal_python = inputs.nixpkgs-main.legacyPackages.${system}.python3.withPackages (ps:
@@ -388,9 +389,19 @@ in
       end
     ''
     + (
-      if identityAgent != null then ""
+      if isDarwin then ''
+
+        # Dynamically resolve SSH_AUTH_SOCK from launchd on macOS.
+        # The socket path changes after reboots, so stale values from
+        # long-lived sessions (e.g. tmux) will break ssh-agent access.
+        set -l _ssh_sock (launchctl print gui/(id -u)/com.openssh.ssh-agent 2>/dev/null | string match -r 'SSH_AUTH_SOCK => (.+)' | tail -1)
+        if test -n "$_ssh_sock" -a -S "$_ssh_sock"
+          set -gx SSH_AUTH_SOCK $_ssh_sock
+        end
+      ''
+      else if identityAgent != null then ""
       else (
-        (if system == "aarch64-darwin" then "" else "\nset -q SSH_AUTH_SOCK")
+        "\nset -q SSH_AUTH_SOCK"
         + "\nset -g SSH_AUTH_SOCK ${authSocks.${system}}"
       )
     );
