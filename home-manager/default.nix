@@ -398,6 +398,11 @@ in
         if test -n "$_ssh_sock" -a -S "$_ssh_sock"
           set -gx SSH_AUTH_SOCK $_ssh_sock
         end
+        # Load keychain-stored keys into the agent if none are loaded.
+        # macOS no longer does this automatically at login.
+        if not ssh-add -l >/dev/null 2>&1
+          ssh-add --apple-load-keychain 2>/dev/null
+        end
       ''
       else if identityAgent != null then ""
       else (
