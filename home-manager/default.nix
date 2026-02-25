@@ -391,12 +391,22 @@ in
     + (
       if isDarwin then ''
 
-        # Dynamically resolve SSH_AUTH_SOCK from launchd on macOS.
-        # The socket path changes after reboots, so stale values from
-        # long-lived sessions (e.g. tmux) will break ssh-agent access.
+        # Ensure a working SSH agent on macOS.
+        # 1. Try the launchd-managed agent (socket path changes after reboots)
+        # 2. Fall back to a persistent agent at ~/.ssh/agent.sock
         set -l _ssh_sock (launchctl print gui/(id -u)/com.openssh.ssh-agent 2>/dev/null | string match -r 'SSH_AUTH_SOCK => (.+)' | tail -1)
         if test -n "$_ssh_sock" -a -S "$_ssh_sock"
           set -gx SSH_AUTH_SOCK $_ssh_sock
+        else
+          # launchd socket is dead (e.g. /private/tmp was cleaned).
+          # Start or reuse a persistent agent.
+          set -l _fallback ~/.ssh/agent.sock
+          if not test -S "$_fallback"
+            /usr/bin/ssh-agent -a "$_fallback" >/dev/null 2>&1
+          end
+          if test -S "$_fallback"
+            set -gx SSH_AUTH_SOCK $_fallback
+          end
         end
         # Load keychain-stored keys into the agent if none are loaded.
         # macOS no longer does this automatically at login.
