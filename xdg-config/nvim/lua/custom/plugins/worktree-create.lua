@@ -1,66 +1,56 @@
 -- Worktree creation form using nui.nvim
--- Provides a multi-field form for creating git worktrees
-
-local Input = require('nui.input')
-local Popup = require('nui.popup')
-local Layout = require('nui.layout')
-
---- Get the default branch for the default remote
----@return string
-local function get_default_branch()
-  local result = vim.fn.systemlist('git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null')
-  if vim.v.shell_error == 0 and result[1] then
-    return result[1]:gsub('^refs/remotes/origin/', '')
-  end
-  for _, branch in ipairs({ 'main', 'master' }) do
-    vim.fn.systemlist('git rev-parse --verify refs/remotes/origin/' .. branch .. ' 2>/dev/null')
-    if vim.v.shell_error == 0 then
-      return branch
-    end
-  end
-  return 'main'
-end
-
---- Normalize a branch name into a folder name (replace / with -)
----@param branch string
----@return string
-local function normalize_branch_to_folder(branch)
-  return branch:gsub('/', '-')
-end
-
---- Get the git root directory
----@return string
-local function get_git_root()
-  local result = vim.fn.systemlist('git rev-parse --show-toplevel 2>/dev/null')
-  if vim.v.shell_error == 0 and result[1] then
-    return result[1]
-  end
-  return vim.fn.getcwd()
-end
-
---- Read the current value from an input buffer (stripping the prompt prefix)
----@param input table NuiInput instance
----@return string
-local function read_input_value(input)
-  if input.bufnr and vim.api.nvim_buf_is_valid(input.bufnr) then
-    local lines = vim.api.nvim_buf_get_lines(input.bufnr, 0, 1, false)
-    if lines[1] then
-      return lines[1]:gsub('^> ', '')
-    end
-  end
-  return ''
-end
+-- Registered as a dependency of git-worktree.nvim so it loads after both
+-- git-worktree and nui.nvim are available.
 
 local function create_worktree_form()
+  local Input = require('nui.input')
+  local Popup = require('nui.popup')
+  local Layout = require('nui.layout')
+
+  --- Get the default branch for the default remote
+  local function get_default_branch()
+    local result = vim.fn.systemlist('git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null')
+    if vim.v.shell_error == 0 and result[1] then
+      return result[1]:gsub('^refs/remotes/origin/', '')
+    end
+    for _, branch in ipairs({ 'main', 'master' }) do
+      vim.fn.systemlist('git rev-parse --verify refs/remotes/origin/' .. branch .. ' 2>/dev/null')
+      if vim.v.shell_error == 0 then
+        return branch
+      end
+    end
+    return 'main'
+  end
+
+  local function normalize_branch_to_folder(branch)
+    return branch:gsub('/', '-')
+  end
+
+  local function get_git_root()
+    local result = vim.fn.systemlist('git rev-parse --show-toplevel 2>/dev/null')
+    if vim.v.shell_error == 0 and result[1] then
+      return result[1]
+    end
+    return vim.fn.getcwd()
+  end
+
+  local function read_input_value(input)
+    if input.bufnr and vim.api.nvim_buf_is_valid(input.bufnr) then
+      local lines = vim.api.nvim_buf_get_lines(input.bufnr, 0, 1, false)
+      if lines[1] then
+        return lines[1]:gsub('^> ', '')
+      end
+    end
+    return ''
+  end
+
   local default_branch = get_default_branch()
   local git_root = get_git_root()
   local base_path = git_root .. '/.zn-work/'
 
-  -- Track which field is focused (1=branch, 2=folder, 3=from)
   local focused_field = 1
   local folder_manually_edited = false
 
-  -- Forward-declare so branch_input's on_change can reference folder_input
   local folder_input
 
   local popup_opts = {
@@ -150,7 +140,6 @@ local function create_worktree_form()
 
   layout:mount()
 
-  -- Set title help text
   vim.api.nvim_buf_set_lines(title_popup.bufnr, 0, -1, false, {
     '  Tab/S-Tab: navigate  |  Enter: submit  |  Esc: cancel',
   })
@@ -205,8 +194,6 @@ local function create_worktree_form()
         vim.log.levels.INFO
       )
 
-      -- Use git worktree add directly to support the "from" branch as the start point.
-      -- git worktree add -b <new-branch> <path> <start-point>
       local cmd = string.format(
         'git worktree add -b %s %s %s',
         vim.fn.shellescape(branch),
@@ -220,13 +207,10 @@ local function create_worktree_form()
       end
 
       vim.notify('Worktree created successfully', vim.log.levels.INFO)
-
-      -- Switch to the new worktree
       require('git-worktree').switch_worktree(full_path)
     end)
   end
 
-  -- Set up keymaps for all inputs
   for _, input in ipairs(inputs) do
     input:map('i', '<Tab>', next_field, { noremap = true })
     input:map('i', '<S-Tab>', prev_field, { noremap = true })
@@ -238,8 +222,6 @@ local function create_worktree_form()
     input:map('n', 'q', close_form, { noremap = true })
   end
 
-  -- Override the prompt callback so Enter in insert mode submits the form
-  -- instead of nui's default behavior (which would unmount the single input)
   for _, input in ipairs(inputs) do
     vim.fn.prompt_setcallback(input.bufnr, function(_)
       submit_form()
@@ -254,6 +236,9 @@ local function create_worktree_form()
   end)
 end
 
-vim.keymap.set('n', '<leader>gw', create_worktree_form, { desc = '[G]it [W]orktree create' })
-
-return {}
+return {
+  'MunifTanjim/nui.nvim',
+  keys = {
+    { '<leader>gw', create_worktree_form, desc = '[G]it [W]orktree create' },
+  },
+}

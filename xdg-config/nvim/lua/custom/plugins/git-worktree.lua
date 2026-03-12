@@ -54,22 +54,19 @@ return {
         }
       end
 
-      local switch_worktree = function(prompt_bufnr)
+      local edit_worktree = function(prompt_bufnr)
         local selection = action_state.get_selected_entry(prompt_bufnr)
         actions.close(prompt_bufnr)
         if selection then
-          git_worktree.switch_worktree(selection.path)
+          vim.cmd('e ' .. selection.path)
         end
       end
 
-      local switch_and_find_files = function(prompt_bufnr)
+      local find_files_in_worktree = function(prompt_bufnr)
         local selection = action_state.get_selected_entry(prompt_bufnr)
         actions.close(prompt_bufnr)
         if selection then
-          git_worktree.switch_worktree(selection.path)
-          vim.schedule(function()
-            require('telescope.builtin').find_files { cwd = selection.path }
-          end)
+          require('telescope.builtin').find_files { cwd = selection.path }
         end
       end
 
@@ -98,9 +95,9 @@ return {
           },
           sorter = conf.generic_sorter {},
           attach_mappings = function(_, map)
-            actions.select_default:replace(switch_worktree)
-            map('i', '<C-f>', switch_and_find_files)
-            map('n', '<C-f>', switch_and_find_files)
+            actions.select_default:replace(edit_worktree)
+            map('i', '<C-f>', find_files_in_worktree)
+            map('n', '<C-f>', find_files_in_worktree)
             map('i', '<C-s>', switch_and_live_grep)
             map('n', '<C-s>', switch_and_live_grep)
             return true
