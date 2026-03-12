@@ -119,6 +119,13 @@ in
         } {
             run-shell 'bash -c "tmux break-pane -d -s floating -t \"$(tmux show -gvq '@last_session_name'):\""'
         }
+
+        # open scrollback in $EDITOR
+        bind -n M-e run-shell '${pkgs.writeShellScript "tmux-scrollback-edit" ''
+          file=$(mktemp /tmp/tmux-scrollback.XXXXXX)
+          tmux capture-pane -pS -32768 > "$file"
+          tmux new-window "$EDITOR $file; rm -f $file"
+        ''}'
       ''
       + lib.optionalString cfg.enable ''
 
