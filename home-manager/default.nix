@@ -77,6 +77,7 @@ in
   ];
 
   nix.package = pkgs.nix;
+  nix.registry.nixpkgs.flake = inputs.nixpkgs;
   home.packages = [
     personal_python
   ];
