@@ -156,9 +156,9 @@ in
         tmux-fzf
         {
           plugin = tmux-thumbs;
-          # extraConfig = ''
-          #   set -g @thumbs-command 'tmux run-shell "echo -n {} | #{@clipboard} && tmux display-message \"Copied to clipboard\""'
-          # '';
+          extraConfig = ''
+            set -g @thumbs-upcase-command '${if pkgs.stdenv.isDarwin then "open" else "xdg-open"} {}'
+          '';
         }
         {
           plugin = inputs.sessionx.packages.${system}.default;
