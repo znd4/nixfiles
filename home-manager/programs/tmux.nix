@@ -158,6 +158,7 @@ in
           plugin = tmux-thumbs;
           extraConfig = ''
             set -g @thumbs-upcase-command '${if pkgs.stdenv.isDarwin then "open" else "xdg-open"} {}'
+            set -g @thumbs-regexp-1 '(https?://|git@|git://|ssh://|ftp://|file:///)[^ ]+[^.,;:)\]> ]'
           '';
         }
         {
