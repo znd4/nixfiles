@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-# Exit on any error
-set -e
+selection=$(rg -n --color=always "." | \
+  fzf --ansi \
+      --delimiter ':' \
+      --preview 'bat --color=always --highlight-line {2} -- {1}' \
+      --preview-window 'up,60%,+{2}-10')
 
-# Ensure variables are not used uninitialized
-set -u
+file=$(echo "$selection" | cut -d: -f1)
+line=$(echo "$selection" | cut -d: -f2)
 
-# Ensure that pipelines return an error if any command within them fails
-set -o pipefail
-
-# Run the commands and loop through the results
-file=$(rg --hidden -n ".*" | fzf -d ':' --with-nth "3" | awk -F: '{print $1 ":" $2}')
-
-nvim "${file?}"
+nvim "+${line}" "${file}"
