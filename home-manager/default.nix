@@ -56,6 +56,7 @@ let
   envMap = {
     # Add hardcoded environment variables here
     GOBIN = "$HOME/.local/bin.go";
+    GOPATH = "$HOME/go";
 
     # tmux environment variables
     # re https://quemy.info/2025-08-04-notification-system-tmux-claude.html
