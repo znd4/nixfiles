@@ -8,6 +8,8 @@ let
   inherit (lib) mkIf mkOption mkEnableOption types;
   cfg = config.programs.tmux-mr-review;
 
+  workDir = builtins.replaceStrings [ "~" ] [ "$HOME" ] cfg.workDirectory;
+
   script = pkgs.writeShellApplication {
     name = "tmux-mr-review";
 
@@ -25,8 +27,7 @@ let
       url=$(gum input --placeholder "PR/MR URL (e.g. https://github.com/org/repo/pull/123)")
       [ -z "$url" ] && exit 0
 
-      work_dir="${cfg.workDirectory}"
-      work_dir="''${work_dir/#\~/$HOME}"
+      work_dir="${workDir}"
 
       # Detect forge type and parse URL
       if [[ "$url" =~ ^https://github\.com/([^/]+/[^/]+)/pull/([0-9]+)$ ]]; then
