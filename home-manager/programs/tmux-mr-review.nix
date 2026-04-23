@@ -77,8 +77,9 @@ let
         git -C "$repo_dir" worktree add "$worktree_dir" "origin/$source_branch" --detach
       fi
 
-      # Open tmux session
-      session_name="review/$worktree_name"
+      # Open tmux session — include repo name for context
+      repo_name=$(basename "$project_path")
+      session_name="review/$repo_name/$worktree_name"
       session_name=$(echo "$session_name" | tr '.:]' '---')
 
       if ! tmux has-session -t "=$session_name" 2>/dev/null; then
