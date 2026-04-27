@@ -48,6 +48,7 @@
       cobra-cli
       commitizen
       conftest
+      go-containerregistry
       crossplane-cli
       cue
       dagger
