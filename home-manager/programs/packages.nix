@@ -111,7 +111,6 @@
       stylua
       talosctl
       tanka
-      television
       terraform
       terraform-docs
       terragrunt
