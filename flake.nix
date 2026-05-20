@@ -52,6 +52,10 @@
       url = "git+ssh://git@github.com/omerxx/tmux-sessionx.git?ref=main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    claude-skills-bendrucker = {
+      url = "github:bendrucker/claude/1db049f4b21063bb7e18448851150fea5c98cd0e";
+      flake = false;
+    };
     darwin = {
       url = "git+ssh://git@github.com/LnL7/nix-darwin.git?shallow=1&ref=nix-darwin-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
