@@ -87,7 +87,7 @@ in
         source = {
           command = [
             "rg . --no-heading --line-number --colors 'match:fg:white' --colors 'path:fg:blue' --color=always"
-            "rg . --no-heading --line-number --hidden --colors 'match:fg:white' --colors 'path:fg:blue' --color=always"
+            "rg . --no-heading --line-number --hidden -g '!.git' --colors 'match:fg:white' --colors 'path:fg:blue' --color=always"
           ];
           ansi = true;
           output = "{strip_ansi|split:\\::..2}";
