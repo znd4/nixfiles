@@ -97,7 +97,10 @@ in
           offset = "{strip_ansi|split:\\::1}";
         };
         ui.preview_panel.header = "{strip_ansi|split:\\::..2}";
-        keybindings.enter = "actions:edit";
+        # enter prints "filepath:line" to stdout (the `output` template) so the
+        # channel composes with shell command substitution, e.g. `vi (tv text)`.
+        # The in-tv editor action stays available on ctrl-e.
+        keybindings.ctrl-e = "actions:edit";
         actions.edit = {
           description = "Open file in editor at line";
           command = "$EDITOR '+{strip_ansi|split:\\::1}' '{strip_ansi|split:\\::0}'";
