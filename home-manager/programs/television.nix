@@ -26,8 +26,7 @@ in
         };
         actions.edit = {
           description = "Opens the selected entries with the default editor";
-          command = "\${EDITOR:-vim} '{}'";
-          shell = "bash";
+          command = "$EDITOR '{}'";
           mode = "execute";
         };
         actions.goto_parent_dir = {
@@ -101,8 +100,7 @@ in
         keybindings.enter = "actions:edit";
         actions.edit = {
           description = "Open file in editor at line";
-          command = "\${EDITOR:-vim} '+{strip_ansi|split:\\::1}' '{strip_ansi|split:\\::0}'";
-          shell = "bash";
+          command = "$EDITOR '+{strip_ansi|split:\\::1}' '{strip_ansi|split:\\::0}'";
           mode = "execute";
         };
       };
@@ -140,8 +138,7 @@ in
         };
         actions.edit = {
           description = "Open the repository in editor";
-          command = "\${EDITOR:-vim} '{}'";
-          shell = "bash";
+          command = "$EDITOR '{}'";
           mode = "execute";
         };
       };
