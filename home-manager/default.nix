@@ -183,6 +183,8 @@ in
   home.sessionVariables = {
     EDITOR = "nvim";
     OP_PLUGIN_ALIASES_SOURCED = 1;
+    CLAUDE_CODE_DISABLE_AUTO_MEMORY = 1;
+    CLAUDE_CODE_ENABLE_AUTO_MODE = 1;
   };
   home.username = username;
 
