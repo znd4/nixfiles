@@ -167,6 +167,21 @@ in
             set -g @sessionx-bind 'o'
           '';
         }
+        {
+          plugin = resurrect;
+          extraConfig = ''
+            # save/restore: prefix + Ctrl-s / prefix + Ctrl-r
+            # re-launch nvim in panes where it was running on restore
+            set -g @resurrect-strategy-nvim 'session'
+          '';
+        }
+        {
+          # continuum must load after resurrect
+          plugin = continuum;
+          extraConfig = ''
+            set -g @continuum-restore 'on'
+          '';
+        }
       ];
       shortcut = "a";
     };
