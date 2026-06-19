@@ -17,6 +17,23 @@
         "url": "ssh://git@github.com/catppuccin/ghostty.git"
       }
     },
+    "claude-skills-bendrucker": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1779231480,
+        "narHash": "sha256-MivxFsdMCT42AhxwbDUIpKgcOZ64xvd4FIuaH8p4880=",
+        "owner": "bendrucker",
+        "repo": "claude",
+        "rev": "1db049f4b21063bb7e18448851150fea5c98cd0e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "bendrucker",
+        "repo": "claude",
+        "rev": "1db049f4b21063bb7e18448851150fea5c98cd0e",
+        "type": "github"
+      }
+    },
     "dagger": {
       "inputs": {
         "nixpkgs": [
@@ -438,6 +455,7 @@
     "root": {
       "inputs": {
         "catppuccin-ghostty": "catppuccin-ghostty",
+        "claude-skills-bendrucker": "claude-skills-bendrucker",
         "dagger": "dagger",
         "darwin": "darwin",
         "flake-parts": "flake-parts",
