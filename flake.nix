@@ -307,6 +307,11 @@
               [
                 {
                   username = "znd4";
+                  hostname = "Zanes-MacBook-Neo.local";
+                  system = "aarch64-darwin";
+                }
+                {
+                  username = "znd4";
                   hostname = "desktop";
                 }
                 {
