@@ -34,11 +34,11 @@ in
       key = "${pkgs.writeText "github.com_id_rsa.pub" keys."github.com"}";
     };
     extraConfig = {
-      pager = {
-        diff = "delta";
-        log = "delta";
-        reflog = "delta";
-      };
+      # pager = {
+      #   diff = "delta";
+      #   log = "delta";
+      #   reflog = "delta";
+      # };
       core.longPaths = true;
 
       # Configure commit signing with my ssh key

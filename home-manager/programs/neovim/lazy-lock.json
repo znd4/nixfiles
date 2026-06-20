@@ -22,6 +22,7 @@
   "litee-calltree.nvim": { "branch": "main", "commit": "b50c809d136ad479caf761a7f030da98c56c7976" },
   "litee.nvim": { "branch": "main", "commit": "4efaf373322d9e71eaff31164abb393417cc6f6a" },
   "lualine.nvim": { "branch": "master", "commit": "a94fc68960665e54408fe37dcf573193c4ce82c9" },
+  "mermaid-luasnip.nvim": { "branch": "main", "commit": "b87f05e14364ce31cdd05f744b41e32f0787cca1" },
   "mini.icons": { "branch": "main", "commit": "b8f6fa6f5a3fd0c56936252edcd691184e5aac0c" },
   "mini.nvim": { "branch": "main", "commit": "94cae4660a8b2d95dbbd56e1fbc6fcfa2716d152" },
   "minuet-ai.nvim": { "branch": "main", "commit": "5d565cb23e0b365af14f9e9a2a45b2b46e7c4f3e" },
