@@ -307,7 +307,7 @@
                   username = "znd4";
                   hostname = "Zanes-MacBook-Neo.local";
                   system = "aarch64-darwin";
-                  identityAgent = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+                  identityAgent = ''"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"'';
                   _1password_ssh = true;
                 }
                 {
