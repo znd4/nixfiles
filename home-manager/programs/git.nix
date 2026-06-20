@@ -6,6 +6,7 @@
   keys,
   certificateAuthority,
   lib,
+  _1password_ssh,
   ...
 }:
 let
@@ -23,7 +24,7 @@ in
       ".zn-work"
     ];
     delta = {
-      enable = true;
+      # enable = true;
       options = {
         pager = "less";
       };
@@ -41,9 +42,12 @@ in
       core.longPaths = true;
 
       # Configure commit signing with my ssh key
+      #     [gpg "ssh"]
+      # program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
+      gpg.ssh.program = lib.optional _1password_ssh "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
       gpg.format = "ssh";
       # TODO - configure this differently on MacOS
-      user.signingKey = "${pkgs.writeText "github.com_id_rsa.pub" keys."github.com"}";
+      user.signingKey = keys."github.com";
 
       init.defaultBranch = "main";
       commit.template = "${pkgs.writeText "commit-template" (

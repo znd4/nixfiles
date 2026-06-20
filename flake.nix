@@ -120,6 +120,7 @@
                 #!/usr/bin/env bash
                 set -euo pipefail
                 which home-manager
+                set -x
 
                 # shellcheck disable=SC2046 # Intended splitting of OPTIONS
                 read -ra options <<<"''${1:-.}"
@@ -152,8 +153,7 @@
         keys = {
         };
         defaultKeys = {
-          "github.com" =
-            "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDDDi6qJg5OogDltfP/moQSc35an6xT+3N7JpIO36ct+LBcwJ0FydXO7OFceTxKQh4Pztm4VY3Odlk8M8VLaBuPac4Au//GjUFtU1aYmYgraEpzVwkRtla6VP7wLp0bHihtHNUVfvFCBnhGfz066qNck7k6ntJwXGqWeedtdjMZrhA0HQHsJDbgi12sFyY2aizuzNgBK3I0hHvTYG+ApD8nCbQjukxY6DpMjdwPLkLcCuvvbYeVGie6EuztXlqxpI1aM8vMnTKXn6wUmbvOYeBGONe4qzNiRy+Z453AK6k0tqVxgWWnPvgAcMIO1DvY5a8LaEvI5MDSvrqPJyYRIqMOcQThIvubb1CbMpkgOcEmYfrUOFZOHtOIZDEzahS3ggLMkAb3VWRlfRz+e0ESraQ+aMxUr0xNWpIeFz10xSRO6FZu0Qlu5+1dPMI7WNI190FyD+nqHedZYrSmHXpsaJ0YrUeUSu1DNpavVwtJ3e34fEWwzsZ36uf1Tcv8OCJNpAsXmkQHff77+GFk5O4tEyguAqtxJjvtFwJuh3BCyCHAvXyUNbB6qm/Wyr5sKiGEb/G9wpyS8cw/1FpgMsVw+v+e8GVdOz/zE/jYiVbHvDFkSE34LoSd+/mrHYkHlZeUsUQaAKeqLL/C/uR9XzoXbPV54IgKSN/gYfLsRyysKo6Txw==";
+          "github.com" = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHkoZGPqvCciloARGk9/rgPdjCFI2JmsYbgboEv98RKc";
           "desktop.local" =
             "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDg1BjrrEL43KwRmH2e4xF7R7XjO3bvG2ysJ3lk0XKmAtvmMGgBcQYwS2Q1/0rLKtnFNoYQA2koPoxGzHgW7qSxY0ltMs6FIDwfSdpJCeMy+NiayL30Lqu2zaM3SFsDC8TeSWv3kZdPr+RY/gUELiYx8VR4ZNd//Ykuu5+/rckO5bkqaT8iC8WzouLYSpwecTb2kAvyj1mrBSQH1QHqcowlDPwqGyCKh1CMTlX/jxEUOPpBrxhVFBiFFVnUJC28Kr+ggq8V34PiS+N/+QD+mCx6w71BfzV4JLl3NTclYWbg8ngxFE5olIKwpL0YZz/0ViW35KNhlAbI3IMbVeZTLKfCVJwMsV8GDuxTX81ypJO3VAPpjUQJ/4VnURqe+8zjBYhFzYJQBU9quCtQQnx7rM/0eav9a0op405cwFrhDc2fcuoD4egwyplm3hgacCGLSmCCk7Y5xSjaeO5MQpSgnVl+kdBXeZnWX5NrTqdlWcuW898Ijd0SLzidURvFjUauuprpk2QvnPw9oJivpC1HjVvPkYClBFqLwrjTQWtAACiBaFVKvQKygqzYfWYPz4gqO8EZQIuz+YZz/TftAhMDDNh9auo0vA3AaIwd7U972wnzq7/WfNo2SUacZoUerhMJlpPhpV5H54St3S9lfcwTVbZiX7wFsUu8FsO7wBguSFV4yQ==";
         };
@@ -178,6 +178,9 @@
             };
             modules = [ self.darwinModules.default ] ++ extraModules;
           };
+        darwinConfigurations."Zanes-MacBook-Neo.local" = self.darwinFactory {
+          username = "znd4";
+        };
         darwinConfigurations.work = self.darwinFactory {
           username = "znd4";
           stateVersion = 4;
@@ -233,6 +236,7 @@
             username,
             hostname,
             stateVersion,
+            _1password_ssh ? false,
             seshClConfig ? { },
             certificateAuthorities ? [ ],
             knownHosts ? self.knownHosts,
@@ -255,6 +259,7 @@
                 hostname
                 stateVersion
                 identityAgent
+                _1password_ssh
                 ;
               keys = defaultKeys // (keys."${hostname}" or { });
               certificateAuthority =
@@ -285,23 +290,16 @@
           builtins.listToAttrs (
             builtins.map
               (
-                {
-                  username,
-                  hostname,
-                  certificateAuthorities ? [ ],
-                  system ? "x86_64-linux",
-                  stateVersion ? "23.11",
-                }:
-                (lib.attrsets.nameValuePair "${username}@${hostname}" (
-                  self.homeConfigurationFactory {
-                    inherit
-                      stateVersion
-                      system
-                      username
-                      hostname
-                      certificateAuthorities
-                      ;
-                  }
+                args:
+                (lib.attrsets.nameValuePair "${args.username}@${args.hostname}" (
+                  self.homeConfigurationFactory (
+                    {
+                      certificateAuthorities = [ ];
+                      system = "x86_64-linux";
+                      stateVersion = "23.11";
+                    }
+                    // args
+                  )
                 ))
               )
               [
@@ -309,6 +307,8 @@
                   username = "znd4";
                   hostname = "Zanes-MacBook-Neo.local";
                   system = "aarch64-darwin";
+                  identityAgent = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+                  _1password_ssh = true;
                 }
                 {
                   username = "znd4";
