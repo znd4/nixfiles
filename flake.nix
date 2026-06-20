@@ -1,5 +1,8 @@
 {
   inputs = {
+    hunkdiff = {
+      url = "git+ssh://git@github.com/modem-dev/hunk.git?shallow=1";
+    };
     catppuccin-ghostty = {
       url = "git+ssh://git@github.com/catppuccin/ghostty.git?shallow=1";
       flake = false;
