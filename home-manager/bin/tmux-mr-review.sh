@@ -5,15 +5,18 @@
 # Flow:
 #   1. gum popup prompts for a PR/MR URL.
 #   2. The repo is cloned (once) under $HUNK_MR_WORKDIR/<host>/<project> and the
-#      PR/MR head is fetched into a detached worktree.
+#      PR/MR source is checked out as a real local branch (pr-N / mr-N) in a
+#      worktree, tracking the contributor's source (the fork remote for
+#      cross-repo PRs/MRs).
 #   3. A tmux session is created with two panes — a terminal (left) and Hunk
 #      auto-refreshing the PR/MR diff (right) — and the client is switched to it.
 #
 # Design notes:
-#   * API-free checkout. We fetch the forge's well-known refs (GitHub
-#     refs/pull/N/head, GitLab refs/merge-requests/N/head) over SSH, so this
-#     needs no gh/glab auth. Auth-requiring comment sync (`hunk-mr pull`) is a
-#     separate step, run from the terminal pane.
+#   * Checkout resolves the source remote + branch via the forge API (gh/glab,
+#     already needed by `hunk-mr pull`) so the worktree is on a named branch
+#     rather than a detached head — `git status`/Hunk show the branch and updates
+#     can be pulled. If the API is unavailable it falls back to the forge head
+#     ref (GitHub refs/pull/N/head, GitLab refs/merge-requests/N/head) over SSH.
 #   * The terminal pane is stamped with HUNK_MR_* env vars identifying the PR/MR,
 #     so `hunk-mr pull` invoked there knows what to sync without re-deriving it.
 #   * Idempotent: re-running for the same PR/MR just switches to the existing
@@ -95,21 +98,75 @@ if [ -z "$base" ]; then
   base=$(git -C "$repo_dir" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)
 fi
 
-# --- fetch the PR/MR head and place a worktree at it -------------------------
-# Force-fetch (`+`) the forge head ref into a private local ref so re-runs pick
-# up new pushes. The worktree is detached (the head isn't a normal branch), which
-# also sidesteps "branch already checked out in another worktree" conflicts.
-local_ref="refs/review/$forge-$number"
-git -C "$repo_dir" fetch -q origin "+$head_ref:$local_ref" \
-  || die "could not fetch $head_ref — is the URL right / do you have access?"
-head_sha=$(git -C "$repo_dir" rev-parse "$local_ref")
+# --- resolve the source remote + branch via the forge API -------------------
+# We check out a real local branch (pr-N / mr-N) tracking the PR/MR's source,
+# rather than a detached head, so `git status`/Hunk show a branch and updates
+# can be pulled. For cross-repo (fork) PRs/MRs the source lives on the fork, so
+# we add it as a remote named after the fork owner. This needs gh/glab (already
+# required by `hunk-mr pull`); the forge head ref remains the fallback below.
+if [ "$forge" = github ]; then
+  review_branch="pr-$number"
+else
+  review_branch="mr-$number"
+fi
+
+source_remote=origin
+source_branch=""
+fork_url=""
+
+if [ "$forge" = github ]; then
+  if mr_json=$(gh pr view "$number" --repo "$project" \
+        --json headRefName,headRepositoryOwner,headRepository,isCrossRepository 2>/dev/null); then
+    source_branch=$(printf '%s' "$mr_json" | jq -r '.headRefName')
+    if [ "$(printf '%s' "$mr_json" | jq -r '.isCrossRepository')" = true ]; then
+      fork_owner=$(printf '%s' "$mr_json" | jq -r '.headRepositoryOwner.login')
+      fork_repo=$(printf '%s' "$mr_json" | jq -r '.headRepository.name')
+      source_remote="$fork_owner"
+      fork_url="git@$host:$fork_owner/$fork_repo.git"
+    fi
+  fi
+else
+  if mr_json=$(glab mr view "$number" --repo "$project" --output json 2>/dev/null); then
+    source_branch=$(printf '%s' "$mr_json" | jq -r '.source_branch')
+    src_pid=$(printf '%s' "$mr_json" | jq -r '.source_project_id')
+    tgt_pid=$(printf '%s' "$mr_json" | jq -r '.target_project_id')
+    if [ -n "$src_pid" ] && [ "$src_pid" != "$tgt_pid" ] && [ "$src_pid" != null ]; then
+      if proj_json=$(glab api "projects/$src_pid" 2>/dev/null); then
+        source_remote=$(printf '%s' "$proj_json" | jq -r '.path_with_namespace' | tr '/' '-')
+        fork_url=$(printf '%s' "$proj_json" | jq -r '.ssh_url_to_repo')
+      fi
+    fi
+  fi
+fi
 
 worktree_dir="$repo_dir/.zn-work/$forge-$number"
+
+if [ -n "$source_branch" ] && [ "$source_branch" != null ]; then
+  # Add the fork remote (idempotent) for cross-repo sources.
+  if [ "$source_remote" != origin ] && [ -n "$fork_url" ]; then
+    if ! git -C "$repo_dir" remote get-url "$source_remote" >/dev/null 2>&1; then
+      git -C "$repo_dir" remote add "$source_remote" "$fork_url"
+    fi
+  fi
+  # Fetch the source branch and point the review branch at it.
+  git -C "$repo_dir" fetch -q "$source_remote" \
+      "+refs/heads/$source_branch:refs/remotes/$source_remote/$source_branch" \
+    || die "could not fetch $source_branch from $source_remote"
+  start_point="$source_remote/$source_branch"
+else
+  # API unavailable — fall back to the forge head ref (detached-equivalent, but
+  # we still create a local branch so Hunk shows a name).
+  git -C "$repo_dir" fetch -q origin "+$head_ref:refs/review/$forge-$number" \
+    || die "could not fetch $head_ref — is the URL right / do you have access?"
+  start_point="refs/review/$forge-$number"
+fi
+
+# Create/refresh the worktree on the review branch.
 if [ -d "$worktree_dir" ]; then
-  git -C "$worktree_dir" checkout -q --detach "$head_sha" 2>/dev/null || true   # refresh existing
+  git -C "$worktree_dir" checkout -q -B "$review_branch" "$start_point" 2>/dev/null || true
 else
   mkdir -p "$repo_dir/.zn-work"
-  git -C "$repo_dir" worktree add -q --detach "$worktree_dir" "$head_sha" \
+  git -C "$repo_dir" worktree add -q -B "$review_branch" "$worktree_dir" "$start_point" \
     || die "could not create worktree at $worktree_dir"
 fi
 

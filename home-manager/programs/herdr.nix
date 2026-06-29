@@ -19,6 +19,9 @@ let
       pkgs.git
       pkgs.gum
       pkgs.coreutils
+      pkgs.gh
+      pkgs.glab
+      pkgs.jq
       herdr
     ];
     text = ''
@@ -43,14 +46,14 @@ let
         exit 1
       fi
 
-      # The PR/MR head ref (by number) is the robust fetch target: it resolves
-      # for fork PRs (whose branch lives on the fork, not origin) and for merged
-      # PRs/MRs whose source branch has since been deleted — both of which a
-      # `git fetch origin <branch>` would miss.
+      # Forge head ref (by number) is the robust fallback: it resolves for fork
+      # PRs and for merged PRs/MRs whose branch was deleted.
       if [ "$forge" = "github" ]; then
         head_ref="pull/$pr_number/head"
+        review_branch="pr-$pr_number"
       else
         head_ref="merge-requests/$pr_number/head"
+        review_branch="mr-$pr_number"
       fi
 
       # Clone repo if needed
@@ -61,19 +64,65 @@ let
         git clone "git@$host:$project_path.git" "$repo_dir"
       fi
 
-      # Fetch the PR/MR head ref
-      if ! git -C "$repo_dir" fetch origin "$head_ref"; then
-        echo "Error: could not fetch $head_ref" >&2
-        exit 1
+      # Resolve the source remote + branch via the forge API so we can check out
+      # a real local branch (pr-N / mr-N) tracking the contributor's source —
+      # rather than a detached head. Cross-repo (fork) sources are added as a
+      # remote named after the fork owner. Falls back to the forge head ref when
+      # the API is unavailable.
+      source_remote="origin"
+      source_branch=""
+      fork_url=""
+      if [ "$forge" = "github" ]; then
+        if mr_json=$(gh pr view "$pr_number" --repo "$project_path" \
+              --json headRefName,headRepositoryOwner,headRepository,isCrossRepository 2>/dev/null); then
+          source_branch=$(printf '%s' "$mr_json" | jq -r '.headRefName')
+          if [ "$(printf '%s' "$mr_json" | jq -r '.isCrossRepository')" = "true" ]; then
+            fork_owner=$(printf '%s' "$mr_json" | jq -r '.headRepositoryOwner.login')
+            fork_repo=$(printf '%s' "$mr_json" | jq -r '.headRepository.name')
+            source_remote="$fork_owner"
+            fork_url="git@$host:$fork_owner/$fork_repo.git"
+          fi
+        fi
+      else
+        if mr_json=$(glab mr view "$pr_number" --repo "$project_path" --output json 2>/dev/null); then
+          source_branch=$(printf '%s' "$mr_json" | jq -r '.source_branch')
+          src_pid=$(printf '%s' "$mr_json" | jq -r '.source_project_id')
+          tgt_pid=$(printf '%s' "$mr_json" | jq -r '.target_project_id')
+          if [ -n "$src_pid" ] && [ "$src_pid" != "$tgt_pid" ] && [ "$src_pid" != "null" ]; then
+            if proj_json=$(glab api "projects/$src_pid" 2>/dev/null); then
+              source_remote=$(printf '%s' "$proj_json" | jq -r '.path_with_namespace' | tr '/' '-')
+              fork_url=$(printf '%s' "$proj_json" | jq -r '.ssh_url_to_repo')
+            fi
+          fi
+        fi
       fi
 
-      # Create a detached worktree at the fetched head.
+      if [ -n "$source_branch" ] && [ "$source_branch" != "null" ]; then
+        if [ "$source_remote" != "origin" ] && [ -n "$fork_url" ]; then
+          if ! git -C "$repo_dir" remote get-url "$source_remote" >/dev/null 2>&1; then
+            git -C "$repo_dir" remote add "$source_remote" "$fork_url"
+          fi
+        fi
+        git -C "$repo_dir" fetch -q "$source_remote" \
+            "+refs/heads/$source_branch:refs/remotes/$source_remote/$source_branch" \
+          || { echo "Error: could not fetch $source_branch from $source_remote" >&2; exit 1; }
+        start_point="$source_remote/$source_branch"
+      else
+        # API unavailable — fall back to the forge head ref.
+        git -C "$repo_dir" fetch -q origin "+$head_ref:refs/review/$forge-$pr_number" \
+          || { echo "Error: could not fetch $head_ref" >&2; exit 1; }
+        start_point="refs/review/$forge-$pr_number"
+      fi
+
+      # Create/refresh the worktree on the review branch.
       worktree_name="$forge-$pr_number"
       worktree_dir="$repo_dir/.zn-work/$worktree_name"
-
-      if [ ! -d "$worktree_dir" ]; then
+      if [ -d "$worktree_dir" ]; then
+        git -C "$worktree_dir" checkout -q -B "$review_branch" "$start_point" 2>/dev/null || true
+      else
         mkdir -p "$repo_dir/.zn-work"
-        git -C "$repo_dir" worktree add "$worktree_dir" FETCH_HEAD --detach
+        git -C "$repo_dir" worktree add -q -B "$review_branch" "$worktree_dir" "$start_point" \
+          || { echo "Error: could not create worktree at $worktree_dir" >&2; exit 1; }
       fi
 
       # Open as a herdr workspace (rather than a tmux session)

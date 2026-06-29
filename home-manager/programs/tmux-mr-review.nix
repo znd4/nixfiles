@@ -24,6 +24,9 @@ let
       tmux
       fish
       coreutils
+      gh
+      glab
+      jq
     ];
     text = ''
       export HUNK_MR_WORKDIR="${workDir}"
