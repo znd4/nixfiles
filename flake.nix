@@ -3,6 +3,12 @@
     hunkdiff = {
       url = "git+ssh://git@github.com/modem-dev/hunk.git?shallow=1";
     };
+    # herdr — terminal agent multiplexer (ships its own flake). Pin to a release
+    # tag; bump deliberately. Its nixpkgs (unstable) is left to its own pin so
+    # the vendored libghostty-vt zig deps resolve as upstream expects.
+    herdr = {
+      url = "git+ssh://git@github.com/ogulcancelik/herdr.git?shallow=1&ref=refs/tags/v0.7.1";
+    };
     catppuccin-ghostty = {
       url = "git+ssh://git@github.com/catppuccin/ghostty.git?shallow=1";
       flake = false;

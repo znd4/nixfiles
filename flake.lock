@@ -302,6 +302,26 @@
         "url": "ssh://git@github.com/znd4/git-town.git"
       }
     },
+    "herdr": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_4"
+      },
+      "locked": {
+        "lastModified": 1782308245,
+        "narHash": "sha256-/WnsUO1DuSmBfVo8LCFaDJEZvSrYnJZPyRNqASbPzV8=",
+        "ref": "refs/tags/v0.7.1",
+        "rev": "fe30dd9a0fcf55cf07fe8dfedc99abdfc801e42d",
+        "shallow": true,
+        "type": "git",
+        "url": "ssh://git@github.com/ogulcancelik/herdr.git"
+      },
+      "original": {
+        "ref": "refs/tags/v0.7.1",
+        "shallow": true,
+        "type": "git",
+        "url": "ssh://git@github.com/ogulcancelik/herdr.git"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -327,7 +347,7 @@
     "hunkdiff": {
       "inputs": {
         "bun2nix": "bun2nix",
-        "nixpkgs": "nixpkgs_4"
+        "nixpkgs": "nixpkgs_5"
       },
       "locked": {
         "lastModified": 1781895871,
@@ -530,6 +550,22 @@
     },
     "nixpkgs_4": {
       "locked": {
+        "lastModified": 1779357205,
+        "narHash": "sha256-cCO8aTqss5x9Ky8GWkpY0Hy5fyTZEbtifSUV8QjSzic=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "f83fc3c307e74bc5fd5adb7eb6b8b13ffd2a36e1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_5": {
+      "locked": {
         "lastModified": 1777954456,
         "narHash": "sha256-hGdgeU2Nk87RAuZyYjyDjFL6LK7dAZN5RE9+hrDTkDU=",
         "owner": "NixOS",
@@ -544,7 +580,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_5": {
+    "nixpkgs_6": {
       "locked": {
         "lastModified": 1770036691,
         "narHash": "sha256-jNvn9TthNQE0ZOhUBDbo5lfQ73j7yv8j1sRAtUIbuA0=",
@@ -573,10 +609,11 @@
         "ghostty": "ghostty",
         "ghostty-hm-module": "ghostty-hm-module",
         "git-town-znd4": "git-town-znd4",
+        "herdr": "herdr",
         "home-manager": "home-manager",
         "hunkdiff": "hunkdiff",
         "nil": "nil",
-        "nixpkgs": "nixpkgs_5",
+        "nixpkgs": "nixpkgs_6",
         "nixpkgs-git-town-21_2_0": "nixpkgs-git-town-21_2_0",
         "nixpkgs-opencode": "nixpkgs-opencode",
         "nixpkgs-unstable": "nixpkgs-unstable",
