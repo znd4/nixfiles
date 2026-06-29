@@ -16,11 +16,8 @@ let
   herdrMrReview = pkgs.writeShellApplication {
     name = "herdr-mr-review";
     runtimeInputs = [
-      pkgs.glab
-      pkgs.gh
       pkgs.git
       pkgs.gum
-      pkgs.jq
       pkgs.coreutils
       herdr
     ];
@@ -46,16 +43,14 @@ let
         exit 1
       fi
 
-      # Fetch source branch
+      # The PR/MR head ref (by number) is the robust fetch target: it resolves
+      # for fork PRs (whose branch lives on the fork, not origin) and for merged
+      # PRs/MRs whose source branch has since been deleted — both of which a
+      # `git fetch origin <branch>` would miss.
       if [ "$forge" = "github" ]; then
-        source_branch=$(gh pr view "$pr_number" --repo "$project_path" --json headRefName -q '.headRefName')
+        head_ref="pull/$pr_number/head"
       else
-        source_branch=$(glab mr view "$pr_number" --repo "$project_path" --output json | jq -r '.source_branch')
-      fi
-
-      if [ -z "$source_branch" ] || [ "$source_branch" = "null" ]; then
-        echo "Error: could not fetch source branch" >&2
-        exit 1
+        head_ref="merge-requests/$pr_number/head"
       fi
 
       # Clone repo if needed
@@ -66,16 +61,19 @@ let
         git clone "git@$host:$project_path.git" "$repo_dir"
       fi
 
-      # Fetch the branch
-      git -C "$repo_dir" fetch origin "$source_branch"
+      # Fetch the PR/MR head ref
+      if ! git -C "$repo_dir" fetch origin "$head_ref"; then
+        echo "Error: could not fetch $head_ref" >&2
+        exit 1
+      fi
 
-      # Create worktree
-      worktree_name=$(echo "$source_branch" | tr '/' '-')
+      # Create a detached worktree at the fetched head.
+      worktree_name="$forge-$pr_number"
       worktree_dir="$repo_dir/.zn-work/$worktree_name"
 
       if [ ! -d "$worktree_dir" ]; then
         mkdir -p "$repo_dir/.zn-work"
-        git -C "$repo_dir" worktree add "$worktree_dir" "origin/$source_branch" --detach
+        git -C "$repo_dir" worktree add "$worktree_dir" FETCH_HEAD --detach
       fi
 
       # Open as a herdr workspace (rather than a tmux session)
