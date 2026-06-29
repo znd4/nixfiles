@@ -1,4 +1,4 @@
-{ inputs, lib, ... }:
+{ inputs, lib, pkgs, ... }:
 let
   skillSrc = "${inputs.claude-skills-bendrucker}/plugins/git-town/skills/git-town";
   mkSkillFiles = dir: prefix:
@@ -16,5 +16,6 @@ let
     ) entries;
 in
 {
+  home.packages = [ pkgs.claude-code ];
   home.file = mkSkillFiles skillSrc ".claude/skills/git-town";
 }
