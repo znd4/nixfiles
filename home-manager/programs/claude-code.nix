@@ -1,4 +1,4 @@
-{ inputs, lib, pkgs, ... }:
+{ inputs, lib, ... }:
 let
   skillSrc = "${inputs.claude-skills-bendrucker}/plugins/git-town/skills/git-town";
   mkSkillFiles = dir: prefix:
@@ -16,6 +16,8 @@ let
     ) entries;
 in
 {
-  home.packages = [ pkgs.claude-code ];
+  # Note: the claude-code CLI is intentionally NOT installed here. The nixpkgs
+  # package lags upstream; the auto-updating ~/.local/bin/claude is used instead.
+  # This module only provides the git-town skill files.
   home.file = mkSkillFiles skillSrc ".claude/skills/git-town";
 }
