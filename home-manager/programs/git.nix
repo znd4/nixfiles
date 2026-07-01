@@ -55,6 +55,10 @@ in
       )}";
       commit.gpgSign = true;
       push.autoSetupRemote = true;
+      # Push to the tracked upstream even when the local branch name differs
+      # from the remote branch name (e.g. local `mr-353` -> `origin/docs/...`).
+      # Avoids the default `simple` refusing to push on a name mismatch.
+      push.default = "upstream";
 
       git-town.sync-feature-strategy = "rebase";
 
