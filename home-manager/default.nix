@@ -219,7 +219,11 @@ in
     ];
 
   programs.ssh = {
-    addKeysToAgent = "confirm";
+    # "yes" (not "confirm"): with "confirm", every key *use* needs an interactive
+    # TouchID/prompt, which silently fails non-interactive git pushes (the key is
+    # in the agent but each use is blocked). No-op on machines whose IdentityAgent
+    # is Secretive/1Password (those manage keys internally and ignore this).
+    addKeysToAgent = "yes";
     enable = true;
     userKnownHostsFile = "${
       (pkgs.writeText "known_hosts" (
