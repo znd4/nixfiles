@@ -65,6 +65,12 @@
       url = "github:bendrucker/claude/1db049f4b21063bb7e18448851150fea5c98cd0e";
       flake = false;
     };
+    # Jujutsu (jj) workflow skill for agentic coding. Pinned to a reviewed
+    # commit (not a branch/tag) to avoid supply-chain drift; bump deliberately.
+    jujutsu-workflow-skill = {
+      url = "github:netresearch/jujutsu-workflow-skill/a22e4befb7639004698f8f63035e99bbe4a39ffd";
+      flake = false;
+    };
     darwin = {
       url = "git+ssh://git@github.com/LnL7/nix-darwin.git?shallow=1&ref=nix-darwin-25.05";
       inputs.nixpkgs.follows = "nixpkgs";

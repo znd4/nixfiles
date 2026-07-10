@@ -379,6 +379,23 @@
         "type": "github"
       }
     },
+    "jujutsu-workflow-skill": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1783512128,
+        "narHash": "sha256-TlPESmREVJBQP0LCObjFxwBDdW8gxf3o1GuwmPIIbtE=",
+        "owner": "netresearch",
+        "repo": "jujutsu-workflow-skill",
+        "rev": "a22e4befb7639004698f8f63035e99bbe4a39ffd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "netresearch",
+        "repo": "jujutsu-workflow-skill",
+        "rev": "a22e4befb7639004698f8f63035e99bbe4a39ffd",
+        "type": "github"
+      }
+    },
     "nil": {
       "inputs": {
         "nixpkgs": [
@@ -612,6 +629,7 @@
         "herdr": "herdr",
         "home-manager": "home-manager",
         "hunkdiff": "hunkdiff",
+        "jujutsu-workflow-skill": "jujutsu-workflow-skill",
         "nil": "nil",
         "nixpkgs": "nixpkgs_6",
         "nixpkgs-git-town-21_2_0": "nixpkgs-git-town-21_2_0",
