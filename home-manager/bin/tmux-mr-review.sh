@@ -98,6 +98,14 @@ if [ -z "$base" ]; then
   base=$(git -C "$repo_dir" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)
 fi
 
+# Refresh the base ref before diffing. Cloned-once repos go stale: without this
+# the local origin/main lags the remote, so `base...HEAD` computes an outdated
+# merge-base and the review diff shows commits already merged upstream. Fetch
+# just the base branch from origin (fast; avoids pulling every fork remote that
+# `fetch --all` would). Best-effort — a fetch failure shouldn't block review.
+base_branch=${base#origin/}
+git -C "$repo_dir" fetch -q origin "$base_branch" 2>/dev/null || true
+
 # --- resolve the source remote + branch via the forge API -------------------
 # We check out a real local branch (pr-N / mr-N) tracking the PR/MR's source,
 # rather than a detached head, so `git status`/Hunk show a branch and updates
