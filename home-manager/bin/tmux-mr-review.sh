@@ -102,9 +102,18 @@ fi
 # the local origin/main lags the remote, so `base...HEAD` computes an outdated
 # merge-base and the review diff shows commits already merged upstream. Fetch
 # just the base branch from origin (fast; avoids pulling every fork remote that
-# `fetch --all` would). Best-effort — a fetch failure shouldn't block review.
+# `fetch --all` would).
+#
+# Don't `die` on failure: the panes are still worth having. Instead record the
+# failure and surface it loudly *inside* the review session (see base_warning
+# below) so a stale-base diff can't masquerade as correct.
 base_branch=${base#origin/}
-git -C "$repo_dir" fetch -q origin "$base_branch" 2>/dev/null || true
+base_fetch_error=""
+if ! base_fetch_error=$(git -C "$repo_dir" fetch origin "$base_branch" 2>&1); then
+  : # keep the message in $base_fetch_error; handled where the panes are built
+else
+  base_fetch_error=""
+fi
 
 # --- resolve the source remote + branch via the forge API -------------------
 # We check out a real local branch (pr-N / mr-N) tracking the PR/MR's source,
@@ -226,8 +235,30 @@ pane0=$(tmux new-session -d -P -F '#{pane_id}' -s "$session" -c "$worktree_dir" 
 # left focused on purpose: Hunk probes the terminal for graphics support on
 # startup, and keeping focus here means it consumes its own reply instead of the
 # reply leaking into the terminal pane's prompt (the "Gi=…;OK" noise).
-# shellcheck disable=SC2016  # the single-quoted $base...HEAD is for fish, not bash
-hunk_cmd='hunk diff '"'$base...HEAD'"' --watch; exec fish'
+#
+# If the base fetch failed, the diff compares against a possibly-stale base, so
+# prepend a loud red banner (and pause on it) before launching Hunk — the panes
+# are still opened, but the staleness can't go unnoticed.
+#
+# The command runs under `fish -c`; build it in pieces to keep the quoting sane.
+diff_cmd="hunk diff '$base...HEAD' --watch; exec fish"
+
+if [ -n "$base_fetch_error" ]; then
+  # Flatten the git error to a single line and neutralise quotes so it can sit
+  # inside the double-quoted fish snippet safely.
+  err_line=$(printf '%s' "$base_fetch_error" | tr '\n' ' ' | tr '"' "'")
+  # set_color / echo are fish builtins; this renders a red banner then waits.
+  warning="set_color --bold brwhite --background red; echo ' ⚠  BASE MAY BE STALE '; set_color normal; "
+  warning+="set_color --bold red; echo \"could not fetch $base_branch from origin — this '$base...HEAD' diff\"; "
+  warning+="echo 'may show commits already merged upstream.'; set_color normal; "
+  warning+="set_color brblack; echo \"$err_line\"; set_color normal; "
+  warning+="read -P 'Press enter to open Hunk anyway… ' _; "
+  hunk_cmd="$warning$diff_cmd"
+else
+  hunk_cmd="$diff_cmd"
+fi
+
+# shellcheck disable=SC2016  # $base...HEAD / $base inside hunk_cmd are for fish
 tmux split-window -h -l 62% -t "$pane0" -c "$worktree_dir" "${env_args[@]}" \
   fish -c "$hunk_cmd"
 
