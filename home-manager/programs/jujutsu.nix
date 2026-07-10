@@ -54,6 +54,10 @@
       diff-format = ":color-words";
       # Enable colors
       color = "auto";
+      # Never auto-invoke a pager. An auto-pager hangs non-interactive agents;
+      # a human can still page explicitly (`jj log | less -R`) or override per
+      # command (`jj --config ui.paginate=auto log`).
+      paginate = "never";
     };
   };
 }
