@@ -363,6 +363,13 @@ in
     shellInit = lib.strings.concatStringsSep "\n" (
       [
         # put hard-coded init configuration in here
+        # Keep git worktrees (created under .zn-work/) out of the zoxide db so
+        # `z` / `sesh -z` don't surface transient worktree paths. zoxide splits
+        # _ZO_EXCLUDE_DIRS on ':' (a single colon-joined string, NOT a fish list
+        # -- fish exports lists space-joined, which zoxide won't parse). `**`
+        # matches .zn-work at any nesting depth; the second glob covers the dir
+        # itself.
+        "set -gx _ZO_EXCLUDE_DIRS \"$HOME/**/.zn-work/**:$HOME/**/.zn-work\""
       ]
       ++ (lib.attrsets.mapAttrsToList (name: value: "set -gx ${name} ${value}") envMap)
     );
