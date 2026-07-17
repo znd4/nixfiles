@@ -132,10 +132,46 @@ let
           || { echo "Error: could not create worktree at $worktree_dir" >&2; exit 1; }
       fi
 
-      # Open as a herdr workspace (rather than a tmux session)
+      # Resolve the base branch (repo default) to diff the review against, and
+      # refresh it so `base...HEAD` doesn't show already-merged commits. Mirrors
+      # the tmux-mr-review base handling; non-fatal on fetch failure.
+      base=$(git -C "$repo_dir" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || true)
+      if [ -z "$base" ]; then
+        git -C "$repo_dir" remote set-head origin --auto >/dev/null 2>&1 || true
+        base=$(git -C "$repo_dir" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)
+      fi
+      git -C "$repo_dir" fetch -q origin "''${base#origin/}" 2>/dev/null || true
+
+      # Open as a herdr workspace (the session equivalent) laid out for review,
+      # mirroring the tmux popup: terminal pane (left) + Hunk auto-refreshing the
+      # PR/MR diff (right). `hunk` is on PATH via programs.hunk (run from the
+      # user env, so intentionally not in runtimeInputs).
       repo_name=$(basename "$project_path")
       label="review/$repo_name/$worktree_name"
-      herdr workspace create --cwd "$worktree_dir" --label "$label" --focus
+
+      # Idempotent: if a workspace with this label already exists, just focus it.
+      existing=$(herdr workspace list 2>/dev/null \
+        | jq -r --arg l "$label" '.result.workspaces[] | select(.label==$l) | .workspace_id' 2>/dev/null | head -1)
+      if [ -n "$existing" ]; then
+        herdr workspace focus "$existing"
+        exit 0
+      fi
+
+      # Create the workspace and capture its root pane id.
+      root_pane=$(herdr workspace create --cwd "$worktree_dir" --label "$label" --focus 2>/dev/null \
+        | jq -r '.result.root_pane.pane_id' 2>/dev/null)
+
+      # Split off the Hunk review pane to the right (62%, matching the tmux
+      # layout) and run `hunk diff base...HEAD --watch` in it. `herdr pane split`
+      # only creates an interactive shell (no command arg), so we capture the new
+      # pane id and drive the command in with `herdr pane run`.
+      if [ -n "$root_pane" ] && [ "$root_pane" != "null" ]; then
+        hunk_pane=$(herdr pane split "$root_pane" --direction right --ratio 0.62 --cwd "$worktree_dir" --focus 2>/dev/null \
+          | jq -r '.result.pane.pane_id' 2>/dev/null)
+        if [ -n "$hunk_pane" ] && [ "$hunk_pane" != "null" ]; then
+          herdr pane run "$hunk_pane" "hunk diff '$base...HEAD' --watch" 2>/dev/null || true
+        fi
+      fi
     '';
   };
 
@@ -277,9 +313,11 @@ let
     type = "pane"
     command = "lazygit"
 
-    # PR/MR review workflow (clone + worktree + open herdr workspace).
+    # tmux M-r: PR/MR review. Clone + worktree + open a herdr workspace laid out
+    # with a terminal (left) and Hunk auto-refreshing the diff (right), matching
+    # the old tmux-mr-review popup. Bound to alt+r to match that muscle memory.
     [[keys.command]]
-    key = "prefix+m"
+    key = "alt+r"
     type = "pane"
     command = "${herdrMrReview}/bin/herdr-mr-review"
 
@@ -309,23 +347,6 @@ let
     key = "alt+s"
     type = "pane"
     command = "${herdrNewNamed}/bin/herdr-new-named"
-
-    # tmux M-p: open the current repo's pull request in the browser.
-    # _pull-request-open runs `git rev-parse` and errors outside a repo. A
-    # command pane does NOT start in the focused repo automatically, so cd into
-    # $HERDR_ACTIVE_PANE_CWD first — the focused pane's cwd, which herdr injects
-    # into custom commands (per herdr.dev/docs/configuration). `|| read` keeps
-    # the pane open on error so the message stays readable.
-    [[keys.command]]
-    key = "alt+p"
-    type = "pane"
-    command = "cd \"''${HERDR_ACTIVE_PANE_CWD:-$PWD}\" && _pull-request-open || { echo; read -rp 'Press enter to close…'; }"
-
-    # TEMP diagnostic: dump what herdr injects, so we can see the real cwd vars.
-    [[keys.command]]
-    key = "alt+shift+p"
-    type = "pane"
-    command = "echo PWD=$PWD; echo ACTIVE_PANE_CWD=''${HERDR_ACTIVE_PANE_CWD:-<unset>}; echo ACTIVE_PANE_ID=''${HERDR_ACTIVE_PANE_ID:-<unset>}; env | grep -i herdr; read -rp 'enter…'"
   '';
 in
 {
