@@ -284,29 +284,35 @@ let
     command = "${herdrMrReview}/bin/herdr-mr-review"
 
     # --- Fuzzy finders / workspace creators (ported from tmux popups) ---
+    #
+    # Bound to plain alt+ single chords to match the tmux M-<key> muscle memory
+    # (M-d/M-m/M-s/M-p were all `bind -n`, no prefix). This relies on Ghostty's
+    # `macos-option-as-alt = true` (see ghostty.nix) so Option sends a real Alt
+    # modifier instead of macOS-composing (alt+d -> ∂). Valid because herdr runs
+    # as the top-level multiplexer directly in Ghostty (no tmux layer between).
 
     # tmux M-d: sesh connect picker. Pick a zoxide/find dir -> open as workspace.
     [[keys.command]]
-    key = "prefix+d"
+    key = "alt+d"
     type = "pane"
     command = "${herdrSeshPick}/bin/herdr-sesh-pick"
 
     # tmux M-m: clone-creator. gh/glab/URL repo picker -> clone -> open workspace.
     [[keys.command]]
-    key = "prefix+shift+m"
+    key = "alt+m"
     type = "pane"
     command = "${herdrClone}/bin/herdr-clone"
 
     # tmux M-s: new workspace with a prompted name.
     # (herdr's native new_workspace = prefix+shift+n creates an unnamed one.)
     [[keys.command]]
-    key = "prefix+alt+n"
+    key = "alt+s"
     type = "pane"
     command = "${herdrNewNamed}/bin/herdr-new-named"
 
     # tmux M-p: open the current repo's pull request in the browser.
     [[keys.command]]
-    key = "prefix+alt+p"
+    key = "alt+p"
     type = "shell"
     command = "_pull-request-open"
   '';
