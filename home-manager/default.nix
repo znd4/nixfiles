@@ -395,7 +395,7 @@ in
       set fzf_fd_opts --hidden --exclude .git
       ${pkgs.uv}/bin/uv generate-shell-completion fish | source
       set -g SHELL ${pkgs.fish}/bin/fish
-      abbr -a by --position anywhere --set-cursor "% | bat -l yaml"
+      abbr -a by --position anywhere "bat -l yaml"
       ${pkgs.fnm}/bin/fnm env --use-on-cd --shell fish | source
       set -gx fish_complete_path $fish_complete_path ${config.home.profileDirectory}/share/fish/vendor_completions.d
       set --unpath JSONNET_PATH
