@@ -320,6 +320,12 @@ let
     key = "alt+p"
     type = "pane"
     command = "cd \"''${HERDR_ACTIVE_PANE_CWD:-$PWD}\" && _pull-request-open || { echo; read -rp 'Press enter to close…'; }"
+
+    # TEMP diagnostic: dump what herdr injects, so we can see the real cwd vars.
+    [[keys.command]]
+    key = "alt+shift+p"
+    type = "pane"
+    command = "echo PWD=$PWD; echo ACTIVE_PANE_CWD=''${HERDR_ACTIVE_PANE_CWD:-<unset>}; echo ACTIVE_PANE_ID=''${HERDR_ACTIVE_PANE_ID:-<unset>}; env | grep -i herdr; read -rp 'enter…'"
   '';
 in
 {
