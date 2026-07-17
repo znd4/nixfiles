@@ -311,10 +311,15 @@ let
     command = "${herdrNewNamed}/bin/herdr-new-named"
 
     # tmux M-p: open the current repo's pull request in the browser.
+    # type = "pane" (not "shell"): a temporary pane inherits the focused
+    # workspace's cwd (new_cwd = "follow"), which _pull-request-open needs — it
+    # runs `git rev-parse` and errors outside a repo. "shell" runs detached with
+    # no cwd inheritance and no visible output, so failures were silent. The
+    # `|| read` keeps the pane open on error so the message is readable.
     [[keys.command]]
     key = "alt+p"
-    type = "shell"
-    command = "_pull-request-open"
+    type = "pane"
+    command = "_pull-request-open || { echo; read -rp 'Press enter to close…'; }"
   '';
 in
 {
