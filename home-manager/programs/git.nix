@@ -22,6 +22,7 @@ in
     ignores = [
       "**/.claude/settings.local.json"
       ".zn-work"
+      ".jj"
     ];
     delta = {
       # enable = true;
