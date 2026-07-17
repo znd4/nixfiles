@@ -161,13 +161,9 @@ let
           --bind "ctrl-f:change-prompt(🔎  )+reload(fd -H -d 4 -t d -E .Trash -E .git . ${workDir})" \
         ) || exit 0
       [ -z "$dir" ] && exit 0
-      # Reuse an existing workspace for this dir if one is already open.
-      existing=$(herdr workspace list 2>/dev/null | grep -F " $dir" | head -1 | awk '{print $1}' || true)
-      if [ -n "$existing" ]; then
-        herdr workspace focus "$existing"
-      else
-        herdr workspace create --cwd "$dir" --label "$(basename "$dir")" --focus
-      fi
+      # Expand a leading ~ (sesh list -z emits ~-relative paths).
+      dir="''${dir/#\~/$HOME}"
+      herdr workspace create --cwd "$dir" --label "$(basename "$dir")" --focus
     '';
   };
 
