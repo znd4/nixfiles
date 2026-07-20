@@ -24,6 +24,7 @@ import os
 import re
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
@@ -102,6 +103,10 @@ def run(
     if check and proc.returncode != 0:
         raise subprocess.CalledProcessError(proc.returncode, args, proc.stdout, proc.stderr)
     return proc
+
+
+class ReviewError(Exception):
+    """Fatal, user-facing error raised from worker threads; main() calls die()."""
 
 
 def die(msg: str, code: int = 1) -> None:
@@ -234,7 +239,9 @@ def checkout_start_point(t: Target) -> str:
         check=False,
     )
     if fetch.returncode != 0:
-        die(
+        # Raised (not die()) because this runs in a worker thread; main() catches
+        # ReviewError and calls die() on the main thread for a clean exit.
+        raise ReviewError(
             f"could not fetch {t.head_ref} — is the URL right / do you have access?\n"
             f"  {fetch.stderr.strip()}"
         )
@@ -336,8 +343,16 @@ def main() -> None:
         t.repo_dir.parent.mkdir(parents=True, exist_ok=True)
         run("git", "clone", f"git@{t.host}:{t.project}.git", str(t.repo_dir))
 
-    start_point = checkout_start_point(t)
-    base = resolve_base(t)
+    # The two slow network steps are independent — the review-head resolution
+    # (forge API + fetch of the source/head ref) and the base-branch refresh
+    # (fetch of origin/main). Run them concurrently so total ≈ max(...) instead
+    # of the sum. They fetch different refspecs into the same repo, which git
+    # handles fine; the rare cross-repo `remote add` only touches its own remote.
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        f_start = pool.submit(checkout_start_point, t)
+        f_base = pool.submit(resolve_base, t)
+        start_point = f_start.result()
+        base = f_base.result()
 
     # Create/refresh the worktree on the review branch.
     if t.worktree_dir.exists():
@@ -355,6 +370,8 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
+    except ReviewError as e:
+        die(str(e))
     except subprocess.CalledProcessError as e:
         die(f"command failed ({e.returncode}): {' '.join(e.cmd)}\n  {(e.stderr or '').strip()}")
     except Exception as e:  # noqa: BLE001 — last-resort: log + keep pane open
