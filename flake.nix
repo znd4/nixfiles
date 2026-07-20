@@ -72,7 +72,7 @@
       flake = false;
     };
     darwin = {
-      url = "git+ssh://git@github.com/LnL7/nix-darwin.git?shallow=1&ref=nix-darwin-25.05";
+      url = "git+ssh://git@github.com/LnL7/nix-darwin.git?shallow=1&ref=nix-darwin-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };

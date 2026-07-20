@@ -87,16 +87,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1762912391,
-        "narHash": "sha256-4hpBE7bGd24SfD28rzMdUGXsLsNEYxCCrTipFdoqoNM=",
-        "ref": "nix-darwin-25.05",
-        "rev": "d76299b2cd01837c4c271a7b5186e3d5d8ebd126",
+        "lastModified": 1772129556,
+        "narHash": "sha256-Utk0zd8STPsUJPyjabhzPc5BpPodLTXrwkpXBHYnpeg=",
+        "ref": "nix-darwin-25.11",
+        "rev": "ebec37af18215214173c98cf6356d0aca24a2585",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/LnL7/nix-darwin.git"
       },
       "original": {
-        "ref": "nix-darwin-25.05",
+        "ref": "nix-darwin-25.11",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/LnL7/nix-darwin.git"
