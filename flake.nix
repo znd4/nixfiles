@@ -7,7 +7,7 @@
     # tag; bump deliberately. Its nixpkgs (unstable) is left to its own pin so
     # the vendored libghostty-vt zig deps resolve as upstream expects.
     herdr = {
-      url = "git+ssh://git@github.com/ogulcancelik/herdr.git?shallow=1&ref=refs/tags/v0.7.1";
+      url = "git+ssh://git@github.com/ogulcancelik/herdr.git?shallow=1&ref=refs/tags/v0.7.4";
     };
     catppuccin-ghostty = {
       url = "git+ssh://git@github.com/catppuccin/ghostty.git?shallow=1";

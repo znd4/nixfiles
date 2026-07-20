@@ -304,19 +304,20 @@
     },
     "herdr": {
       "inputs": {
-        "nixpkgs": "nixpkgs_4"
+        "nixpkgs": "nixpkgs_4",
+        "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1782308245,
-        "narHash": "sha256-/WnsUO1DuSmBfVo8LCFaDJEZvSrYnJZPyRNqASbPzV8=",
-        "ref": "refs/tags/v0.7.1",
-        "rev": "fe30dd9a0fcf55cf07fe8dfedc99abdfc801e42d",
+        "lastModified": 1784133039,
+        "narHash": "sha256-dBOQYLFitJ+E3XNz44Ag3CIrBxFj16CmVPp7qil0ssg=",
+        "ref": "refs/tags/v0.7.4",
+        "rev": "54208dc16efe15ea92d7f131439d43cbd84b489e",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/ogulcancelik/herdr.git"
       },
       "original": {
-        "ref": "refs/tags/v0.7.1",
+        "ref": "refs/tags/v0.7.4",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/ogulcancelik/herdr.git"
@@ -638,6 +639,27 @@
         "sesh": "sesh",
         "sessionx": "sessionx",
         "xdg-config": "xdg-config"
+      }
+    },
+    "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "herdr",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1783577481,
+        "narHash": "sha256-EWMxOWrJ031f8f/lrcEmhTRs4npw1/5N3Hcjin846c8=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "4cdea398dc491b082dccdce0fad1ed0b75fa3394",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
       }
     },
     "sesh": {
