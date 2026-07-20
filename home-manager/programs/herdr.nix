@@ -17,12 +17,17 @@ let
   nuonList = xs: "[" + lib.strings.concatStringsSep " " xs + "]";
 
   # PR/MR review workflow, ported from the tmux `tmux-mr-review` popup: prompt
-  # for a PR/MR URL, resolve the source branch, clone the repo if needed, add a
-  # detached worktree, then open it as a herdr workspace (instead of a tmux
-  # session). Bound below as a herdr custom-command pane.
+  # for a PR/MR URL, clone the repo if needed, check out the PR/MR as a worktree,
+  # then open a herdr workspace laid out with a terminal (left) + Hunk diff
+  # (right). The logic lives in ../bin/herdr-mr-review.py (a `uv run` script) so
+  # it gets real per-invocation logging (~/.local/state/herdr-mr-review/) and can
+  # gain PyPI deps later via its inline metadata block. This wrapper just puts
+  # the runtime tools + uv on PATH and execs it. `hunk` is intentionally not in
+  # runtimeInputs — it's provided on PATH by programs.hunk and run from the pane.
   herdrMrReview = pkgs.writeShellApplication {
     name = "herdr-mr-review";
     runtimeInputs = [
+      pkgs.uv
       pkgs.git
       pkgs.gum
       pkgs.coreutils
@@ -32,146 +37,7 @@ let
       herdr
     ];
     text = ''
-      url=$(gum input --placeholder "PR/MR URL (e.g. https://github.com/org/repo/pull/123)")
-      [ -z "$url" ] && exit 0
-
-      work_dir="${workDir}"
-
-      # Detect forge type and parse URL
-      if [[ "$url" =~ ^https://github\.com/([^/]+/[^/]+)/pull/([0-9]+)$ ]]; then
-        forge="github"
-        host="github.com"
-        project_path="''${BASH_REMATCH[1]}"
-        pr_number="''${BASH_REMATCH[2]}"
-      elif [[ "$url" =~ ^https://([^/]+)/(.+)/-/merge_requests/([0-9]+)$ ]]; then
-        forge="gitlab"
-        host="''${BASH_REMATCH[1]}"
-        project_path="''${BASH_REMATCH[2]}"
-        pr_number="''${BASH_REMATCH[3]}"
-      else
-        echo "Error: URL must be a GitHub PR or GitLab MR link" >&2
-        exit 1
-      fi
-
-      # Forge head ref (by number) is the robust fallback: it resolves for fork
-      # PRs and for merged PRs/MRs whose branch was deleted.
-      if [ "$forge" = "github" ]; then
-        head_ref="pull/$pr_number/head"
-        review_branch="pr-$pr_number"
-      else
-        head_ref="merge-requests/$pr_number/head"
-        review_branch="mr-$pr_number"
-      fi
-
-      # Clone repo if needed
-      repo_dir="$work_dir/$host/$project_path"
-      if [ ! -d "$repo_dir" ]; then
-        echo "Cloning $project_path..."
-        mkdir -p "$(dirname "$repo_dir")"
-        git clone "git@$host:$project_path.git" "$repo_dir"
-      fi
-
-      # Resolve the source remote + branch via the forge API so we can check out
-      # a real local branch (pr-N / mr-N) tracking the contributor's source —
-      # rather than a detached head. Cross-repo (fork) sources are added as a
-      # remote named after the fork owner. Falls back to the forge head ref when
-      # the API is unavailable.
-      source_remote="origin"
-      source_branch=""
-      fork_url=""
-      if [ "$forge" = "github" ]; then
-        if mr_json=$(gh pr view "$pr_number" --repo "$project_path" \
-              --json headRefName,headRepositoryOwner,headRepository,isCrossRepository 2>/dev/null); then
-          source_branch=$(printf '%s' "$mr_json" | jq -r '.headRefName')
-          if [ "$(printf '%s' "$mr_json" | jq -r '.isCrossRepository')" = "true" ]; then
-            fork_owner=$(printf '%s' "$mr_json" | jq -r '.headRepositoryOwner.login')
-            fork_repo=$(printf '%s' "$mr_json" | jq -r '.headRepository.name')
-            source_remote="$fork_owner"
-            fork_url="git@$host:$fork_owner/$fork_repo.git"
-          fi
-        fi
-      else
-        if mr_json=$(glab mr view "$pr_number" --repo "$project_path" --output json 2>/dev/null); then
-          source_branch=$(printf '%s' "$mr_json" | jq -r '.source_branch')
-          src_pid=$(printf '%s' "$mr_json" | jq -r '.source_project_id')
-          tgt_pid=$(printf '%s' "$mr_json" | jq -r '.target_project_id')
-          if [ -n "$src_pid" ] && [ "$src_pid" != "$tgt_pid" ] && [ "$src_pid" != "null" ]; then
-            if proj_json=$(glab api "projects/$src_pid" 2>/dev/null); then
-              source_remote=$(printf '%s' "$proj_json" | jq -r '.path_with_namespace' | tr '/' '-')
-              fork_url=$(printf '%s' "$proj_json" | jq -r '.ssh_url_to_repo')
-            fi
-          fi
-        fi
-      fi
-
-      if [ -n "$source_branch" ] && [ "$source_branch" != "null" ]; then
-        if [ "$source_remote" != "origin" ] && [ -n "$fork_url" ]; then
-          if ! git -C "$repo_dir" remote get-url "$source_remote" >/dev/null 2>&1; then
-            git -C "$repo_dir" remote add "$source_remote" "$fork_url"
-          fi
-        fi
-        git -C "$repo_dir" fetch -q "$source_remote" \
-            "+refs/heads/$source_branch:refs/remotes/$source_remote/$source_branch" \
-          || { echo "Error: could not fetch $source_branch from $source_remote" >&2; exit 1; }
-        start_point="$source_remote/$source_branch"
-      else
-        # API unavailable — fall back to the forge head ref.
-        git -C "$repo_dir" fetch -q origin "+$head_ref:refs/review/$forge-$pr_number" \
-          || { echo "Error: could not fetch $head_ref" >&2; exit 1; }
-        start_point="refs/review/$forge-$pr_number"
-      fi
-
-      # Create/refresh the worktree on the review branch.
-      worktree_name="$forge-$pr_number"
-      worktree_dir="$repo_dir/.zn-work/$worktree_name"
-      if [ -d "$worktree_dir" ]; then
-        git -C "$worktree_dir" checkout -q -B "$review_branch" "$start_point" 2>/dev/null || true
-      else
-        mkdir -p "$repo_dir/.zn-work"
-        git -C "$repo_dir" worktree add -q -B "$review_branch" "$worktree_dir" "$start_point" \
-          || { echo "Error: could not create worktree at $worktree_dir" >&2; exit 1; }
-      fi
-
-      # Resolve the base branch (repo default) to diff the review against, and
-      # refresh it so `base...HEAD` doesn't show already-merged commits. Mirrors
-      # the tmux-mr-review base handling; non-fatal on fetch failure.
-      base=$(git -C "$repo_dir" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || true)
-      if [ -z "$base" ]; then
-        git -C "$repo_dir" remote set-head origin --auto >/dev/null 2>&1 || true
-        base=$(git -C "$repo_dir" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)
-      fi
-      git -C "$repo_dir" fetch -q origin "''${base#origin/}" 2>/dev/null || true
-
-      # Open as a herdr workspace (the session equivalent) laid out for review,
-      # mirroring the tmux popup: terminal pane (left) + Hunk auto-refreshing the
-      # PR/MR diff (right). `hunk` is on PATH via programs.hunk (run from the
-      # user env, so intentionally not in runtimeInputs).
-      repo_name=$(basename "$project_path")
-      label="review/$repo_name/$worktree_name"
-
-      # Idempotent: if a workspace with this label already exists, just focus it.
-      existing=$(herdr workspace list 2>/dev/null \
-        | jq -r --arg l "$label" '.result.workspaces[] | select(.label==$l) | .workspace_id' 2>/dev/null | head -1)
-      if [ -n "$existing" ]; then
-        herdr workspace focus "$existing"
-        exit 0
-      fi
-
-      # Create the workspace and capture its root pane id.
-      root_pane=$(herdr workspace create --cwd "$worktree_dir" --label "$label" --focus 2>/dev/null \
-        | jq -r '.result.root_pane.pane_id' 2>/dev/null)
-
-      # Split off the Hunk review pane to the right (62%, matching the tmux
-      # layout) and run `hunk diff base...HEAD --watch` in it. `herdr pane split`
-      # only creates an interactive shell (no command arg), so we capture the new
-      # pane id and drive the command in with `herdr pane run`.
-      if [ -n "$root_pane" ] && [ "$root_pane" != "null" ]; then
-        hunk_pane=$(herdr pane split "$root_pane" --direction right --ratio 0.62 --cwd "$worktree_dir" --focus 2>/dev/null \
-          | jq -r '.result.pane.pane_id' 2>/dev/null)
-        if [ -n "$hunk_pane" ] && [ "$hunk_pane" != "null" ]; then
-          herdr pane run "$hunk_pane" "hunk diff '$base...HEAD' --watch" 2>/dev/null || true
-        fi
-      fi
+      exec uv run --script ${../bin/herdr-mr-review.py} "$@"
     '';
   };
 
