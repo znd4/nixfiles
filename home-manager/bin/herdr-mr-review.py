@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.11"
-# dependencies = []
+# dependencies = ["rich"]
 # ///
 """herdr-mr-review — paste a GitHub PR / GitLab MR URL, check it out, and open a
 herdr workspace laid out for review: a terminal pane (left) and Hunk
@@ -28,6 +28,11 @@ from datetime import datetime, timezone
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
+from rich.console import Console
+from rich.prompt import Prompt
+
+console = Console(stderr=True)
+
 WORK_ROOT = Path(os.environ.get("HERDR_MR_WORKDIR", str(Path.home() / "Work"))).expanduser()
 
 
@@ -35,7 +40,7 @@ WORK_ROOT = Path(os.environ.get("HERDR_MR_WORKDIR", str(Path.home() / "Work"))).
 # Logging: one timestamped file per invocation, plus a size-capped rolling
 # `latest.log`. Console output (stderr) goes to the herdr pane too.
 # --------------------------------------------------------------------------- #
-def setup_logging() -> logging.Logger:
+def setup_logging() -> tuple[logging.Logger, Path]:
     state = Path(
         os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local" / "state"))
     ).expanduser() / "herdr-mr-review"
@@ -60,17 +65,19 @@ def setup_logging() -> logging.Logger:
     rh.setFormatter(fmt)
     log.addHandler(rh)
 
-    # Console (herdr pane) — INFO and up, terse.
+    # Console (herdr pane) is deliberately quiet: WARNING and up only, so a
+    # normal run shows just the prompt + a one-line result. Everything (incl. the
+    # log path and every command) still lands in the files above.
     ch = logging.StreamHandler(sys.stderr)
-    ch.setLevel(logging.INFO)
+    ch.setLevel(logging.WARNING)
     ch.setFormatter(logging.Formatter("%(message)s"))
     log.addHandler(ch)
 
-    log.info("log: %s", per_run)
-    return log
+    log.debug("log: %s", per_run)
+    return log, per_run
 
 
-LOG = setup_logging()
+LOG, LOG_PATH = setup_logging()
 
 
 def run(
@@ -98,10 +105,11 @@ def run(
 
 
 def die(msg: str, code: int = 1) -> None:
-    LOG.error("Error: %s", msg)
+    LOG.error("Error: %s", msg)  # WARNING+ → also shows on console
+    console.print(f"[dim]log: {LOG_PATH}[/dim]")
     # Keep the herdr pane open long enough to read the message before it closes.
     try:
-        input("\nPress enter to close… ")
+        Prompt.ask("\n[dim]Press enter to close[/dim]", default="", show_default=False)
     except (EOFError, KeyboardInterrupt):
         pass
     sys.exit(code)
@@ -307,24 +315,24 @@ def open_review_workspace(t: Target, base: str) -> None:
 def main() -> None:
     raw = " ".join(sys.argv[1:]).strip()
     if not raw:
-        # Prompt via gum when no URL passed as an argument (interactive pane).
-        p = run(
-            "gum", "input",
-            "--header", "Review a GitHub PR / GitLab MR in Hunk",
-            "--placeholder", "github.com/o/r/pull/N  •  gitlab.…/-/merge_requests/N",
-            check=False,
-        )
-        raw = p.stdout.strip()
+        # Prompt with rich (reads stdin directly — no subprocess/capture, which
+        # is what broke the old `gum input` here). Styled, paste-friendly.
+        console.print("[bold]Review a GitHub PR / GitLab MR in Hunk[/bold]")
+        try:
+            raw = Prompt.ask("[cyan]PR/MR URL[/cyan]", default="", show_default=False).strip()
+        except (EOFError, KeyboardInterrupt):
+            raw = ""
     if not raw:
-        LOG.info("no URL entered; cancelled")
+        LOG.debug("no URL entered; cancelled")
         return
 
     t = parse_url(raw)
-    LOG.info("reviewing %s %s#%s", t.forge, t.project, t.number)
+    LOG.debug("reviewing %s %s#%s", t.forge, t.project, t.number)
+    console.print(f"[dim]→ {t.forge} {t.project}#{t.number}[/dim]")
 
     # Clone the repo once if we don't have it.
     if not (t.repo_dir / ".git").exists():
-        LOG.info("cloning %s…", t.project)
+        console.print(f"[dim]cloning {t.project}…[/dim]")
         t.repo_dir.parent.mkdir(parents=True, exist_ok=True)
         run("git", "clone", f"git@{t.host}:{t.project}.git", str(t.repo_dir))
 
@@ -340,7 +348,8 @@ def main() -> None:
             str(t.worktree_dir), start_point)
 
     open_review_workspace(t, base)
-    LOG.info("done: %s", t.label)
+    LOG.debug("done: %s", t.label)
+    console.print(f"[green]✓[/green] {t.label}")
 
 
 if __name__ == "__main__":

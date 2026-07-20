@@ -29,7 +29,6 @@ let
     runtimeInputs = [
       pkgs.uv
       pkgs.git
-      pkgs.gum
       pkgs.coreutils
       pkgs.gh
       pkgs.glab
