@@ -156,6 +156,40 @@ let
     '';
   };
 
+  # herdr-thumbs: tmux-thumbs for herdr. Press prefix+space, every URL / path /
+  # hash / IP on the focused pane gets a hint label; type the hint to copy it
+  # (lowercase) or `open` it (UPPERCASE). Mirrors the old tmux-thumbs config
+  # (@thumbs-upcase-command 'open {}', default action = copy to clipboard).
+  #
+  # A herdr *plugin* (herdr-plugin.toml + scripts) rather than a keybinding
+  # command, because it needs an overlay pane + the invocation context to know
+  # which pane to scrape. herdr has no home-manager module, so we assemble the
+  # plugin directory in the store and `herdr plugin link` it at activation.
+  #
+  # The overlay UI is a dependency-free uv/curses script (../bin/herdr-thumbs);
+  # the launch action shells out to `herdr plugin pane open`. Both are wrapped so
+  # uv / bash / herdr are on PATH regardless of the caller's environment.
+  herdrThumbsSrc = ../bin/herdr-thumbs;
+
+  herdrThumbs = pkgs.runCommand "herdr-thumbs"
+    {
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+      passthru.pluginId = "znd4.thumbs";
+    }
+    ''
+      mkdir -p "$out"
+      cp ${herdrThumbsSrc}/herdr-plugin.toml "$out/herdr-plugin.toml"
+
+      # thumbs.py runs under uv (inline script metadata); put uv on PATH.
+      install -m755 ${herdrThumbsSrc}/thumbs.py "$out/thumbs.py"
+      wrapProgram "$out/thumbs.py" --prefix PATH : ${lib.makeBinPath [ pkgs.uv ]}
+
+      # launch.sh execs `herdr plugin pane open`; put bash + herdr on PATH.
+      install -m755 ${herdrThumbsSrc}/launch.sh "$out/launch.sh"
+      wrapProgram "$out/launch.sh" \
+        --prefix PATH : ${lib.makeBinPath [ pkgs.bash herdr ]}
+    '';
+
   configToml = ''
     # Managed by home-manager (home-manager/programs/herdr.nix). Edit there.
 
@@ -212,10 +246,33 @@ let
     key = "alt+s"
     type = "pane"
     command = "${herdrNewNamed}/bin/herdr-new-named"
+
+    # tmux-thumbs: hint-label every URL / path / hash on the focused pane, then
+    # copy (lowercase hint) or open (UPPERCASE hint). prefix+space matches the
+    # tmux-thumbs default. This binds the plugin's `launch` action (keybindings
+    # can only be shell/pane/plugin_action — there is no plugin_pane bind type),
+    # which opens the overlay pane. The plugin is linked at activation below.
+    [[keys.command]]
+    key = "prefix+space"
+    type = "plugin_action"
+    command = "${herdrThumbs.pluginId}.launch"
+    description = "thumbs: hint + copy/open matches"
   '';
 in
 {
   home.packages = [ herdr ];
 
   xdg.configFile."herdr/config.toml".text = configToml;
+
+  # Link the herdr-thumbs plugin from its store path. herdr keeps its plugin
+  # registry in ~/.config/herdr; linking is idempotent here (unlink-then-link)
+  # so a rebuild always points at the current store path. Guarded on the herdr
+  # binary existing so activation doesn't fail on a machine mid-install.
+  home.activation.herdrThumbsPlugin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ -x "${herdr}/bin/herdr" ]; then
+      run ${herdr}/bin/herdr plugin unlink ${herdrThumbs.pluginId} >/dev/null 2>&1 || true
+      run ${herdr}/bin/herdr plugin link ${herdrThumbs} >/dev/null 2>&1 || \
+        warnEcho "herdr-thumbs: plugin link failed (is the herdr server running?)"
+    fi
+  '';
 }
