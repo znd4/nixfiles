@@ -193,6 +193,11 @@ let
   configToml = ''
     # Managed by home-manager (home-manager/programs/herdr.nix). Edit there.
 
+    [ui]
+    # Agent sidebar ordering: "spaces" (grouped by space, the default) or
+    # "priority" (a single attention queue — blocked/working float to the top).
+    agent_panel_sort = "priority"
+
     [keys]
     # ctrl-a prefix to match the tmux muscle memory.
     prefix = "ctrl+a"
