@@ -323,6 +323,31 @@
         "url": "ssh://git@github.com/ogulcancelik/herdr.git"
       }
     },
+    "herdr-plugin-thumbs": {
+      "inputs": {
+        "herdr": [
+          "herdr"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1784674542,
+        "narHash": "sha256-O2DUpquJuelJd94PtCywY03/j8ln96o4Fe7d3hX7N2M=",
+        "ref": "main",
+        "rev": "a20fec9f2be120b2827f0da0e758ba6cf540e2f0",
+        "shallow": true,
+        "type": "git",
+        "url": "ssh://git@github.com/znd4/herdr-plugin-thumbs.git"
+      },
+      "original": {
+        "ref": "main",
+        "shallow": true,
+        "type": "git",
+        "url": "ssh://git@github.com/znd4/herdr-plugin-thumbs.git"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -628,6 +653,7 @@
         "ghostty-hm-module": "ghostty-hm-module",
         "git-town-znd4": "git-town-znd4",
         "herdr": "herdr",
+        "herdr-plugin-thumbs": "herdr-plugin-thumbs",
         "home-manager": "home-manager",
         "hunkdiff": "hunkdiff",
         "jujutsu-workflow-skill": "jujutsu-workflow-skill",

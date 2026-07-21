@@ -161,34 +161,12 @@ let
   # (lowercase) or `open` it (UPPERCASE). Mirrors the old tmux-thumbs config
   # (@thumbs-upcase-command 'open {}', default action = copy to clipboard).
   #
-  # A herdr *plugin* (herdr-plugin.toml + scripts) rather than a keybinding
-  # command, because it needs an overlay pane + the invocation context to know
-  # which pane to scrape. herdr has no home-manager module, so we assemble the
-  # plugin directory in the store and `herdr plugin link` it at activation.
-  #
-  # The overlay UI is a dependency-free uv/curses script (../bin/herdr-thumbs);
-  # the launch action shells out to `herdr plugin pane open`. Both are wrapped so
-  # uv / bash / herdr are on PATH regardless of the caller's environment.
-  herdrThumbsSrc = ../bin/herdr-thumbs;
-
-  herdrThumbs = pkgs.runCommand "herdr-thumbs"
-    {
-      nativeBuildInputs = [ pkgs.makeWrapper ];
-      passthru.pluginId = "znd4.thumbs";
-    }
-    ''
-      mkdir -p "$out"
-      cp ${herdrThumbsSrc}/herdr-plugin.toml "$out/herdr-plugin.toml"
-
-      # thumbs.py runs under uv (inline script metadata); put uv on PATH.
-      install -m755 ${herdrThumbsSrc}/thumbs.py "$out/thumbs.py"
-      wrapProgram "$out/thumbs.py" --prefix PATH : ${lib.makeBinPath [ pkgs.uv ]}
-
-      # launch.sh execs `herdr plugin pane open`; put bash + herdr on PATH.
-      install -m755 ${herdrThumbsSrc}/launch.sh "$out/launch.sh"
-      wrapProgram "$out/launch.sh" \
-        --prefix PATH : ${lib.makeBinPath [ pkgs.bash herdr ]}
-    '';
+  # Now a standalone flake (github:znd4/herdr-plugin-thumbs) rather than a
+  # vendored copy: its default package is the assembled, PATH-wrapped plugin
+  # directory, with passthru.pluginId = "znd4.thumbs". Its herdr input follows
+  # ours (see flake.nix), so the `herdr` on the launcher's PATH matches the
+  # server. Linked at activation below; bound to prefix+space further down.
+  herdrThumbs = inputs.herdr-plugin-thumbs.packages.${system}.default;
 
   configToml = ''
     # Managed by home-manager (home-manager/programs/herdr.nix). Edit there.

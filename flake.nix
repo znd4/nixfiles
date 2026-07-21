@@ -9,6 +9,15 @@
     herdr = {
       url = "git+ssh://git@github.com/ogulcancelik/herdr.git?shallow=1&ref=refs/tags/v0.7.4";
     };
+    # herdr-thumbs plugin (tmux-thumbs for herdr). Extracted from the vendored
+    # copy that used to live in home-manager/bin/herdr-thumbs/. Follows our
+    # nixpkgs + herdr so the wrapped `herdr` on the launcher's PATH matches the
+    # server we run.
+    herdr-plugin-thumbs = {
+      url = "git+ssh://git@github.com/znd4/herdr-plugin-thumbs.git?shallow=1&ref=main";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.herdr.follows = "herdr";
+    };
     catppuccin-ghostty = {
       url = "git+ssh://git@github.com/catppuccin/ghostty.git?shallow=1";
       flake = false;
