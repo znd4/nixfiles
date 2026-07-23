@@ -64,6 +64,7 @@
       git-credential-oauth
       git-open
       git-town
+      gita
       glab
       glow
       gnumake
