@@ -4,8 +4,8 @@
 # dependencies = ["rich"]
 # ///
 """herdr-mr-review — paste a GitHub PR / GitLab MR URL, check it out, and open a
-herdr workspace laid out for review: a terminal pane (left) and Hunk
-auto-refreshing the PR/MR diff (right).
+herdr workspace laid out for review: a terminal pane (left) and tuicr on the
+PR/MR (right).
 
 Ported from the tmux `tmux-mr-review` popup. Runs under `uv run` so PyPI
 dependencies can be added later just by editing the inline metadata block above
@@ -128,11 +128,16 @@ GITLAB_RE = re.compile(r"^https://(?P<host>[^/]+)/(?P<project>.+)/-/merge_reques
 
 
 class Target:
-    def __init__(self, forge: str, host: str, project: str, number: str):
+    def __init__(self, forge: str, host: str, project: str, number: str, url: str):
         self.forge = forge
         self.host = host
         self.project = project.removesuffix(".git")
         self.number = number
+        # Kept verbatim so the review pane can hand tuicr the original URL.
+        # tuicr also takes `<number>` or `<owner/repo#N>`, but only the URL
+        # carries the host and any GitLab subgroups, and tuicr parses all three
+        # forms itself — so there is nothing to gain by decomposing it.
+        self.url = url
         self.review_branch = f"pr-{number}" if forge == "github" else f"mr-{number}"
         self.head_ref = (
             f"refs/pull/{number}/head"
@@ -159,9 +164,9 @@ def parse_url(raw: str) -> Target:
     m_url = re.search(r"https?://\S+", raw)
     url = m_url.group(0) if m_url else raw.strip()
     if m := GITHUB_RE.match(url):
-        return Target("github", "github.com", m["project"], m["n"])
+        return Target("github", "github.com", m["project"], m["n"], url)
     if m := GITLAB_RE.match(url):
-        return Target("gitlab", m["host"], m["project"], m["n"])
+        return Target("gitlab", m["host"], m["project"], m["n"], url)
     die(f"Not a recognized GitHub PR or GitLab MR URL:\n  {url}")
     raise AssertionError  # unreachable
 
@@ -290,7 +295,7 @@ def existing_workspace(label: str) -> str | None:
     return None
 
 
-def open_review_workspace(t: Target, base: str) -> None:
+def open_review_workspace(t: Target) -> None:
     # Idempotent: focus an existing review workspace instead of duplicating.
     if wsid := existing_workspace(t.label):
         LOG.info("workspace %s already open (%s); focusing", t.label, wsid)
@@ -304,18 +309,26 @@ def open_review_workspace(t: Target, base: str) -> None:
     if not root_pane:
         die("herdr workspace create did not return a root pane id")
 
-    # Split off the Hunk review pane (right, 62%). `herdr pane split` only makes
-    # an interactive shell, so capture the new pane id and drive the command in
+    # Split off the review pane (right, 62%). `herdr pane split` only makes an
+    # interactive shell, so capture the new pane id and drive the command in
     # with `herdr pane run`.
     split = herdr_json(
         "pane", "split", root_pane, "--direction", "right", "--ratio", "0.62",
         "--cwd", str(t.worktree_dir), "--focus",
     )
-    hunk_pane = split.get("result", {}).get("pane", {}).get("pane_id")
-    if hunk_pane:
-        run("herdr", "pane", "run", hunk_pane, f"hunk diff '{base}...HEAD' --watch", check=False)
+    review_pane = split.get("result", {}).get("pane", {}).get("pane_id")
+    if review_pane:
+        # `tuicr pr <url>` rather than a local revset: it keys the review
+        # session to the forge PR/MR, which is what lets comments written in the
+        # pane submit back to it. tuicr resolves the diff from the forge API and
+        # uses the cwd (the worktree) as its local checkout for file contents.
+        #
+        # No `--watch` equivalent exists; tuicr has no auto-refresh, so a pane
+        # left open across a force-push shows the diff as of launch. Quit with
+        # `q` and press alt+r again to re-read it.
+        run("herdr", "pane", "run", review_pane, f"tuicr pr '{t.url}'", check=False)
     else:
-        LOG.warning("could not split Hunk pane; workspace opened terminal-only")
+        LOG.warning("could not split the review pane; workspace opened terminal-only")
 
 
 # --------------------------------------------------------------------------- #
@@ -324,7 +337,7 @@ def main() -> None:
     if not raw:
         # Prompt with rich (reads stdin directly — no subprocess/capture, which
         # is what broke the old `gum input` here). Styled, paste-friendly.
-        console.print("[bold]Review a GitHub PR / GitLab MR in Hunk[/bold]")
+        console.print("[bold]Review a GitHub PR / GitLab MR in tuicr[/bold]")
         try:
             raw = Prompt.ask("[cyan]PR/MR URL[/cyan]", default="", show_default=False).strip()
         except (EOFError, KeyboardInterrupt):
@@ -348,11 +361,18 @@ def main() -> None:
     # (fetch of origin/main). Run them concurrently so total ≈ max(...) instead
     # of the sum. They fetch different refspecs into the same repo, which git
     # handles fine; the rare cross-repo `remote add` only touches its own remote.
+    #
+    # resolve_base is kept for its side effects now that tuicr computes its own
+    # range from the forge: it sets `origin/HEAD` if unset and freshens the base
+    # branch, so `git log origin/main..HEAD` in the terminal pane (and anything
+    # an agent does in the worktree) sees the real merge base. It is free —
+    # concurrent with the fetch we were doing anyway.
     with ThreadPoolExecutor(max_workers=2) as pool:
         f_start = pool.submit(checkout_start_point, t)
         f_base = pool.submit(resolve_base, t)
         start_point = f_start.result()
         base = f_base.result()
+    LOG.debug("base branch: %s", base)
 
     # Create/refresh the worktree on the review branch.
     if t.worktree_dir.exists():
@@ -362,7 +382,7 @@ def main() -> None:
         run("git", "-C", str(t.repo_dir), "worktree", "add", "-q", "-B", t.review_branch,
             str(t.worktree_dir), start_point)
 
-    open_review_workspace(t, base)
+    open_review_workspace(t)
     LOG.debug("done: %s", t.label)
     console.print(f"[green]✓[/green] {t.label}")
 

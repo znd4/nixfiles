@@ -3,6 +3,16 @@
     hunkdiff = {
       url = "git+ssh://git@github.com/modem-dev/hunk.git?shallow=1";
     };
+    # tuicr — review-first diff TUI, the review pane behind alt+r. Source-only
+    # (flake = false): the *binary* comes from nixpkgs (see nixpkgs-tuicr), and
+    # the only thing wanted from this tree is `skills/tuicr/`. Evaluating
+    # upstream's flake would pull naersk, flake-utils and a second
+    # nixpkgs-unstable into the lock for no benefit. Keep the tag in sync with
+    # the tuicr version in nixpkgs-tuicr so the skill docs match the binary.
+    tuicr-src = {
+      url = "github:agavra/tuicr/v0.19.1";
+      flake = false;
+    };
     # herdr — terminal agent multiplexer (ships its own flake). Pin to a release
     # tag; bump deliberately. Its nixpkgs (unstable) is left to its own pin so
     # the vendored libghostty-vt zig deps resolve as upstream expects.
@@ -49,6 +59,12 @@
     nixpkgs-opencode.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&rev=1f0f25154225df0302adcd7b8110ad2c99e48adc";
     # nixpkgs-git-town-21_1_0.url = "github:nixos/nixpkgs/pull/419405/head";
     nixpkgs-git-town-21_2_0.url = "git+ssh://git@github.com/znd4/nixpkgs.git?ref=git-town-21.2.0";
+    # tuicr landed in nixpkgs long after the `nixpkgs-unstable` pin above, which
+    # is why this gets its own rev rather than reading from that input: bumping
+    # unstable repo-wide to reach one package would drag eight months of drift
+    # through every other package that resolves from it. Same pattern as
+    # nixpkgs-opencode. Keep the rev's tuicr version in sync with `tuicr-src`.
+    nixpkgs-tuicr.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&rev=624af665418d3c65d544145b4d34ad696439570e";
 
     nil.url = "git+ssh://git@github.com/oxalica/nil.git?shallow=1";
     nil.inputs.nixpkgs.follows = "nixpkgs";

@@ -18,12 +18,13 @@ let
 
   # PR/MR review workflow, ported from the tmux `tmux-mr-review` popup: prompt
   # for a PR/MR URL, clone the repo if needed, check out the PR/MR as a worktree,
-  # then open a herdr workspace laid out with a terminal (left) + Hunk diff
-  # (right). The logic lives in ../bin/herdr-mr-review.py (a `uv run` script) so
-  # it gets real per-invocation logging (~/.local/state/herdr-mr-review/) and can
-  # gain PyPI deps later via its inline metadata block. This wrapper just puts
-  # the runtime tools + uv on PATH and execs it. `hunk` is intentionally not in
-  # runtimeInputs — it's provided on PATH by programs.hunk and run from the pane.
+  # then open a herdr workspace laid out with a terminal (left) + tuicr on the
+  # PR/MR (right). The logic lives in ../bin/herdr-mr-review.py (a `uv run`
+  # script) so it gets real per-invocation logging (~/.local/state/herdr-mr-review/)
+  # and can gain PyPI deps later via its inline metadata block. This wrapper just
+  # puts the runtime tools + uv on PATH and execs it. `tuicr` is intentionally
+  # not in runtimeInputs — it's provided on PATH by tuicr.nix and run from the
+  # pane, the same call hunk got when it held that slot.
   herdrMrReview = pkgs.writeShellApplication {
     name = "herdr-mr-review";
     runtimeInputs = [
@@ -196,8 +197,8 @@ let
     command = "lazygit"
 
     # tmux M-r: PR/MR review. Clone + worktree + open a herdr workspace laid out
-    # with a terminal (left) and Hunk auto-refreshing the diff (right), matching
-    # the old tmux-mr-review popup. Bound to alt+r to match that muscle memory.
+    # with a terminal (left) and tuicr on the PR/MR (right), matching the old
+    # tmux-mr-review popup. Bound to alt+r to match that muscle memory.
     [[keys.command]]
     key = "alt+r"
     type = "pane"
