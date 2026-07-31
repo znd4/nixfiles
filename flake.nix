@@ -65,6 +65,12 @@
     # through every other package that resolves from it. Same pattern as
     # nixpkgs-opencode. Keep the rev's tuicr version in sync with `tuicr-src`.
     nixpkgs-tuicr.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&rev=624af665418d3c65d544145b4d34ad696439570e";
+    # jj: `nixpkgs-unstable` above is pinned to 2025-11 and only carries jj
+    # 0.35, while the jujutsu-workflow skill is written against 0.42+. Same
+    # per-package-pin reasoning as nixpkgs-tuicr — and deliberately the *same
+    # rev*, so this costs no extra fetch. That rev has jj 0.43.0 (latest
+    # upstream release); bump it when a newer jj is wanted.
+    nixpkgs-jujutsu.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&rev=624af665418d3c65d544145b4d34ad696439570e";
 
     nil.url = "git+ssh://git@github.com/oxalica/nil.git?shallow=1";
     nil.inputs.nixpkgs.follows = "nixpkgs";

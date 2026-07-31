@@ -3,7 +3,10 @@
 { inputs, system, ... }:
 {
   programs.jujutsu.enable = true;
-  programs.jujutsu.package = inputs.nixpkgs-unstable.legacyPackages.${system}.jujutsu;
+  # Pinned separately from nixpkgs-unstable (see flake.nix): that input sits on
+  # a 2025-11 rev carrying jj 0.35, which is older than the jujutsu-workflow
+  # skill assumes.
+  programs.jujutsu.package = inputs.nixpkgs-jujutsu.legacyPackages.${system}.jujutsu;
   programs.jujutsu.settings = {
     user = {
       email = "zane@znd4.dev";
