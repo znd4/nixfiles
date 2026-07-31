@@ -333,10 +333,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1785363051,
-        "narHash": "sha256-2Nrmg12pxCl1WKozSMoiTlI39sfsKmdWyzOSukWzSDs=",
+        "lastModified": 1785530240,
+        "narHash": "sha256-esx62uRHc2NlNiV6ZG1lheh3xU0fWZYyxNZFZTEMsSU=",
         "ref": "main",
-        "rev": "d53ef25c159e74503748014343f1ad90d7f81c48",
+        "rev": "a4b26495bf6eff5d43b6893968c8f36e9fa56487",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/znd4/herdr-plugin-thumbs.git"
