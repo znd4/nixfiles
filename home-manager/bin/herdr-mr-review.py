@@ -253,6 +253,43 @@ def checkout_start_point(t: Target) -> str:
     return local_ref
 
 
+def set_review_upstream(t: Target, start_point: str) -> None:
+    """Point the review branch's upstream at the contributor's source branch.
+
+    This is what makes a bare `git push` from the review worktree land back on
+    the PR/MR (`mr-353` -> `origin/docs/foo`), given `push.default = upstream`.
+
+    Set it explicitly rather than leaning on git creating the tracking entry for
+    us at branch-creation time: that only happens under
+    `branch.autoSetupMerge = true`, and we run `simple`, which auto-tracks only
+    when the local and remote branch names match -- `mr-N` vs `<source-branch>`
+    never does. `--set-upstream-to` ignores autoSetupMerge, so this path works
+    regardless of what the global default is set to.
+
+    Skipped for the head-ref fallback: that start point is a local ref
+    (refs/review/...), and tracking a local ref would give `git push` nothing
+    meaningful to aim at. Those reviews stay upstream-less, which is correct --
+    the source branch is gone, so there is nowhere to push.
+    """
+    if not start_point.startswith("refs/"):
+        p = run(
+            "git", "-C", str(t.worktree_dir),
+            "branch", f"--set-upstream-to={start_point}", t.review_branch,
+            check=False,
+        )
+        if p.returncode != 0:
+            LOG.warning(
+                "could not set %s upstream to %s; `git push` from the worktree "
+                "will not target the MR\n  %s",
+                t.review_branch, start_point, (p.stderr or "").strip(),
+            )
+        return
+    LOG.debug(
+        "start point %s is a local ref (source branch gone); leaving %s without an upstream",
+        start_point, t.review_branch,
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Base branch (repo default) for the review diff.
 # --------------------------------------------------------------------------- #
@@ -381,6 +418,9 @@ def main() -> None:
         t.worktree_dir.parent.mkdir(parents=True, exist_ok=True)
         run("git", "-C", str(t.repo_dir), "worktree", "add", "-q", "-B", t.review_branch,
             str(t.worktree_dir), start_point)
+    # Both paths above use -B, which resets the branch but does not (re)establish
+    # tracking, so set the upstream here rather than in either arm.
+    set_review_upstream(t, start_point)
 
     open_review_workspace(t)
     LOG.debug("done: %s", t.label)

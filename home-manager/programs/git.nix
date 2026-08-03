@@ -60,6 +60,16 @@ in
       # from the remote branch name (e.g. local `mr-353` -> `origin/docs/...`).
       # Avoids the default `simple` refusing to push on a name mismatch.
       push.default = "upstream";
+      # Only auto-track a start point when the new branch shares its name.
+      # git's default (`true`) tracks *any* remote-tracking start point, so
+      # `git worktree add -b feat/foo <dir> origin/main` silently sets
+      # feat/foo's upstream to origin/main -- and with `push.default = upstream`
+      # above, a bare `git push` from that worktree then aims at main.
+      # `simple` makes that case set no upstream at all. Anything that really
+      # does want a cross-name upstream (herdr-mr-review's `mr-N` ->
+      # `origin/<source-branch>`) sets it explicitly with `--set-upstream-to`,
+      # which bypasses this setting entirely.
+      branch.autoSetupMerge = "simple";
 
       git-town.sync-feature-strategy = "rebase";
 
