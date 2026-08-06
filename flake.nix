@@ -16,8 +16,12 @@
     # herdr — terminal agent multiplexer (ships its own flake). Pin to a release
     # tag; bump deliberately. Its nixpkgs (unstable) is left to its own pin so
     # the vendored libghostty-vt zig deps resolve as upstream expects.
+    #
+    # The org moved ogulcancelik -> herdrdev in v0.8.0 (relicensed AGPL-3.0 ->
+    # Apache-2.0 in the same release); the old path still redirects, but point
+    # at the canonical one.
     herdr = {
-      url = "git+ssh://git@github.com/ogulcancelik/herdr.git?shallow=1&ref=refs/tags/v0.7.4";
+      url = "git+ssh://git@github.com/herdrdev/herdr.git?shallow=1&ref=refs/tags/v0.8.0";
     };
     # herdr-thumbs plugin (tmux-thumbs for herdr). Extracted from the vendored
     # copy that used to live in home-manager/bin/herdr-thumbs/. Follows our
