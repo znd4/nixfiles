@@ -202,11 +202,17 @@ let
     focus_pane_up = ["prefix+k", "ctrl+alt+k"]
     focus_pane_right = ["prefix+l", "ctrl+alt+l"]
 
+    # Every [[keys.command]] carries a `description`: the prefix+? keybind
+    # overlay renders custom binds in its "custom" group, and any entry without
+    # one falls back to the literal string "custom command" — which makes the
+    # whole group useless. Keep descriptions short; the overlay is one line each.
+
     # lazygit in a temporary pane (closes when lazygit exits).
     [[keys.command]]
     key = "prefix+alt+g"
     type = "pane"
     command = "lazygit"
+    description = "lazygit in a temporary pane"
 
     # tmux M-r: PR/MR review. Clone + worktree + open a herdr workspace laid out
     # with a terminal (left) and tuicr on the PR/MR (right), matching the old
@@ -215,6 +221,7 @@ let
     key = "alt+r"
     type = "pane"
     command = "${herdrMrReview}/bin/herdr-mr-review"
+    description = "review a PR/MR: clone + worktree + tuicr"
 
     # --- Fuzzy finders / workspace creators (ported from tmux popups) ---
     #
@@ -229,12 +236,14 @@ let
     key = "alt+d"
     type = "pane"
     command = "${herdrSeshPick}/bin/herdr-sesh-pick"
+    description = "workspace picker: zoxide / find ~/Work"
 
     # tmux M-m: clone-creator. gh/glab/URL repo picker -> clone -> open workspace.
     [[keys.command]]
     key = "alt+m"
     type = "pane"
     command = "${herdrClone}/bin/herdr-clone"
+    description = "clone a repo (gh/glab/URL) -> new workspace"
 
     # tmux M-s: new workspace with a prompted name.
     # (herdr's native new_workspace = prefix+shift+n creates an unnamed one.)
@@ -242,6 +251,7 @@ let
     key = "alt+s"
     type = "pane"
     command = "${herdrNewNamed}/bin/herdr-new-named"
+    description = "new workspace with a prompted name"
 
     # tmux-thumbs: hint-label every URL / path / hash on the focused pane, then
     # copy (lowercase hint) or open (UPPERCASE hint). prefix+space matches the
