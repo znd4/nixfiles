@@ -10,6 +10,9 @@ let
   herdr = inputs.herdr.packages.${system}.default;
 
   workDir = "$HOME/Work";
+  # Same directory for TOML, where $HOME does not expand. herdr resolves a
+  # leading ~ in path-valued settings itself.
+  workDirTilde = "~/Work";
 
   # seshClConfig (gitlabHosts / githubOrgs / parentDirectories) is the same
   # config the tmux clone popup consumes; rendered into nuon list literals for
@@ -153,7 +156,9 @@ let
     text = ''
       name=$(gum input --placeholder "workspace name") || exit 0
       [ -z "$name" ] && exit 0
-      herdr workspace create --cwd "$HOME" --label "$name" --focus
+      # No --cwd: the server applies the `new_cwd` policy from config.toml
+      # (~/Work), so this stays in step with every other unqualified new pane.
+      herdr workspace create --label "$name" --focus
     '';
   };
 
@@ -171,6 +176,13 @@ let
 
   configToml = ''
     # Managed by home-manager (home-manager/programs/herdr.nix). Edit there.
+
+    # CWD for new panes/tabs/workspaces created without an explicit --cwd.
+    # Default is "follow" (inherit the source pane). ~/Work is where every repo
+    # lives (~/Work/{forge}/{org}/{repo}), so a bare new workspace starts there
+    # instead of $HOME. Must stay above the first table header — it is a
+    # top-level key.
+    new_cwd = "${workDirTilde}"
 
     [ui]
     # Agent sidebar ordering: "spaces" (grouped by space, the default) or
