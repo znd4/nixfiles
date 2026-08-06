@@ -177,11 +177,12 @@ let
   configToml = ''
     # Managed by home-manager (home-manager/programs/herdr.nix). Edit there.
 
+    [terminal]
     # CWD for new panes/tabs/workspaces created without an explicit --cwd.
     # Default is "follow" (inherit the source pane). ~/Work is where every repo
     # lives (~/Work/{forge}/{org}/{repo}), so a bare new workspace starts there
-    # instead of $HOME. Must stay above the first table header — it is a
-    # top-level key.
+    # instead of $HOME. This key lives under [terminal] — at the top level it
+    # parses fine and is silently dropped (herdr <=0.7.4 did not even warn).
     new_cwd = "${workDirTilde}"
 
     [ui]
