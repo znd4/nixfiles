@@ -28,6 +28,12 @@ let
   # over a unix socket to a newly spawned server, so terminals, agents, and
   # scrollback all survive the swap.
   #
+  # The panes survive; the attached client does NOT. The TUI exits with the old
+  # server and has to be relaunched by hand — upstream has no reattach path, so
+  # `herdr update --handoff` behaves the same way. Measured on a 41-pane session:
+  # the swap took 262ms and every pane process lived, but the window went away
+  # until `herdr` was run again. Hence the warning and the confirmation below.
+  #
   # The handoff has to be driven by a CLI the *running* server understands. The
   # new CLI does send this one request via `send_request_unchecked`, ducking the
   # usual protocol guard, but only a version-matched CLI is guaranteed to
@@ -67,7 +73,34 @@ let
         exit 1
       fi
 
+      pane_count=$("$new_exe" workspace list 2>&1 \
+        | jq -r '[.result.workspaces[].pane_count] | add // "?"')
+
       echo "herdr $server_version (running) -> $new_version (installed)"
+      echo
+      echo "  $pane_count pane processes keep running across the swap."
+      echo "  This herdr WINDOW will close. Run 'herdr' again to reattach --"
+      echo "  the panes are all still there, they just have no viewer."
+      echo
+      case "''${1-}" in
+        -y | --yes) ;;
+        *)
+          if [ ! -t 0 ]; then
+            echo "stdin is not a terminal; pass --yes to confirm." >&2
+            exit 1
+          fi
+          printf 'continue? [y/N] '
+          read -r reply || reply=""
+          case "$reply" in
+            y | Y | yes | YES) ;;
+            *)
+              echo "aborted; nothing changed."
+              exit 0
+              ;;
+          esac
+          ;;
+      esac
+
       echo "building the herdr $server_version CLI to match the running server..."
       old_exe=$(nix build --no-link --print-out-paths "${herdrFlakeRefFor "v$server_version"}")/bin/herdr
 
