@@ -14,6 +14,73 @@ let
   # leading ~ in path-valued settings itself.
   workDirTilde = "~/Work";
 
+  # Flake ref for an arbitrary herdr release tag, used by herdr-handoff below to
+  # materialize the CLI matching whatever version the running server is. Keep
+  # the repo in sync with the `herdr` input in ../../flake.nix by hand: flake
+  # inputs are a static attrset, so the URL cannot be shared from here.
+  herdrFlakeRefFor = tag: "git+ssh://git@github.com/herdrdev/herdr.git?shallow=1&ref=refs/tags/${tag}#default";
+
+  # Upgrade the running herdr server in place, without exiting pane processes.
+  #
+  # A plain `herdr server stop` kills every pane, which is a bad trade for a
+  # version bump. herdr instead supports `server live-handoff`: the old server
+  # serializes its session snapshot and passes the pane PTY file descriptors
+  # over a unix socket to a newly spawned server, so terminals, agents, and
+  # scrollback all survive the swap.
+  #
+  # The handoff has to be driven by a CLI the *running* server understands. The
+  # new CLI does send this one request via `send_request_unchecked`, ducking the
+  # usual protocol guard, but only a version-matched CLI is guaranteed to
+  # serialize a request an older server can still parse. So rather than pinning
+  # a second herdr input that goes stale, read the server's version at runtime
+  # and build exactly that tag on demand — this keeps working across any gap.
+  herdrHandoff = pkgs.writeShellApplication {
+    name = "herdr-handoff";
+    runtimeInputs = [
+      pkgs.jq
+      pkgs.coreutils
+    ];
+    # `nix` is deliberately not a runtimeInput: writeShellApplication only
+    # prepends to PATH, so the ambient nix (matching the running daemon) wins.
+    text = ''
+      new_exe="${herdr}/bin/herdr"
+      status_json=$("$new_exe" status --json)
+
+      running=$(jq -r '.server.running' <<<"$status_json")
+      if [ "$running" != "true" ]; then
+        echo "no herdr server running -- nothing to hand off. Just start herdr."
+        exit 0
+      fi
+
+      server_version=$(jq -r '.server.version' <<<"$status_json")
+      new_version=$(jq -r '.client.version' <<<"$status_json")
+      new_protocol=$(jq -r '.client.protocol' <<<"$status_json")
+
+      if [ "$server_version" = "$new_version" ]; then
+        echo "server already runs herdr $new_version -- nothing to do."
+        exit 0
+      fi
+
+      if [ "$(jq -r '.server.capabilities.live_handoff' <<<"$status_json")" != "true" ]; then
+        echo "running server does not advertise live_handoff; it can only be" >&2
+        echo "replaced by a restart, which exits every pane process." >&2
+        exit 1
+      fi
+
+      echo "herdr $server_version (running) -> $new_version (installed)"
+      echo "building the herdr $server_version CLI to match the running server..."
+      old_exe=$(nix build --no-link --print-out-paths "${herdrFlakeRefFor "v$server_version"}")/bin/herdr
+
+      # --expected-* make the import fail closed: the new server verifies it is
+      # really the build we intended before the old one commits, and the old
+      # server rolls back and keeps serving if anything does not line up.
+      exec "$old_exe" server live-handoff \
+        --import-exe "$new_exe" \
+        --expected-version "$new_version" \
+        --expected-protocol "$new_protocol"
+    '';
+  };
+
   # seshClConfig (gitlabHosts / githubOrgs / parentDirectories) is the same
   # config the tmux clone popup consumes; rendered into nuon list literals for
   # the clone-creator helper below.
@@ -267,7 +334,10 @@ let
   '';
 in
 {
-  home.packages = [ herdr ];
+  home.packages = [
+    herdr
+    herdrHandoff
+  ];
 
   xdg.configFile."herdr/config.toml".text = configToml;
 
