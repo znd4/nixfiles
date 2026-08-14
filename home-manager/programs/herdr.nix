@@ -14,10 +14,11 @@ let
   # leading ~ in path-valued settings itself.
   workDirTilde = "~/Work";
 
-  # Flake ref for an arbitrary herdr release tag, used by herdr-handoff below to
-  # materialize the CLI matching whatever version the running server is. Keep
-  # the repo in sync with the `herdr` input in ../../flake.nix by hand: flake
-  # inputs are a static attrset, so the URL cannot be shared from here.
+  # Flake ref for an arbitrary herdr release tag. herdr-handoff below uses it
+  # only as a fallback, to materialize a CLI matching the running server when
+  # that server's own executable cannot be found. Keep the repo in sync with the
+  # `herdr` input in ../../flake.nix by hand: flake inputs are a static attrset,
+  # so the URL cannot be shared from here.
   herdrFlakeRefFor = tag: "git+ssh://git@github.com/herdrdev/herdr.git?shallow=1&ref=refs/tags/${tag}#default";
 
   # Upgrade the running herdr server in place, without exiting pane processes.
@@ -37,13 +38,25 @@ let
   # The handoff has to be driven by a CLI the *running* server understands. The
   # new CLI does send this one request via `send_request_unchecked`, ducking the
   # usual protocol guard, but only a version-matched CLI is guaranteed to
-  # serialize a request an older server can still parse. So rather than pinning
-  # a second herdr input that goes stale, read the server's version at runtime
-  # and build exactly that tag on demand — this keeps working across any gap.
+  # serialize a request an older server can still parse.
+  #
+  # The version-matched CLI is already on disk: herdr ships ONE binary for both
+  # the server and the CLI, so the running server's own executable is, by
+  # construction, a CLI that matches it exactly. Read it out of the process
+  # table and use it — no rebuild, no second flake input, and correct even for a
+  # build that was never tagged. Building `refs/tags/v$server_version` stays as
+  # the fallback for a server whose executable cannot be located.
+  #
+  # That store path is also the only reliable build identity here. `herdr
+  # status` reports the crate version and nothing else, and an off-tag rev
+  # (flake.nix currently pins one for the ctrl+click double-open fix) still
+  # reports the version of the release it was cut from — so a version compare
+  # answers "nothing to do" for a genuine upgrade. Compare store paths instead.
   herdrHandoff = pkgs.writeShellApplication {
     name = "herdr-handoff";
     runtimeInputs = [
       pkgs.jq
+      pkgs.gawk
       pkgs.coreutils
     ];
     # `nix` is deliberately not a runtimeInput: writeShellApplication only
@@ -62,9 +75,28 @@ let
       new_version=$(jq -r '.client.version' <<<"$status_json")
       new_protocol=$(jq -r '.client.protocol' <<<"$status_json")
 
-      if [ "$server_version" = "$new_version" ]; then
-        echo "server already runs herdr $new_version -- nothing to do."
-        exit 0
+      # argv[0] of the running server process: the store path of the binary the
+      # server is executing. `herdr server` is how every server is spawned,
+      # including one that arrived through a previous --handoff-import. -ww
+      # because ps otherwise truncates the argv column to the terminal width,
+      # and a store path plus the handoff arguments overruns a narrow one.
+      server_exe=$(ps -A -ww -o args= 2>/dev/null \
+        | awk '/\/bin\/herdr[[:space:]]+server([[:space:]]|$)/ { print $1; exit }' \
+        || true)
+
+      if [ -n "$server_exe" ]; then
+        if [ "$server_exe" = "$new_exe" ]; then
+          echo "server already runs the installed build (herdr $new_version) -- nothing to do."
+          exit 0
+        fi
+      elif [ "$server_version" = "$new_version" ]; then
+        # No executable to compare against, so the version string is all there
+        # is. It cannot distinguish two builds of the same version; say so
+        # rather than claiming the server is up to date.
+        echo "could not read the running server's executable from the process table," >&2
+        echo "and it reports the same version ($new_version) as the installed build." >&2
+        echo "Nothing to compare -- not handing off. Restart herdr to be certain." >&2
+        exit 1
       fi
 
       if [ "$(jq -r '.server.capabilities.live_handoff' <<<"$status_json")" != "true" ]; then
@@ -76,7 +108,13 @@ let
       pane_count=$("$new_exe" workspace list 2>&1 \
         | jq -r '[.result.workspaces[].pane_count] | add // "?"')
 
-      echo "herdr $server_version (running) -> $new_version (installed)"
+      if [ "$server_version" = "$new_version" ]; then
+        echo "herdr $new_version -> $new_version (same version, different build)"
+        echo "  running:   $server_exe"
+        echo "  installed: $new_exe"
+      else
+        echo "herdr $server_version (running) -> $new_version (installed)"
+      fi
       echo
       echo "  $pane_count pane processes keep running across the swap."
       echo "  This herdr WINDOW will close. Run 'herdr' again to reattach --"
@@ -101,8 +139,12 @@ let
           ;;
       esac
 
-      echo "building the herdr $server_version CLI to match the running server..."
-      old_exe=$(nix build --no-link --print-out-paths "${herdrFlakeRefFor "v$server_version"}")/bin/herdr
+      if [ -n "$server_exe" ]; then
+        old_exe="$server_exe"
+      else
+        echo "building the herdr $server_version CLI to match the running server..."
+        old_exe=$(nix build --no-link --print-out-paths "${herdrFlakeRefFor "v$server_version"}")/bin/herdr
+      fi
 
       # --expected-* make the import fail closed: the new server verifies it is
       # really the build we intended before the old one commits, and the old
