@@ -308,16 +308,16 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1785783176,
-        "narHash": "sha256-empFQ+hrnCh2JhOzQRWSCLV0YoZC3DXW3bY6k8YuJjk=",
-        "ref": "refs/tags/v0.8.0",
-        "rev": "857196dee1ce98df53efdd3f437aa2ac8a75b608",
+        "lastModified": 1785854803,
+        "narHash": "sha256-LHCMGFUdxjoYi7Cu/h8VFZKDneTXeLaCVDkXhwtT3Mg=",
+        "ref": "refs/heads/master",
+        "rev": "1997b88b3fa45f838d44e69dcebde8acf33899fc",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/herdrdev/herdr.git"
       },
       "original": {
-        "ref": "refs/tags/v0.8.0",
+        "rev": "1997b88b3fa45f838d44e69dcebde8acf33899fc",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/herdrdev/herdr.git"

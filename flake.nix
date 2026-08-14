@@ -13,15 +13,31 @@
       url = "github:agavra/tuicr/v0.19.1";
       flake = false;
     };
-    # herdr — terminal agent multiplexer (ships its own flake). Pin to a release
-    # tag; bump deliberately. Its nixpkgs (unstable) is left to its own pin so
-    # the vendored libghostty-vt zig deps resolve as upstream expects.
+    # herdr — terminal agent multiplexer (ships its own flake). Normally pinned
+    # to a release tag; bump deliberately. Its nixpkgs (unstable) is left to its
+    # own pin so the vendored libghostty-vt zig deps resolve as upstream expects.
     #
     # The org moved ogulcancelik -> herdrdev in v0.8.0 (relicensed AGPL-3.0 ->
     # Apache-2.0 in the same release); the old path still redirects, but point
     # at the canonical one.
+    #
+    # TEMPORARILY OFF-TAG: this rev is master at the merge of
+    # https://github.com/herdrdev/herdr/pull/2291 ("fix(input): keep pending url
+    # clicks across host focus loss"), the fix for
+    # https://github.com/herdrdev/herdr/issues/2290 — ctrl+clicking a link in a
+    # Claude Code pane opened TWO browser tabs whenever the button was held long
+    # enough for the browser to steal focus before release. herdr opened the URL
+    # on press and then forwarded the same click to the pane, which opened it
+    # again. It is labelled pending-release: not in v0.8.0 (tagged the day
+    # before the merge) and not in any preview build either. A rev, not master:
+    # this is a deliberate pin, so it does not drift.
+    #
+    # Go back to `ref=refs/tags/vX.Y.Z` as soon as a release carries the fix.
+    # Note the crate version on this rev is still "0.8.0", so `herdr status`
+    # cannot tell this build from the tag — herdr-handoff compares store paths
+    # for exactly that reason (see programs/herdr.nix).
     herdr = {
-      url = "git+ssh://git@github.com/herdrdev/herdr.git?shallow=1&ref=refs/tags/v0.8.0";
+      url = "git+ssh://git@github.com/herdrdev/herdr.git?shallow=1&rev=1997b88b3fa45f838d44e69dcebde8acf33899fc";
     };
     # herdr-thumbs plugin (tmux-thumbs for herdr). Extracted from the vendored
     # copy that used to live in home-manager/bin/herdr-thumbs/. Follows our
