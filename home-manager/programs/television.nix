@@ -14,7 +14,9 @@ in
           description = "A channel to select files and directories";
           requirements = [ "fd" "bat" ];
         };
-        source.command = [ "fd -t f" "fd -t f -H" ];
+        # hidden-by-default: the first command is what ctrl-t opens with.
+        # ctrl-s cycles to the second (no dotfiles).
+        source.command = [ "fd -t f -H -E .git" "fd -t f" ];
         preview = {
           command = "bat -n --color=always '{}'";
           env.BAT_THEME = "ansi";
@@ -41,7 +43,7 @@ in
           description = "A channel to select from directories";
           requirements = [ "fd" ];
         };
-        source.command = [ "fd -t d" "fd -t d --hidden" ];
+        source.command = [ "fd -t d -H -E .git" "fd -t d" ];
         preview.command = "ls -la --color=always '{}'";
         keybindings.shortcut = "f2";
         actions.cd = {
@@ -85,8 +87,8 @@ in
         };
         source = {
           command = [
-            "rg . --no-heading --line-number --colors 'match:fg:white' --colors 'path:fg:blue' --color=always"
             "rg . --no-heading --line-number --hidden -g '!.git' --colors 'match:fg:white' --colors 'path:fg:blue' --color=always"
+            "rg . --no-heading --line-number --colors 'match:fg:white' --colors 'path:fg:blue' --color=always"
           ];
           ansi = true;
           output = "{strip_ansi|split:\\::..2}";
