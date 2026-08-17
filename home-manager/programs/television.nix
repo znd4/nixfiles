@@ -1,11 +1,16 @@
 { inputs, system, ... }:
 let
   unstablePkgs = inputs.nixpkgs-unstable.legacyPackages.${system};
+  # tv from its own pin rather than `nixpkgs-unstable`, which still has 0.13.5.
+  # See flake.nix for why (0.13.5 shows a stale preview once a query narrows
+  # the results). herdr.nix reads tv from this same input so the launcher and
+  # this config can never drift onto different versions.
+  televisionPkgs = inputs.nixpkgs-television.legacyPackages.${system};
 in
 {
   programs.television = {
     enable = true;
-    package = unstablePkgs.television;
+    package = televisionPkgs.television;
     channels = {
       # Upstream builtins (tv update-channels can't fetch due to corporate TLS)
       files = {

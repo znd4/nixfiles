@@ -11,7 +11,7 @@ let
 
   # Same build television.nix pins, so the launcher below cannot drift onto a
   # different `tv` than the one the rest of the config is configured for.
-  television = inputs.nixpkgs-unstable.legacyPackages.${system}.television;
+  television = inputs.nixpkgs-television.legacyPackages.${system}.television;
 
   workDir = "$HOME/Work";
   # Same directory for TOML, where $HOME does not expand. herdr resolves a
@@ -193,23 +193,25 @@ let
   # Workspace/directory picker on alt+d, the descendant of the tmux `M-d`
   # sesh-connect popup. In tmux that fzf drove `sesh connect`, whose default tab
   # lists the live sessions first and the zoxide/find directories after them.
-  # The herdr equivalent of a session is a workspace, so the default list is the
-  # open workspaces followed by zoxide history: picking a workspace focuses it,
-  # picking a directory opens it as a new workspace. Directory picks are
-  # deduplicated against the open workspaces, matching `sesh connect`.
+  # The herdr equivalent of a session is a workspace, so the list is the open
+  # workspaces followed by every candidate directory: picking a workspace
+  # focuses it, picking a directory opens it as a new workspace. Directories
+  # already backing a workspace are dropped from the list, matching
+  # `sesh connect`.
   #
   # It used to be an fzf popup with ^a/^w/^x/^f `reload(...)` tabs. It is now
   # television, which buys a preview panel worth having — a workspace previews
   # as its pane tree plus the live tail of its focused pane, a directory as its
-  # git state, recent commits and contents. The four tabs became four cable
-  # channels on alt-a/alt-w/alt-x/alt-f.
+  # git state, recent commits and contents. The tabs are gone rather than
+  # ported: tv is driven inline (`--source-command`/`--preview-command`), which
+  # takes exactly one source, so zoxide and the ~/Work scan merged into the one
+  # deduplicated list. No cable channels, no cache dir, no files written.
   #
   # The logic lives in ../bin/herdr-launcher so it stays shellcheck-able and
-  # runnable on its own; see the header there for the entry format and why the
-  # channels are generated at run time instead of via
-  # `programs.television.channels`. It is inlined rather than exec'd so that $0
-  # inside is this wrapper: tv re-invokes the script for every source and
-  # preview, and those re-invocations need runtimeInputs on PATH.
+  # runnable on its own; see the header there for the entry format. It is
+  # inlined rather than exec'd so that $0 inside is this wrapper: tv re-invokes
+  # the script for every source and preview, and those re-invocations need
+  # runtimeInputs on PATH.
   herdrLauncher = pkgs.writeShellApplication {
     name = "herdr-launcher";
     runtimeInputs = [
@@ -393,9 +395,17 @@ let
 
     # tmux M-d: sesh connect picker. Pick an open workspace (-> focus it) or a
     # zoxide/find dir (-> open it as a workspace).
+    #
+    # `popup` rather than `pane`: this descends from a tmux *popup*, and a
+    # session-modal terminal is the honest equivalent — `pane` splits the tab
+    # for as long as the picker is up, which resizes whatever you were reading.
+    # Wide, because the picker is two panels: at 85% the 55%-wide preview still
+    # has room for a commit log and a pane tree.
     [[keys.command]]
     key = "alt+d"
-    type = "pane"
+    type = "popup"
+    width = "85%"
+    height = "80%"
     command = "${herdrLauncher}/bin/herdr-launcher"
     description = "workspace picker: open workspaces / zoxide / find"
 

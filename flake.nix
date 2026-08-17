@@ -91,6 +91,13 @@
     # rev*, so this costs no extra fetch. That rev has jj 0.43.0 (latest
     # upstream release); bump it when a newer jj is wanted.
     nixpkgs-jujutsu.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&rev=624af665418d3c65d544145b4d34ad696439570e";
+    # television: `nixpkgs-unstable` above carries tv 0.13.5, which leaves the
+    # preview panel on a stale entry when the query narrows the result list to
+    # a different selection — you read one entry's preview while a different
+    # one is selected. Fixed by 0.15.9. Same per-package-pin reasoning as
+    # nixpkgs-tuicr, and deliberately the *same rev* as it and nixpkgs-jujutsu,
+    # so this costs no extra fetch. That rev has tv 0.15.9 (latest upstream).
+    nixpkgs-television.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&rev=624af665418d3c65d544145b4d34ad696439570e";
 
     nil.url = "git+ssh://git@github.com/oxalica/nil.git?shallow=1";
     nil.inputs.nixpkgs.follows = "nixpkgs";

@@ -2,30 +2,29 @@
 # herdr-launcher — the `alt+d` workspace picker, driven by television (`tv`).
 #
 # Wrapped and bound in home-manager/programs/herdr.nix. Lists the open
-# workspaces first, then zoxide/find directories. Picking a workspace focuses
-# it; picking a directory focuses the workspace already rooted there, or
-# creates one.
+# workspaces first, then every directory worth opening. Picking a workspace
+# focuses it; picking a directory focuses the workspace already rooted there,
+# or creates one.
 #
 # Replaces the earlier fzf popup (itself a port of the tmux `M-d` sesh-connect
-# binding). What tv buys over it:
-#   * a real preview panel — a workspace shows its pane tree and the live
-#     output of its focused pane; a directory shows its git state, recent
-#     commits and contents.
-#   * the four "tabs" are four cable channels with `shortcut` keybindings, so
-#     alt-a / alt-w / alt-x / alt-f switch between them the way ^a/^w/^x/^f did
-#     in the fzf popup — and tv keeps a per-channel prompt and history.
+# binding). What tv buys over it is a real preview panel: a workspace shows its
+# pane tree and the live output of its focused pane, a directory shows its git
+# state, recent commits and contents.
 #
-# The prototypes are written to a cache dir at run time and handed to tv with
-# `--cable-dir`, rather than declared in `programs.television.channels`. Two
-# reasons: this file stays the single source of truth and runs standalone, and
-# a `shortcut` in the shared cable dir is global — alt-w would yank you into
-# the workspace channel from inside `tv files`. Scoping the cable dir also
-# keeps the remote control (ctrl-t) listing these four and nothing else.
+# The fzf popup had ^a/^w/^x/^f tabs that `reload(...)`ed the list. There are no
+# tabs here, and no cable channels either — tv is driven entirely inline, with
+# `--source-command` / `--preview-command`. One source is all tv's ad-hoc mode
+# accepts (`--source-command` "cannot be used multiple times", and tv has no
+# "switch to source N" action), and one source turns out to be the better UX
+# anyway: workspaces, zoxide history and everything under $WORK_DIR go into a
+# single deduplicated list, so a directory that used to need ^f is now just
+# more text to type at. It costs nothing — the whole list is ~850 lines built
+# in ~50ms — and it means this script writes no files and needs no cache dir.
 #
 # Subcommands (used by tv itself, not meant to be typed):
-#   $0 list <all|workspaces|zoxide|find>   emit entries for a channel source
-#   $0 preview <entry>                     render the preview for one entry
-#   $0 resolve <entry>                     say what a pick would do, do nothing
+#   $0 list              emit the entry list
+#   $0 preview <entry>   render the preview for one entry
+#   $0 resolve <entry>   say what a pick would do, do nothing
 #
 # Entries are self-describing rather than tab-delimited with a hidden payload
 # column: a workspace line leads with "▣ <id>" and a directory line with
@@ -35,12 +34,9 @@
 set -euo pipefail
 
 WORK_DIR=${HERDR_WORK_DIR:-$HOME/Work}
-CACHE_DIR=${XDG_CACHE_HOME:-$HOME/.cache}/herdr-launcher
-CABLE_DIR=$CACHE_DIR/cable
 
 WS_SIGIL='▣'
 DIR_SIGIL='󰉋'
-HEADER='alt-a all · alt-w workspaces · alt-x zoxide · alt-f find'
 
 # tv runs `list`/`preview` through $SHELL, so it needs an absolute path back to
 # this script — $0 as invoked may be relative or bare. Under nix this file is
@@ -78,7 +74,7 @@ panes_json() { herdr_json pane list; }
 workspaces_json() { herdr_json workspace list; }
 
 # =============================================================================
-# sources
+# the source
 # =============================================================================
 
 # A workspace's directory is the cwd of its first pane — the one it was created
@@ -111,23 +107,51 @@ list_workspaces() {
     '
 }
 
-# `fd -t d` emits a trailing slash. Strip it here rather than at parse time so
-# the displayed path and the path compared against a workspace cwd are the same
-# string — a trailing slash silently breaks the `.cwd == $dir` dedup match.
-as_dir_lines() { awk -v home="$HOME" -v sigil="$DIR_SIGIL" -v b="$C_BLUE" -v r="$C_RESET" '
-  NF {
-    d = $0
-    sub(/\/+$/, "", d)
-    if (d == "") d = "/"
-    if (index(d, home) == 1) d = "~" substr(d, length(home) + 1)
-    print b sigil r " " d
-  }'; }
+# The directories already backing an open workspace, absolute, one per line.
+workspace_cwds() {
+  panes_json | jq -r '(.result.panes // []) | group_by(.workspace_id) | .[] | .[0].cwd // empty'
+}
 
-list_zoxide() { sesh list -z 2>/dev/null | as_dir_lines; }
-list_find() { fd -H -d 4 -t d -E .Trash -E .git . "$WORK_DIR" | as_dir_lines; }
+# zoxide history, then everything under $WORK_DIR. The two overlap heavily and
+# both overlap the open workspaces, so this is where the merged list is made
+# honest: normalise every path, drop repeats, and drop anything already listed
+# above as a workspace (picking either would do the same thing, and the
+# workspace line is the more informative of the two — this is what `sesh
+# connect` does with its live sessions).
+#
+# `fd -t d` emits a trailing slash and zoxide may emit a `~` prefix, so paths
+# are normalised to absolute before being compared and only tilde-shortened
+# again for display. Skipping that is a silent bug: a trailing slash defeats
+# the `.cwd == $dir` match both here and in workspace_for_dir.
+list_dirs() {
+  {
+    sesh list -z 2>/dev/null || true
+    fd -H -d 4 -t d -E .Trash -E .git . "$WORK_DIR" 2>/dev/null || true
+  } | awk -v home="$HOME" -v sigil="$DIR_SIGIL" -v b="$C_BLUE" -v r="$C_RESET" \
+          -v open_cwds="$(workspace_cwds | tr '\n' '\036')" '
+    BEGIN {
+      n = split(open_cwds, a, "\036")
+      for (i = 1; i <= n; i++) if (a[i] != "") open[a[i]] = 1
+    }
+    NF {
+      d = $0
+      sub(/\/+$/, "", d)
+      if (d == "") d = "/"
+      if (substr(d, 1, 1) == "~") d = home substr(d, 2)
+      if (d in open || d in seen) next
+      seen[d] = 1
+      p = (index(d, home) == 1) ? "~" substr(d, length(home) + 1) : d
+      print b sigil r " " p
+    }'
+}
+
+# Order matters and is the only ranking this list has: with an empty query tv
+# shows the source in input order, so the open workspaces sit at the top the
+# way they did in the fzf popup's default tab. Typing puts everything into the
+# same fuzzy match.
 list_all() {
   list_workspaces
-  list_zoxide
+  list_dirs
 }
 
 # =============================================================================
@@ -240,6 +264,10 @@ preview_dir() {
     return 0
   fi
 
+  # list_dirs already hides directories that back an open workspace, so this
+  # normally says nothing. It still fires for a workspace created since the
+  # list was built, and for the `new_cwd` case where a second workspace shares
+  # the directory — both are worth knowing before pressing enter.
   existing=$(workspace_for_dir "$dir")
   if [ -n "$existing" ]; then
     label=$(workspaces_json | jq -r --arg id "$existing" \
@@ -346,49 +374,6 @@ do_preview() {
 }
 
 # =============================================================================
-# cable channels
-# =============================================================================
-
-# One channel per fzf "tab". `shortcut` makes tv switch channel from anywhere,
-# which is the closest thing tv has to fzf's `reload(...)` bindings — and it is
-# better, because each channel keeps its own prompt and history.
-write_channel() {
-  local name=$1 mode=$2 shortcut=$3 prompt=$4 desc=$5
-  # The header goes in the prototype rather than on the command line: a
-  # `--input-header` only decorates the channel tv starts on, and would be
-  # replaced by the bare channel name the first time a shortcut fires.
-  cat >"$CABLE_DIR/$name.toml" <<EOF
-[metadata]
-name = "$name"
-description = "$desc"
-requirements = ["herdr", "jq", "tv"]
-
-[source]
-command = "'$SELF' list $mode"
-ansi = true
-
-[preview]
-command = "'$SELF' preview '{}'"
-
-[ui]
-preview_panel = { size = 55 }
-input_bar = { prompt = "$prompt", header = "$HEADER" }
-
-[keybindings]
-shortcut = "$shortcut"
-EOF
-}
-
-write_channels() {
-  mkdir -p "$CABLE_DIR"
-  rm -f "$CABLE_DIR"/*.toml
-  write_channel herdr-all all 'alt-a' '󰍉 ' 'herdr workspaces + zoxide directories'
-  write_channel herdr-workspaces workspaces 'alt-w' '▣ ' 'open herdr workspaces'
-  write_channel herdr-zoxide zoxide 'alt-x' '󰉋 ' 'zoxide directory history'
-  write_channel herdr-find find 'alt-f' '🔎 ' "directories under $WORK_DIR"
-}
-
-# =============================================================================
 # acting on a pick
 # =============================================================================
 
@@ -442,25 +427,11 @@ act_on() {
 
 case ${1-} in
   list)
-    case ${2-} in
-      all) list_all ;;
-      workspaces) list_workspaces ;;
-      zoxide) list_zoxide ;;
-      find) list_find ;;
-      *)
-        echo "unknown list mode: ${2-}" >&2
-        exit 2
-        ;;
-    esac
+    list_all
     exit 0
     ;;
   preview)
     do_preview "${2-}"
-    exit 0
-    ;;
-  channels)
-    write_channels
-    echo "$CABLE_DIR"
     exit 0
     ;;
   resolve)
@@ -469,9 +440,17 @@ case ${1-} in
     ;;
 esac
 
-write_channels
-
-sel=$(tv herdr-all --cable-dir "$CABLE_DIR" --hide-remote) || exit 0
+# `--no-remote` because there is nothing to switch to: this is a one-source
+# ad-hoc channel, and leaving ctrl-t on would offer the global cable dir
+# (`tv files`, `tv dirs`, …), whose entries this script cannot act on.
+sel=$(tv \
+  --source-command "'$SELF' list" \
+  --preview-command "'$SELF' preview '{}'" \
+  --ansi \
+  --preview-size 55 \
+  --input-prompt '󰍉 ' \
+  --input-header "$WS_SIGIL workspaces · $DIR_SIGIL zoxide + $(tilde "$WORK_DIR")" \
+  --no-remote) || exit 0
 [ -n "$sel" ] || exit 0
 
 act_on "$sel"
