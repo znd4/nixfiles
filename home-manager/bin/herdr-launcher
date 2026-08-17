@@ -1,0 +1,477 @@
+#!/usr/bin/env bash
+# herdr-launcher — the `alt+d` workspace picker, driven by television (`tv`).
+#
+# Wrapped and bound in home-manager/programs/herdr.nix. Lists the open
+# workspaces first, then zoxide/find directories. Picking a workspace focuses
+# it; picking a directory focuses the workspace already rooted there, or
+# creates one.
+#
+# Replaces the earlier fzf popup (itself a port of the tmux `M-d` sesh-connect
+# binding). What tv buys over it:
+#   * a real preview panel — a workspace shows its pane tree and the live
+#     output of its focused pane; a directory shows its git state, recent
+#     commits and contents.
+#   * the four "tabs" are four cable channels with `shortcut` keybindings, so
+#     alt-a / alt-w / alt-x / alt-f switch between them the way ^a/^w/^x/^f did
+#     in the fzf popup — and tv keeps a per-channel prompt and history.
+#
+# The prototypes are written to a cache dir at run time and handed to tv with
+# `--cable-dir`, rather than declared in `programs.television.channels`. Two
+# reasons: this file stays the single source of truth and runs standalone, and
+# a `shortcut` in the shared cable dir is global — alt-w would yank you into
+# the workspace channel from inside `tv files`. Scoping the cable dir also
+# keeps the remote control (ctrl-t) listing these four and nothing else.
+#
+# Subcommands (used by tv itself, not meant to be typed):
+#   $0 list <all|workspaces|zoxide|find>   emit entries for a channel source
+#   $0 preview <entry>                     render the preview for one entry
+#   $0 resolve <entry>                     say what a pick would do, do nothing
+#
+# Entries are self-describing rather than tab-delimited with a hidden payload
+# column: a workspace line leads with "▣ <id>" and a directory line with
+# "󰉋 <path>". tv's `{}` then carries everything both the preview and the final
+# pick need, and no source-display template has to hide a column.
+
+set -euo pipefail
+
+WORK_DIR=${HERDR_WORK_DIR:-$HOME/Work}
+CACHE_DIR=${XDG_CACHE_HOME:-$HOME/.cache}/herdr-launcher
+CABLE_DIR=$CACHE_DIR/cable
+
+WS_SIGIL='▣'
+DIR_SIGIL='󰉋'
+HEADER='alt-a all · alt-w workspaces · alt-x zoxide · alt-f find'
+
+# tv runs `list`/`preview` through $SHELL, so it needs an absolute path back to
+# this script — $0 as invoked may be relative or bare. Under nix this file is
+# inlined into a writeShellApplication, so $0 is that wrapper and the
+# re-invocations inherit its runtimeInputs; standalone it is just this file.
+case $0 in
+  */*) SELF=$(cd -- "$(dirname -- "$0")" && pwd)/$(basename -- "$0") ;;
+  *) SELF=$(command -v -- "$0") ;;
+esac
+
+# --- colours -----------------------------------------------------------------
+# On by default rather than gated on a tty: tv captures both the source and the
+# preview through a pipe, which is exactly when the colour is wanted. Set
+# HERDR_LAUNCHER_COLOR=0 to read the raw output while debugging.
+if [ "${HERDR_LAUNCHER_COLOR:-1}" = 1 ]; then
+  C_RESET=$'\033[0m'
+  C_DIM=$'\033[2m'
+  C_BOLD=$'\033[1m'
+  C_BLUE=$'\033[34m'
+  C_CYAN=$'\033[36m'
+  C_GREEN=$'\033[32m'
+  C_YELLOW=$'\033[33m'
+  C_MAGENTA=$'\033[35m'
+else
+  C_RESET='' C_DIM='' C_BOLD='' C_BLUE='' C_CYAN='' C_GREEN='' C_YELLOW='' C_MAGENTA=''
+fi
+
+tilde() { case $1 in "$HOME"/* | "$HOME") printf '~%s\n' "${1#"$HOME"}" ;; *) printf '%s\n' "$1" ;; esac; }
+untilde() { case $1 in '~'/* | '~') printf '%s\n' "$HOME${1#\~}" ;; *) printf '%s\n' "$1" ;; esac; }
+
+rule() { printf '%s── %s %s%s\n' "$C_DIM" "$1" "$(printf '─%.0s' $(seq 1 $((40 - ${#1})))) " "$C_RESET"; }
+
+herdr_json() { herdr "$@" 2>/dev/null || echo '{}'; }
+panes_json() { herdr_json pane list; }
+workspaces_json() { herdr_json workspace list; }
+
+# =============================================================================
+# sources
+# =============================================================================
+
+# A workspace's directory is the cwd of its first pane — the one it was created
+# with. `herdr workspace list` does not carry a cwd, so join it against
+# `herdr pane list`; group_by preserves input order, so .[0] is that pane.
+list_workspaces() {
+  jq -rn \
+    --argjson ws "$(workspaces_json)" \
+    --argjson pn "$(panes_json)" \
+    --arg home "$HOME" \
+    --arg sigil "$WS_SIGIL" \
+    --arg c "$C_CYAN" --arg d "$C_DIM" --arg b "$C_BLUE" --arg g "$C_GREEN" \
+    --arg y "$C_YELLOW" --arg r "$C_RESET" '
+      def tilde: if startswith($home) then "~" + ltrimstr($home) else . end;
+      # Only the states worth spotting at a glance get a colour of their own.
+      def agent_colour: { working: $g, blocked: $y, idle: $d }[.] // $d;
+      ( ($pn.result.panes // [])
+        | group_by(.workspace_id)
+        | map({ key: .[0].workspace_id, value: (.[0].cwd // "") })
+        | from_entries ) as $cwd
+      | ($ws.result.workspaces // [])[]
+      | (($cwd[.workspace_id] // "") | tilde) as $dir
+      | (.agent_status // "unknown") as $agent
+      | [ $c + $sigil + $r, $d + .workspace_id + $r, .label ]
+        + (if $dir == "" or $dir == .label then []
+           else [ $d + "·" + $r, $b + $dir + $r ] end)
+        + (if $agent == "unknown" then []
+           else [ ($agent | agent_colour) + "(" + $agent + ")" + $r ] end)
+      | join(" ")
+    '
+}
+
+# `fd -t d` emits a trailing slash. Strip it here rather than at parse time so
+# the displayed path and the path compared against a workspace cwd are the same
+# string — a trailing slash silently breaks the `.cwd == $dir` dedup match.
+as_dir_lines() { awk -v home="$HOME" -v sigil="$DIR_SIGIL" -v b="$C_BLUE" -v r="$C_RESET" '
+  NF {
+    d = $0
+    sub(/\/+$/, "", d)
+    if (d == "") d = "/"
+    if (index(d, home) == 1) d = "~" substr(d, length(home) + 1)
+    print b sigil r " " d
+  }'; }
+
+list_zoxide() { sesh list -z 2>/dev/null | as_dir_lines; }
+list_find() { fd -H -d 4 -t d -E .Trash -E .git . "$WORK_DIR" | as_dir_lines; }
+list_all() {
+  list_workspaces
+  list_zoxide
+}
+
+# =============================================================================
+# entry parsing
+# =============================================================================
+
+# Echoes "ws <id>" or "dir <abs-path>"; exits 1 on anything unrecognised.
+#
+# The source lines carry colour, and `--ansi` means tv hands the preview the
+# text with the styles already lifted off. Strip them again anyway — the same
+# parser runs on tv's final output, and one un-stripped escape would turn a
+# workspace id into an id nothing matches.
+parse_entry() {
+  local entry rest
+  entry=$(printf '%s' "$1" | sed $'s/\033\\[[0-9;]*m//g')
+  case $entry in
+    "$WS_SIGIL "*)
+      rest=${entry#"$WS_SIGIL "}
+      printf 'ws %s\n' "${rest%% *}"
+      ;;
+    "$DIR_SIGIL "*)
+      printf 'dir %s\n' "$(untilde "${entry#"$DIR_SIGIL "}")"
+      ;;
+    *) return 1 ;;
+  esac
+}
+
+# The workspace a directory would resolve to, if any. Several workspaces can
+# share a directory — every workspace created without an explicit --cwd lands
+# in the `new_cwd` policy dir (~/Work), so a handful sit there. Prefer the one
+# whose label is the directory's basename, which is what this script names the
+# workspaces it creates; fall back to the first match.
+workspace_for_dir() {
+  jq -rn \
+    --argjson pn "$(panes_json)" \
+    --argjson ws "$(workspaces_json)" \
+    --arg dir "$1" \
+    --arg base "$(basename "$1")" '
+      ( ($pn.result.panes // [])
+        | group_by(.workspace_id)
+        | map(select(.[0].cwd == $dir) | .[0].workspace_id) ) as $ids
+      | ( ($ws.result.workspaces // [])
+          | map({ key: .workspace_id, value: .label })
+          | from_entries ) as $label
+      | ( [ $ids[] | select($label[.] == $base) ] + $ids )
+      | first // empty
+    '
+}
+
+# =============================================================================
+# previews
+# =============================================================================
+
+# One line: branch, upstream divergence, dirty count. Returns 1 (printing
+# nothing) when the path is not inside a work tree, so callers can decide what
+# to say instead.
+git_summary() {
+  local dir=$1
+  git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 1
+
+  local branch ahead behind dirty upstream counts
+  branch=$(git -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null)
+  [ "$branch" = HEAD ] && branch="detached $(git -C "$dir" rev-parse --short HEAD 2>/dev/null)"
+  dirty=$(git -C "$dir" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+
+  printf '%s ⎇ %s%s' "$C_MAGENTA" "$branch" "$C_RESET"
+  upstream=$(git -C "$dir" rev-parse --abbrev-ref '@{upstream}' 2>/dev/null || true)
+  if [ -n "$upstream" ]; then
+    counts=$(git -C "$dir" rev-list --left-right --count "@{upstream}...HEAD" 2>/dev/null || echo '0	0')
+    behind=${counts%%	*}
+    ahead=${counts##*	}
+    [ "$ahead" != 0 ] && printf ' %s↑%s%s' "$C_GREEN" "$ahead" "$C_RESET"
+    [ "$behind" != 0 ] && printf ' %s↓%s%s' "$C_YELLOW" "$behind" "$C_RESET"
+  else
+    printf ' %s(no upstream)%s' "$C_DIM" "$C_RESET"
+  fi
+  if [ "$dirty" = 0 ]; then
+    printf ' %s· clean%s\n' "$C_DIM" "$C_RESET"
+  else
+    printf ' %s· %s changed%s\n' "$C_YELLOW" "$dirty" "$C_RESET"
+  fi
+}
+
+# The full repo block: summary line, working-tree status when dirty, history.
+preview_git() {
+  local dir=$1
+  git_summary "$dir" || return 1
+
+  if [ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]; then
+    printf '\n'
+    rule status
+    git -C "$dir" -c color.status=always status --short 2>/dev/null | head -12
+  fi
+
+  printf '\n'
+  rule commits
+  git -C "$dir" -c color.ui=always log --oneline --decorate -n 10 2>/dev/null
+}
+
+# Directories have no single obvious preview, so this stacks the three things
+# actually worth knowing before opening one: is it a repo and what state is it
+# in, is it already open as a workspace, and what is in it.
+preview_dir() {
+  local dir=$1 existing label
+
+  printf '%s%s %s%s\n' "$C_BOLD$C_BLUE" "$DIR_SIGIL" "$(tilde "$dir")" "$C_RESET"
+
+  if [ ! -d "$dir" ]; then
+    printf '%sdirectory does not exist%s\n' "$C_YELLOW" "$C_RESET"
+    return 0
+  fi
+
+  existing=$(workspace_for_dir "$dir")
+  if [ -n "$existing" ]; then
+    label=$(workspaces_json | jq -r --arg id "$existing" \
+      '(.result.workspaces // [])[] | select(.workspace_id == $id) | .label')
+    printf '%s%s already open as %s (%s) — enter focuses it%s\n' \
+      "$C_CYAN" "$WS_SIGIL" "$label" "$existing" "$C_RESET"
+  fi
+
+  printf '\n'
+  preview_git "$dir" || printf '%snot a git repository%s\n' "$C_DIM" "$C_RESET"
+
+  printf '\n'
+  rule contents
+  # shellcheck disable=SC2012 # a human-readable listing is the whole point
+  ls -AFH --color=always "$dir" 2>/dev/null | head -40
+
+  local readme
+  readme=$(find "$dir" -maxdepth 1 -iname 'README*' -type f 2>/dev/null | head -1)
+  if [ -n "$readme" ]; then
+    printf '\n'
+    rule "$(basename "$readme")"
+    if command -v glow >/dev/null 2>&1; then
+      glow -s dark -w 78 "$readme" 2>/dev/null | head -40
+    else
+      head -40 "$readme"
+    fi
+  fi
+}
+
+# A workspace's most useful preview is what is actually on screen in it — the
+# pane tree tells you which one that is, and the tail of its output tells you
+# what you left running there.
+preview_workspace() {
+  local id=$1 ws pane_rows focus_pane
+
+  ws=$(workspaces_json | jq -r --arg id "$id" \
+    '(.result.workspaces // [])[] | select(.workspace_id == $id)
+     | [.label, (.agent_status // "unknown"), (.tab_count|tostring), (.pane_count|tostring)]
+     | @tsv')
+  if [ -z "$ws" ]; then
+    printf '%sworkspace %s is gone%s\n' "$C_YELLOW" "$id" "$C_RESET"
+    return 0
+  fi
+
+  IFS=$'\t' read -r label agent tabs panes <<<"$ws"
+  printf '%s%s %s%s\n' "$C_BOLD$C_CYAN" "$WS_SIGIL" "$label" "$C_RESET"
+  printf '%s%s · %s tab(s) · %s pane(s) · agent %s%s\n' \
+    "$C_DIM" "$id" "$tabs" "$panes" "$agent" "$C_RESET"
+
+  local cwd
+  cwd=$(panes_json | jq -r --arg id "$id" \
+    '[(.result.panes // [])[] | select(.workspace_id == $id)] | .[0].cwd // ""')
+  if [ -n "$cwd" ]; then
+    printf '\n%s%s%s\n' "$C_BLUE" "$(tilde "$cwd")" "$C_RESET"
+    # Summary only — for a workspace the live pane output below is worth more
+    # screen than a commit log, which the directory preview already carries.
+    git_summary "$cwd" || true
+  fi
+
+  # Focused pane if the workspace has one, else its first. Resolved before the
+  # table so the ▸ marker points at the pane whose output is actually shown.
+  focus_pane=$(panes_json | jq -r --arg id "$id" '
+    [(.result.panes // [])[] | select(.workspace_id == $id)] as $p
+    | (([$p[] | select(.focused)] + $p) | first).pane_id // ""')
+
+  printf '\n'
+  rule panes
+  pane_rows=$(panes_json | jq -r --arg id "$id" --arg home "$HOME" --arg focus "$focus_pane" '
+    def tilde: if startswith($home) then "~" + ltrimstr($home) else . end;
+    (.result.panes // [])[]
+    | select(.workspace_id == $id)
+    | [ (if .pane_id == $focus then "▸" else " " end),
+        .pane_id,
+        ((.foreground_cwd // .cwd // "") | tilde),
+        (.terminal_title_stripped // "") ]
+    | @tsv')
+  printf '%s\n' "$pane_rows" | awk -F'\t' \
+    -v b="$C_BLUE" -v d="$C_DIM" -v r="$C_RESET" \
+    '{ printf "%s %-10s %s%s%s  %s%s%s\n", $1, $2, b, $3, r, d, $4, r }'
+
+  if [ -n "$focus_pane" ]; then
+    printf '\n'
+    rule "$focus_pane"
+    # `herdr pane read` exits 0 on a pane with nothing in scrollback, so test
+    # the output rather than the status.
+    local out
+    out=$(herdr pane read "$focus_pane" --source recent --lines 30 --format text 2>/dev/null || true)
+    if [ -n "${out//[[:space:]]/}" ]; then
+      printf '%s\n' "$out"
+    else
+      printf '%s(pane is empty)%s\n' "$C_DIM" "$C_RESET"
+    fi
+  fi
+}
+
+do_preview() {
+  local kind payload
+  read -r kind payload <<<"$(parse_entry "$1" || true)"
+  case $kind in
+    ws) preview_workspace "$payload" ;;
+    dir) preview_dir "$payload" ;;
+    *) printf '%sno preview for: %s%s\n' "$C_DIM" "$1" "$C_RESET" ;;
+  esac
+}
+
+# =============================================================================
+# cable channels
+# =============================================================================
+
+# One channel per fzf "tab". `shortcut` makes tv switch channel from anywhere,
+# which is the closest thing tv has to fzf's `reload(...)` bindings — and it is
+# better, because each channel keeps its own prompt and history.
+write_channel() {
+  local name=$1 mode=$2 shortcut=$3 prompt=$4 desc=$5
+  # The header goes in the prototype rather than on the command line: a
+  # `--input-header` only decorates the channel tv starts on, and would be
+  # replaced by the bare channel name the first time a shortcut fires.
+  cat >"$CABLE_DIR/$name.toml" <<EOF
+[metadata]
+name = "$name"
+description = "$desc"
+requirements = ["herdr", "jq", "tv"]
+
+[source]
+command = "'$SELF' list $mode"
+ansi = true
+
+[preview]
+command = "'$SELF' preview '{}'"
+
+[ui]
+preview_panel = { size = 55 }
+input_bar = { prompt = "$prompt", header = "$HEADER" }
+
+[keybindings]
+shortcut = "$shortcut"
+EOF
+}
+
+write_channels() {
+  mkdir -p "$CABLE_DIR"
+  rm -f "$CABLE_DIR"/*.toml
+  write_channel herdr-all all 'alt-a' '󰍉 ' 'herdr workspaces + zoxide directories'
+  write_channel herdr-workspaces workspaces 'alt-w' '▣ ' 'open herdr workspaces'
+  write_channel herdr-zoxide zoxide 'alt-x' '󰉋 ' 'zoxide directory history'
+  write_channel herdr-find find 'alt-f' '🔎 ' "directories under $WORK_DIR"
+}
+
+# =============================================================================
+# acting on a pick
+# =============================================================================
+
+# With DRY_RUN set, says what it would do instead of doing it — the herdr calls
+# below focus or create a workspace, which is not something to trigger by
+# accident while testing the parser.
+act_on() {
+  local sel=$1 kind payload dir existing
+  read -r kind payload <<<"$(parse_entry "$sel" || true)"
+
+  case $kind in
+    ws)
+      if [ -n "${DRY_RUN-}" ]; then
+        echo "focus workspace $payload"
+        return 0
+      fi
+      exec herdr workspace focus "$payload"
+      ;;
+    dir) ;;
+    *)
+      echo "unrecognised selection: $sel" >&2
+      return 1
+      ;;
+  esac
+
+  dir=$payload
+  [ -d "$dir" ] || {
+    echo "not a directory: $dir" >&2
+    return 1
+  }
+
+  existing=$(workspace_for_dir "$dir")
+  if [ -n "$existing" ]; then
+    if [ -n "${DRY_RUN-}" ]; then
+      echo "focus workspace $existing (already rooted in $dir)"
+      return 0
+    fi
+    exec herdr workspace focus "$existing"
+  fi
+
+  if [ -n "${DRY_RUN-}" ]; then
+    echo "create workspace $(basename "$dir") in $dir"
+    return 0
+  fi
+  herdr workspace create --cwd "$dir" --label "$(basename "$dir")" --focus
+}
+
+# =============================================================================
+# main
+# =============================================================================
+
+case ${1-} in
+  list)
+    case ${2-} in
+      all) list_all ;;
+      workspaces) list_workspaces ;;
+      zoxide) list_zoxide ;;
+      find) list_find ;;
+      *)
+        echo "unknown list mode: ${2-}" >&2
+        exit 2
+        ;;
+    esac
+    exit 0
+    ;;
+  preview)
+    do_preview "${2-}"
+    exit 0
+    ;;
+  channels)
+    write_channels
+    echo "$CABLE_DIR"
+    exit 0
+    ;;
+  resolve)
+    DRY_RUN=1 act_on "${2-}"
+    exit $?
+    ;;
+esac
+
+write_channels
+
+sel=$(tv herdr-all --cable-dir "$CABLE_DIR" --hide-remote) || exit 0
+[ -n "$sel" ] || exit 0
+
+act_on "$sel"

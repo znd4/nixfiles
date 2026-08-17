@@ -9,6 +9,10 @@
 let
   herdr = inputs.herdr.packages.${system}.default;
 
+  # Same build television.nix pins, so the launcher below cannot drift onto a
+  # different `tv` than the one the rest of the config is configured for.
+  television = inputs.nixpkgs-unstable.legacyPackages.${system}.television;
+
   workDir = "$HOME/Work";
   # Same directory for TOML, where $HOME does not expand. herdr resolves a
   # leading ~ in path-valued settings itself.
@@ -186,156 +190,45 @@ let
     '';
   };
 
-  # Session/directory picker, ported from the tmux `M-d` sesh-connect popup. In
-  # tmux that fzf drove `sesh connect`, whose default tab lists the live tmux
-  # sessions first and the zoxide/find directories after them. The herdr
-  # equivalent of a session is a workspace, so the default list here is the open
-  # workspaces followed by zoxide history: picking a workspace focuses it,
-  # picking a directory opens it as a new workspace.
+  # Workspace/directory picker on alt+d, the descendant of the tmux `M-d`
+  # sesh-connect popup. In tmux that fzf drove `sesh connect`, whose default tab
+  # lists the live sessions first and the zoxide/find directories after them.
+  # The herdr equivalent of a session is a workspace, so the default list is the
+  # open workspaces followed by zoxide history: picking a workspace focuses it,
+  # picking a directory opens it as a new workspace. Directory picks are
+  # deduplicated against the open workspaces, matching `sesh connect`.
   #
-  # Directory picks are deduplicated against the open workspaces — choosing a
-  # directory that a workspace is already rooted in focuses that workspace
-  # instead of creating a second one, matching `sesh connect`.
+  # It used to be an fzf popup with ^a/^w/^x/^f `reload(...)` tabs. It is now
+  # television, which buys a preview panel worth having — a workspace previews
+  # as its pane tree plus the live tail of its focused pane, a directory as its
+  # git state, recent commits and contents. The four tabs became four cable
+  # channels on alt-a/alt-w/alt-x/alt-f.
   #
-  # ^a all / ^w workspaces / ^x zoxide / ^f find match the tmux popup's chords
-  # (^w replaces sesh's ^t "tmux" tab).
-  #
-  # The tab lists are produced by re-invoking this same script as
-  # `$0 --list <mode>`: an fzf `reload(...)` runs its command through $SHELL, so
-  # it cannot call a function defined in here.
-  herdrSeshPick = pkgs.writeShellApplication {
-    name = "herdr-sesh-pick";
+  # The logic lives in ../bin/herdr-launcher so it stays shellcheck-able and
+  # runnable on its own; see the header there for the entry format and why the
+  # channels are generated at run time instead of via
+  # `programs.television.channels`. It is inlined rather than exec'd so that $0
+  # inside is this wrapper: tv re-invokes the script for every source and
+  # preview, and those re-invocations need runtimeInputs on PATH.
+  herdrLauncher = pkgs.writeShellApplication {
+    name = "herdr-launcher";
     runtimeInputs = [
-      pkgs.fzf
-      pkgs.fd
-      pkgs.jq
-      pkgs.gawk
-      pkgs.coreutils
+      television
       herdr
+      pkgs.jq
+      pkgs.fd
+      pkgs.sesh
+      pkgs.git
+      pkgs.glow
+      pkgs.gawk
+      pkgs.gnused
+      pkgs.findutils
+      pkgs.coreutils
     ];
     text = ''
-      # Every list line is three tab-separated fields:
-      #   <kind>\t<payload>\t<display>
-      # kind is "ws" (payload = workspace id) or "dir" (payload = a path, which
-      # may be ~-relative). fzf shows field 3 only.
-
-      # A workspace's directory is the cwd of its first pane — the one it was
-      # created with. `herdr workspace list` does not carry a cwd, so join it
-      # against `herdr pane list`. group_by preserves input order inside each
-      # group, so .[0] is that first pane.
-      panes_json() { herdr pane list 2>/dev/null || echo '{}'; }
-
-      list_workspaces() {
-        jq -rn \
-          --argjson ws "$(herdr workspace list 2>/dev/null || echo '{}')" \
-          --argjson pn "$(panes_json)" \
-          --arg home "$HOME" '
-            def tilde: if startswith($home) then "~" + ltrimstr($home) else . end;
-            ( ($pn.result.panes // [])
-              | group_by(.workspace_id)
-              | map({ key: .[0].workspace_id, value: (.[0].cwd // "") })
-              | from_entries ) as $cwd
-            | ($ws.result.workspaces // [])[]
-            | (($cwd[.workspace_id] // "") | tilde) as $dir
-            | [ "ws",
-                .workspace_id,
-                ( "▣ " + .label
-                  + (if (.agent_status // "unknown") == "unknown" then ""
-                     else "  (" + .agent_status + ")" end)
-                  # A workspace labelled after its own directory needs it once.
-                  + (if $dir == "" or $dir == .label then "" else "  " + $dir end) ) ]
-            | @tsv
-          '
-      }
-
-      # Payload keeps the path as listed (sesh emits ~-relative ones); only the
-      # display column is shortened.
-      as_dir_lines() {
-        awk -v home="$HOME" '
-          NF {
-            disp = $0
-            if (index(disp, home) == 1) disp = "~" substr(disp, length(home) + 1)
-            printf "dir\t%s\t%s\n", $0, disp
-          }'
-      }
-
-      list_zoxide() { sesh list -z 2>/dev/null | as_dir_lines; }
-      list_find() {
-        fd -H -d 4 -t d -E .Trash -E .git . "${workDir}" | as_dir_lines
-      }
-      list_all() {
-        list_workspaces
-        list_zoxide
-      }
-
-      case "''${1-}" in
-        --list)
-          case "''${2-}" in
-            all) list_all ;;
-            workspaces) list_workspaces ;;
-            zoxide) list_zoxide ;;
-            find) list_find ;;
-            *)
-              echo "unknown list mode: ''${2-}" >&2
-              exit 2
-              ;;
-          esac
-          exit 0
-          ;;
-      esac
-
-      sel=$(list_all | fzf \
-          --delimiter '\t' --with-nth '3..' \
-          --no-sort --border --border-label ' herdr workspace ' --prompt '󰍉  ' \
-          --header '  ^a all  ^w workspaces  ^x zoxide  ^f find (~/Work)' \
-          --bind 'tab:down,btab:up' \
-          --bind "ctrl-a:change-prompt(󰍉  )+reload($0 --list all)" \
-          --bind "ctrl-w:change-prompt(▣  )+reload($0 --list workspaces)" \
-          --bind "ctrl-x:change-prompt(📁  )+reload($0 --list zoxide)" \
-          --bind "ctrl-f:change-prompt(🔎  )+reload($0 --list find)" \
-        ) || exit 0
-      [ -z "$sel" ] && exit 0
-
-      kind=''${sel%%$'\t'*}
-      rest=''${sel#*$'\t'}
-      payload=''${rest%%$'\t'*}
-
-      if [ "$kind" = "ws" ]; then
-        exec herdr workspace focus "$payload"
-      fi
-
-      # Expand a leading ~ (sesh list -z emits ~-relative paths).
-      dir="''${payload/#\~/$HOME}"
-      [ -d "$dir" ] || {
-        echo "not a directory: $dir" >&2
-        exit 1
-      }
-
-      # Several workspaces can share a directory — every workspace created
-      # without an explicit --cwd lands in the `new_cwd` policy dir (~/Work), so
-      # a handful of them sit there. Prefer the one whose label is the
-      # directory's basename, which is what this script names the workspaces it
-      # creates; fall back to the first match.
-      existing=$(jq -rn \
-        --argjson pn "$(panes_json)" \
-        --argjson ws "$(herdr workspace list 2>/dev/null || echo '{}')" \
-        --arg dir "$dir" \
-        --arg base "$(basename "$dir")" '
-          ( ($pn.result.panes // [])
-            | group_by(.workspace_id)
-            | map(select(.[0].cwd == $dir) | .[0].workspace_id) ) as $ids
-          | ( ($ws.result.workspaces // [])
-              | map({ key: .workspace_id, value: .label })
-              | from_entries ) as $label
-          | ( [ $ids[] | select($label[.] == $base) ] + $ids )
-          | first // empty
-      ')
-      if [ -n "$existing" ]; then
-        exec herdr workspace focus "$existing"
-      fi
-
-      herdr workspace create --cwd "$dir" --label "$(basename "$dir")" --focus
-    '';
+      export HERDR_WORK_DIR="''${HERDR_WORK_DIR:-${workDir}}"
+    ''
+    + builtins.readFile ../bin/herdr-launcher;
   };
 
   # Clone-creator, ported from the tmux `M-m` `_sesh-cl-fuzzy` popup. Same
@@ -503,7 +396,7 @@ let
     [[keys.command]]
     key = "alt+d"
     type = "pane"
-    command = "${herdrSeshPick}/bin/herdr-sesh-pick"
+    command = "${herdrLauncher}/bin/herdr-launcher"
     description = "workspace picker: open workspaces / zoxide / find"
 
     # tmux M-m: clone-creator. gh/glab/URL repo picker -> clone -> open workspace.
