@@ -53,16 +53,41 @@ let
   fishAliases = {
     awsume = "source (which awsume.fish)";
   };
+  # tmux coordinates for notification hooks.
+  # re https://quemy.info/2025-08-04-notification-system-tmux-claude.html
+  #
+  # These are deliberately NOT in envMap. envMap becomes an unconditional list
+  # of exports in .zshenv / .profile / fish shellInit, so a command
+  # substitution there runs in every shell -- including shells with no tmux
+  # server (herdr), where each one printed "no server running on
+  # /private/tmp/tmux-<uid>/default" to stderr. Three variables, three lines of
+  # noise, on every single shell start.
+  #
+  # tmux sets $TMUX in every pane it starts, and children inherit it, so the
+  # guard below is exactly "shells launched by tmux". The values must stay a
+  # per-shell substitution rather than a tmux `set-environment`: tmux has no
+  # per-pane environment (only global and per-session), so it cannot carry
+  # #{window_name} or #{pane_index} correctly, and a session variable would
+  # freeze at pane start.
+  tmuxVarsPosix = ''
+    if [ -n "$TMUX" ]; then
+      WS_TMUX_SESSION_NAME=$(tmux display-message -p '#{session_name}')
+      WS_TMUX_WINDOW_NAME=$(tmux display-message -p '#{window_name}')
+      WS_TMUX_LOCATION=$(tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}')
+      export WS_TMUX_SESSION_NAME WS_TMUX_WINDOW_NAME WS_TMUX_LOCATION
+    fi
+  '';
+  tmuxVarsFish = ''
+    if test -n "$TMUX"
+        set -gx WS_TMUX_SESSION_NAME (tmux display-message -p '#{session_name}')
+        set -gx WS_TMUX_WINDOW_NAME (tmux display-message -p '#{window_name}')
+        set -gx WS_TMUX_LOCATION (tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}')
+    end
+  '';
   envMap = {
     # Add hardcoded environment variables here
     GOBIN = "$HOME/.local/bin.go";
     GOPATH = "$HOME/go";
-
-    # tmux environment variables
-    # re https://quemy.info/2025-08-04-notification-system-tmux-claude.html
-    WS_TMUX_SESSION_NAME = ''$(tmux display-message -p "#{session_name}")'';
-    WS_TMUX_WINDOW_NAME = ''$(tmux display-message -p "#{window_name}")'';
-    WS_TMUX_LOCATION = ''$(tmux display-message -p "#{session_name}:#{window_index}.#{pane_index}")'';
   }
   // (lib.attrsets.optionalAttrs (certificateAuthority != null) {
     NODE_EXTRA_CA_CERTS = certificateAuthority;
@@ -276,10 +301,14 @@ in
       fi
     '';
     sessionVariables = envMap;
+    # .zshenv, so the scope matches where sessionVariables used to put these.
+    envExtra = tmuxVarsPosix;
   };
   programs.bash = {
     enable = true;
     sessionVariables = envMap;
+    # .profile, alongside sessionVariables.
+    profileExtra = tmuxVarsPosix;
     initExtra = ''
       # Use nvr inside neovim terminals
       if [[ -n "$NVIM" ]]; then
@@ -370,6 +399,7 @@ in
         # matches .zn-work at any nesting depth; the second glob covers the dir
         # itself.
         "set -gx _ZO_EXCLUDE_DIRS \"$HOME/**/.zn-work/**:$HOME/**/.zn-work\""
+        tmuxVarsFish
       ]
       ++ (lib.attrsets.mapAttrsToList (name: value: "set -gx ${name} ${value}") envMap)
     );
