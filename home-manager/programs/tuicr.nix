@@ -7,7 +7,8 @@
 #
 #   * the binary comes from nixpkgs (cached, no local Rust build) via the
 #     `nixpkgs-tuicr` pin — `nixpkgs-unstable` predates tuicr, see flake.nix;
-#   * the herdr wrapper, which upstream does not ship (tmux and zellij only); and
+#   * the herdr wrapper — upstream grew one in 0.22.0, but ours predates it and
+#     keeps features theirs lacks (unfocused by default, --no-wait); and
 #   * the agent skill, which is just files at `skills/tuicr/` in the source tree
 #     that the nixpkgs package does not install, hence the `tuicr-src` input.
 #
@@ -71,95 +72,87 @@ let
     text = builtins.readFile ../bin/tuicr-wrapper-herdr.sh;
   };
 
-  # Upstream's skills/tuicr, plus the herdr wrapper and the SKILL.md edits that
-  # make an agent actually reach for it.
+  # Upstream's skills/tuicr, with our herdr wrapper swapped in for theirs and the
+  # SKILL.md edits that describe the difference.
   #
-  # Three of the edits use --replace-fail: the frontmatter description (what an
-  # agent reads when deciding whether to load the skill at all), the launch
-  # matrix, and the wrapper-path list. If upstream rewrites any of those, this
-  # build breaks loudly at the next bump rather than silently shipping a skill
-  # whose only documented launch paths are tmux and zellij — neither of which
-  # exists on this machine. The three advisory-prose edits use --replace-warn;
-  # they are more likely to get reworded upstream and losing one costs nothing.
+  # Upstream grew first-class herdr support in 0.22.0, so the bulk of what this
+  # used to patch in — the frontmatter description, the launch matrix row, the
+  # wrapper-path list, the error-handling table, a herdr tips section — is now
+  # upstream's own text and those edits are gone. What is left is only the delta
+  # between their `tuicr-wrapper-herdr.sh` and ours: theirs always focuses the
+  # new pane and always blocks until the TUI exits, ours defaults to unfocused
+  # and takes `--no-wait`. An agent that reads upstream's wording and gets our
+  # script will block a tool call for the length of a human review, so the two
+  # edits that correct that use --replace-fail: if upstream rewords them, this
+  # build breaks loudly at the next bump instead of shipping a lie. The two
+  # advisory-prose edits use --replace-warn; losing one costs nothing.
   tuicr-skill = pkgs.runCommand "tuicr-skill-${tuicr.version}" { } ''
     cp -r ${inputs.tuicr-src}/skills/tuicr $out
     chmod -R u+w $out
 
+    # Ours, not upstream's: it detects an already-running tuicr pane, accepts jj
+    # and mercurial checkouts, exposes --no-wait / --focus / TUICR_PANE_RATIO,
+    # and does not steal the keyboard. See ../bin/tuicr-wrapper-herdr.sh.
     install -m 0755 ${lib.getExe tuicr-wrapper-herdr} $out/tuicr-wrapper-herdr.sh
 
-    matrixOld=$(cat <<'EOF'
-    | Environment | Action |
-    |-------------|--------|
-    | `$TMUX` is set | Run `tuicr-wrapper.sh /path/to/repo` |
+    jqNoteOld=$(cat <<'EOF'
+    The Herdr wrapper requires `jq` to read pane IDs and completion results from
+    Herdr's JSON responses.
     EOF
     )
-    matrixNew=$(cat <<'EOF'
-    | Environment | Action |
-    |-------------|--------|
-    | `$HERDR_ENV` is set | Run `tuicr-wrapper-herdr.sh /path/to/repo`. Pass `--no-wait` to open the pane and return immediately instead of blocking for the length of the review, then poll `tuicr review comments`. It prints the new pane id on stdout. The pane opens *unfocused*; only add `--focus` if the user just asked for the review pane and is expecting the jump. |
-    | `$TMUX` is set | Run `tuicr-wrapper.sh /path/to/repo` |
-    EOF
-    )
+    jqNoteNew=$(cat <<'EOF'
+    The Herdr wrapper requires `jq` to read pane IDs and completion results from
+    Herdr's JSON responses.
 
-    pathsOld=$(cat <<'EOF'
-    <skill-directory>/tuicr-wrapper.sh /path/to/repo
-    EOF
-    )
-    pathsNew=$(cat <<'EOF'
-    <skill-directory>/tuicr-wrapper-herdr.sh /path/to/repo
-    <skill-directory>/tuicr-wrapper.sh /path/to/repo
+    This build ships a local Herdr wrapper in place of upstream's. Two
+    differences matter to an agent: the pane opens *unfocused* unless you pass
+    `--focus`, and `--no-wait` returns as soon as the pane is up — printing the
+    new pane id on stdout — instead of blocking for the length of the review.
+    Prefer `--no-wait`, then poll `tuicr review comments`. Only pass `--focus`
+    when the user just asked for the review pane and is expecting the jump.
+    Geometry is `TUICR_PANE_DIRECTION` (`right`/`down`) and `TUICR_PANE_RATIO`.
+    Re-running the wrapper while tuicr is already up prints the existing pane id
+    rather than opening a second one.
     EOF
     )
 
     ambiguityOld=$(cat <<'EOF'
-    If both `$TMUX` and `$ZELLIJ` are set, prefer the innermost multiplexer if that
-    is clear; otherwise ask.
+    If more than one multiplexer marker is set, prefer the innermost multiplexer if
+    that is clear; otherwise ask. cmux hosts a Ghostty terminal, so `$TERM_PROGRAM`
+    reads `ghostty` inside cmux — check `$CMUX_WORKSPACE_ID`, not the terminal name.
     EOF
     )
     ambiguityNew=$(cat <<'EOF'
-    Check `$HERDR_ENV` first. Some shell profiles export `WS_TMUX_SESSION_NAME`
-    unconditionally, so a tmux-shaped guess under herdr will fail against a tmux
-    server that is not running; `$TMUX` itself stays unset there. If both `$TMUX`
-    and `$ZELLIJ` are set, prefer the innermost multiplexer if that is clear;
-    otherwise ask.
+    If more than one multiplexer marker is set, prefer the innermost multiplexer if
+    that is clear; otherwise ask. cmux hosts a Ghostty terminal, so `$TERM_PROGRAM`
+    reads `ghostty` inside cmux — check `$CMUX_WORKSPACE_ID`, not the terminal name.
+    Herdr is Ghostty-based too, and some shell profiles export
+    `WS_TMUX_SESSION_NAME` unconditionally, so a tmux-shaped guess under Herdr
+    fails against a tmux server that is not running. `$TMUX` itself stays unset
+    there: check `$HERDR_ENV`, not the terminal name or the session variable.
     EOF
     )
 
     tipsOld=$(cat <<'EOF'
-    ## Multiplexer Tips
-
-    tmux:
+    - Select a pane: click it in the Herdr UI
+    - Close tuicr: press `q`; the wrapper then closes the review pane
     EOF
     )
     tipsNew=$(cat <<'EOF'
-    ## Multiplexer Tips
-
-    herdr:
-
-    - Close tuicr: press `q`
-    - Move between panes: `herdr pane focus --direction left|right|up|down`
+    - Select a pane: click it in the Herdr UI, or
+      `herdr pane focus --direction left|right|up|down`
+    - Close tuicr: press `q`; the wrapper then closes the review pane
     - Close the pane from outside: `herdr pane close <pane_id>`
-    - Geometry: `TUICR_PANE_DIRECTION` (`right`/`down`) and `TUICR_PANE_RATIO`
-    - Focus: off by default so the pane cannot grab the keyboard mid-keystroke.
-      `--focus` / `TUICR_PANE_FOCUS=1` opts in.
-    - Re-running the wrapper while tuicr is already up prints the existing pane
-      id instead of opening a second one.
-
-    tmux:
     EOF
     )
 
     substituteInPlace $out/SKILL.md \
+      --replace-fail "$jqNoteOld" "$jqNoteNew" \
       --replace-fail \
-        'launch tuicr in tmux/zellij when a user needs an interactive review pane.' \
-        'launch tuicr in herdr, tmux, or zellij when a user needs an interactive review pane.' \
-      --replace-fail "$matrixOld" "$matrixNew" \
-      --replace-fail "$pathsOld" "$pathsNew" \
+        'because the tmux, Zellij, and Herdr wrappers wait for the TUI to exit' \
+        'because the tmux and Zellij wrappers wait for the TUI to exit, as does the Herdr one without `--no-wait`' \
       --replace-warn "$ambiguityOld" "$ambiguityNew" \
-      --replace-warn "$tipsOld" "$tipsNew" \
-      --replace-warn \
-        '| No active session, tmux/zellij available |' \
-        '| No active session, herdr/tmux/zellij available |'
+      --replace-warn "$tipsOld" "$tipsNew"
   '';
 in
 {
