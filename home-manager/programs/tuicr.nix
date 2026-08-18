@@ -11,11 +11,13 @@
 #   * the agent skill, which is just files at `skills/tuicr/` in the source tree
 #     that the nixpkgs package does not install, hence the `tuicr-src` input.
 #
-# The nixpkgs package's `src` hash and the `tuicr-src` narHash are the same tree
-# today (sha256-uLtwpieKBTbLLDmgE4LLNljvv69i0cBRvU1WEgy09Xo=), which is the
-# property worth preserving: when bumping, move the `tuicr-src` tag to match
-# whatever version the `nixpkgs-tuicr` rev carries, so the skill docs describe
-# the installed binary.
+# Normally the nixpkgs package's `src` hash and the `tuicr-src` narHash are the
+# same tree, which is the property worth preserving: when bumping, move the
+# `tuicr-src` tag to match whatever version the `nixpkgs-tuicr` rev carries, so
+# the skill docs describe the installed binary. Right now that is enforced the
+# other way round — `tuicr-src` is a fork branch (see flake.nix) and the
+# derivation below is rebuilt from it, so binary and skill still come from one
+# tree, at the cost of a local Rust build.
 #
 # There is no upstream home-manager module (the flake exposes only
 # `packages.default` and `devShells.default`, and nix-community/home-manager has
@@ -29,7 +31,27 @@
 }:
 let
   system = pkgs.stdenv.system;
-  tuicr = inputs.nixpkgs-tuicr.legacyPackages.${system}.tuicr;
+  tuicrPkgs = inputs.nixpkgs-tuicr.legacyPackages.${system};
+
+  # TEMPORARY, paired with the fork branch on `tuicr-src` in flake.nix: rebuild
+  # the nixpkgs derivation from that tree rather than taking the cached binary.
+  #
+  # `overrideAttrs` rather than a hand-rolled `buildRustPackage`, so the build
+  # keeps whatever nixpkgs already knows about tuicr (checkFlags, nativeCheck-
+  # Inputs, structured attrs). `cargoDeps` has to be overridden alongside `src`:
+  # it is a fixed-output derivation vendored from the *original* src's
+  # Cargo.lock, and the fork sits on main, well past the 0.19.1 the pin
+  # packages. Deleting either override reverts to the upstream binary.
+  tuicr = tuicrPkgs.tuicr.overrideAttrs (_old: {
+    # Literal, not `old.version`: that is the pin's 0.19.1, and the fork tree is
+    # 0.22.0. Keep this matched to the branch's Cargo.toml.
+    version = "0.22.0-unstable-fix-gitlab-commit-order";
+    src = inputs.tuicr-src;
+    cargoDeps = tuicrPkgs.rustPlatform.fetchCargoVendor {
+      src = inputs.tuicr-src;
+      hash = "sha256-7qrRsZ7SFi1LB9wI7oiwmE58cI+240IgmU7Zyhi6MAg=";
+    };
+  });
 
   # Upstream ships wrappers for tmux and zellij only. This is the herdr one.
   #

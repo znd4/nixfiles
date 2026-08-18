@@ -4,13 +4,32 @@
       url = "git+ssh://git@github.com/modem-dev/hunk.git?shallow=1";
     };
     # tuicr — review-first diff TUI, the review pane behind alt+r. Source-only
-    # (flake = false): the *binary* comes from nixpkgs (see nixpkgs-tuicr), and
-    # the only thing wanted from this tree is `skills/tuicr/`. Evaluating
-    # upstream's flake would pull naersk, flake-utils and a second
-    # nixpkgs-unstable into the lock for no benefit. Keep the tag in sync with
-    # the tuicr version in nixpkgs-tuicr so the skill docs match the binary.
+    # (flake = false): normally the *binary* comes from nixpkgs (see
+    # nixpkgs-tuicr) and the only thing wanted from this tree is
+    # `skills/tuicr/`. Evaluating upstream's flake would pull naersk,
+    # flake-utils and a second nixpkgs-unstable into the lock for no benefit.
+    # Keep the tag in sync with the tuicr version in nixpkgs-tuicr so the skill
+    # docs match the binary.
+    #
+    # TEMPORARILY ON A FORK BRANCH, and therefore also the binary: while this
+    # points at znd4/tuicr, tuicr.nix rebuilds the nixpkgs derivation from this
+    # tree instead of using the cached one. The branch carries one commit on
+    # top of upstream main —
+    # <https://github.com/znd4/tuicr/commit/4908fe9> "fix(gitlab): return MR
+    # commits oldest-first". `ForgeBackend::list_pull_request_commits` is
+    # documented as chronological and GitHub/Bitbucket honour it, but the
+    # GitLab backend returned `merge_requests/<n>/commits` verbatim and GitLab
+    # serves that newest-first. `pr_range_sha_pair` then reads the selection's
+    # parent off the inverted list and compares head→base, so narrowing a
+    # GitLab MR to a subset of its commits draws the diff BACKWARDS — a file
+    # the MR adds renders as a modification that strips its contents. Since
+    # "commits since your last review" auto-narrows, alt+r hit this without
+    # anyone touching the selector.
+    #
+    # Revert to `github:agavra/tuicr/v<version>` (and drop the src override in
+    # tuicr.nix) once the fix is upstream and in a nixpkgs-tuicr rev.
     tuicr-src = {
-      url = "github:agavra/tuicr/v0.19.1";
+      url = "github:znd4/tuicr/fix/gitlab-commit-order";
       flake = false;
     };
     # herdr — terminal agent multiplexer (ships its own flake). Normally pinned
