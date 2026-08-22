@@ -45,7 +45,15 @@ in
       # Configure commit signing with my ssh key
       #     [gpg "ssh"]
       # program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
-      gpg.ssh.program = lib.optional _1password_ssh "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+      gpg.ssh.program = lib.optional _1password_ssh (
+        if pkgs.stdenv.isDarwin then
+          "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
+        else
+          # Native (rpm/deb/tarball) install location. The Flatpak build
+          # sandboxes op-ssh-sign somewhere git can't exec -- Linux hosts
+          # enabling _1password_ssh need 1Password installed natively.
+          "/opt/1Password/op-ssh-sign"
+      );
       gpg.format = "ssh";
       # TODO - configure this differently on MacOS
       user.signingKey = keys."github.com";

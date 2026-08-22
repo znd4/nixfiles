@@ -363,6 +363,16 @@ in
     shellInit = lib.strings.concatStringsSep "\n" (
       [
         # put hard-coded init configuration in here
+        # Terminals here launch fish directly (Ghostty: command = .../fish), so
+        # the nix-daemon hook in /etc/zshrc never runs and
+        # /nix/var/nix/profiles/default/bin (the only place `nix` lives -- it's
+        # not in ~/.nix-profile) never reaches PATH. Source the fish variant
+        # ourselves; guarded so single-user/NixOS machines without it are fine.
+        ''
+          if test -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.fish
+              source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.fish
+          end
+        ''
         # Keep git worktrees (created under .zn-work/) out of the zoxide db so
         # `z` / `sesh -z` don't surface transient worktree paths. zoxide splits
         # _ZO_EXCLUDE_DIRS on ':' (a single colon-joined string, NOT a fish list

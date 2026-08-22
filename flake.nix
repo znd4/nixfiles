@@ -317,35 +317,47 @@
                   )
                 ))
               )
-              [
-                {
-                  username = "znd4";
-                  hostname = "Zanes-MacBook-Neo.local";
-                  system = "aarch64-darwin";
-                  identityAgent = ''"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"'';
-                  _1password_ssh = true;
-                }
-                {
-                  username = "znd4";
-                  hostname = "desktop";
-                }
-                {
-                  username = "znd4";
-                  hostname = "t470";
-                }
-                {
-                  username = "znd4";
-                  hostname = "work";
-                  system = "aarch64-darwin";
-                  stateVersion = "24.11";
-                }
-                {
-                  username = "znd4";
-                  hostname = "mac-mini";
-                  system = "aarch64-darwin";
-                  stateVersion = "24.11";
-                }
-              ]
+              (
+                # The MacBook answers to several hostnames (mDNS name vs
+                # DHCP-derived short name); one definition, one entry per name.
+                # NB: home-manager's flake lookup uses inetutils hostname,
+                # which DNS-resolves and therefore lowercases the name.
+                (builtins.map
+                  (hostname: {
+                    inherit hostname;
+                    username = "znd4";
+                    system = "aarch64-darwin";
+                    identityAgent = ''"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"'';
+                    _1password_ssh = true;
+                  })
+                  [
+                    "Zanes-MacBook-Neo.local"
+                    "zanesmacbookneo"
+                  ]
+                )
+                ++ [
+                  {
+                    username = "znd4";
+                    hostname = "desktop";
+                  }
+                  {
+                    username = "znd4";
+                    hostname = "t470";
+                  }
+                  {
+                    username = "znd4";
+                    hostname = "work";
+                    system = "aarch64-darwin";
+                    stateVersion = "24.11";
+                  }
+                  {
+                    username = "znd4";
+                    hostname = "mac-mini";
+                    system = "aarch64-darwin";
+                    stateVersion = "24.11";
+                  }
+                ]
+              )
           )
         );
       };

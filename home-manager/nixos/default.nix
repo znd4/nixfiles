@@ -19,20 +19,11 @@ else
       # inputs.nix-colors.homeManagerModules.default
 
       # You can also split up your configuration and import pieces of it here:
+      # ./chromium.nix
     ]
-    # ++ (
-    #   builtins.map
-    #   (
-    #     f:
-    #       (import (./.+ "/${f}"))
-    #       (
-    #         builtins.filter
-    #         (f: f != "default.nix")
-    #         (builtins.attrNames (builtins.readDir ./.))
-    #       )
-    #   )
-    # )
-    ;
+    ++ (builtins.map (f: import (./. + "/${f}")) (
+      builtins.filter (f: f != "default.nix") (builtins.attrNames (builtins.readDir ./.))
+    ));
 
     home.homeDirectory = "/home/" + username;
     home.packages = with pkgs; [

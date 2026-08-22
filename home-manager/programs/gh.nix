@@ -25,14 +25,23 @@ in
           name = "gh";
           runtimeInputs = [
             final._1password-cli
+            final.jq
             prev.gh
           ];
           text = ''
-            #!${final.runtimeShell}
-            # 'exec' replaces the shell process with the 'op' process, which is
-            # more efficient and handles signals correctly.
-            # "$@" forwards all arguments, preserving spaces and special characters.
-            exec op plugin run -- gh "$@"
+            if [ -t 0 ]; then
+              exec op plugin run -- gh "$@"
+            fi
+            # Without a TTY (Claude Code, scripts, cron) `op plugin run` fails
+            # with "interactive IO not available", but `op read` can still
+            # authorize through the desktop app. Reuse the credential the
+            # plugin was configured with (`op plugin init gh`).
+            used_items="''${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins/used_items/gh.json"
+            if [ -r "$used_items" ]; then
+              ref=$(jq -r '.[0] | "op://\(.vault_id)/\(.item_id)/token"' "$used_items")
+              GH_TOKEN=$(op read "$ref") exec gh "$@"
+            fi
+            exec gh "$@"
           '';
         };
       })

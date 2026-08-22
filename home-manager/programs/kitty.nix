@@ -59,6 +59,8 @@ else
       themeFile = "tokyo_night_moon"; # "tokyo_night_{moon,storm}"
       font = {
         package = pkgs.nerd-fonts.monaspace;
+        # Neon (upright) as the base family; italics above use Radon (RN).
+        name = "MonaspiceNe Nerd Font Mono";
       };
     };
   }
