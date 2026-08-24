@@ -323,10 +323,9 @@ in
     enableBashIntegration = false;
     enableZshIntegration = false;
   };
+  # Only the shared shell data lives here, next to the zsh/bash/fish copies of
+  # it. Everything nushell-specific is in ./programs/nushell.nix.
   programs.nushell = {
-    enable = true;
-    envFile.source = "${dotConfig}/nushell/env.nu";
-    configFile.source = "${dotConfig}/nushell/config.nu";
     shellAliases = shellAliases;
     environmentVariables = envMap;
   };
