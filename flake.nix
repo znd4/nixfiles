@@ -117,6 +117,15 @@
     # nixpkgs-tuicr, and deliberately the *same rev* as it and nixpkgs-jujutsu,
     # so this costs no extra fetch. That rev has tv 0.15.9 (latest upstream).
     nixpkgs-television.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&rev=624af665418d3c65d544145b4d34ad696439570e";
+    # glab: nixpkgs trails glab's weekly releases by several versions, and
+    # `nixpkgs-unstable` above is pinned to 2025-11 and only carries 1.74. The
+    # overlay overrides src to the latest upstream tag, so what this input
+    # supplies is the *packaging* plus a Go new enough to build it — glab's
+    # go.mod now asks for 1.26, which neither nixpkgs nor the unstable pin has.
+    # Same per-package-pin reasoning as nixpkgs-tuicr, and deliberately the
+    # *same rev* as it, nixpkgs-jujutsu and nixpkgs-television, so this costs no
+    # extra fetch.
+    nixpkgs-glab.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&rev=624af665418d3c65d544145b4d34ad696439570e";
 
     nil.url = "git+ssh://git@github.com/oxalica/nil.git?shallow=1";
     nil.inputs.nixpkgs.follows = "nixpkgs";
