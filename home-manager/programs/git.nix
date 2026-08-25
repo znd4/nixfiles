@@ -34,7 +34,9 @@ in
       signByDefault = true;
       key = "${pkgs.writeText "github.com_id_rsa.pub" keys."github.com"}";
     };
-    extraConfig = {
+    settings = {
+      # https://git-scm.com/book/en/v2/Git-Tools-Rerere
+      rerere.enabled = true;
       # pager = {
       #   diff = "delta";
       #   log = "delta";
