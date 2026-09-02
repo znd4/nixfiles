@@ -3,44 +3,43 @@
 # requires-python = ">=3.11"
 # dependencies = []
 # ///
-"""Save the herdr session state to disk, so that you can recover it after a crash.
+"""Save herdr session state to disk so you can recover sessions after a crash.
 
-herdr keeps the workspace labels, the layout and the working directories across a
-server crash. It does not keep the Claude Code session UUID that ran in each pane.
-Without that UUID you cannot run `claude --resume <uuid>`, and each killed session
-becomes unreachable. One crash killed 12 sessions in this way.
+herdr keeps workspace labels, layout, and working directories across a server
+crash. It does not keep the Claude Code session UUID for each pane. Without that
+UUID you cannot run `claude --resume <uuid>`, and each killed session becomes
+unreachable. One crash lost 12 sessions this way.
 
-`herdr api snapshot` prints the layout and the agents in one call, so this script
-runs that command and writes the result. It does not read the socket directly.
+`herdr api snapshot` prints the layout and agents in one call. This script runs
+that command and writes the result. It does not read the socket directly.
 
 WHY THE SCRIPT ADDS DATA TO THE SNAPSHOT
-----------------------------------------
-herdr knows the session UUID of a pane only if the Claude Code SessionStart hook
-told it. That report goes to the herdr socket and is discarded without an error if
-the server is not listening at that moment - which is exactly the condition after a
-crash, while the server starts and the sessions come back. On this machine only 3
-of 14 live panes had a UUID for that reason.
+-----------------------------------------
+herdr knows a pane's session UUID only if the Claude Code SessionStart hook
+reported it. That report goes to the herdr socket. herdr discards the report
+silently if the server is not listening -- exactly the condition after a crash,
+while the server restarts and sessions come back. On this machine only 3 of 14
+live panes had a UUID for that reason.
 
-The script therefore finds the missing UUIDs itself, at capture time:
+The script finds the missing UUIDs itself at capture time:
 
     pane -> `herdr pane process-info` -> claude pid -> ~/.claude/sessions/<pid>.json
 
-The file ~/.claude/sessions/<pid>.json holds `sessionId` and `cwd` for every live
-Claude Code process, whatever command started it. Those files describe live
-processes only, so they do not survive a crash. This is why the capture must be
-periodic and must happen while the sessions still run.
+~/.claude/sessions/<pid>.json holds `sessionId` and `cwd` for every live Claude
+Code process, whatever command started it. These files describe live processes
+only and do not survive a crash. The capture must therefore run periodically
+while the sessions still run.
 
-The result goes in a `sessions` field beside `snapshot`. The output of herdr stays
-unchanged. Each entry says in `source` where its UUID came from, so that a reader
-can tell the two levels of confidence apart:
+The result goes in a `sessions` field beside `snapshot`. The herdr output stays
+unchanged. Each entry says in `source` where its UUID came from:
 
-    "herdr"   herdr reported it.
-    "pid"     this script found it through the pid of the pane.
-    "unknown" no UUID was found. The pane cannot be resumed.
+    "herdr"   -- herdr reported it.
+    "pid"     -- this script found it through the pid of the pane.
+    "unknown" -- no UUID found. The pane cannot resume.
 
-The script also gives each recovered UUID back to herdr with
-`herdr pane report-agent-session`. The state of herdr thus repairs itself, and a
-later snapshot needs less of this work. Set HERDR_SNAPSHOT_NO_REPORT=1 to stop it.
+The script also reports each recovered UUID back to herdr with
+`herdr pane report-agent-session`. herdr's state repairs itself, and later
+snapshots need less work. Set HERDR_SNAPSHOT_NO_REPORT=1 to disable this.
 
 OUTPUT
 ------
@@ -55,13 +54,12 @@ Each file has this format:
      "snapshot":   <the output of `herdr api snapshot`, unchanged>,
      "sessions":   [{"paneId": ..., "sessionId": ..., "source": ...}, ...]}
 
-Read the layout from `.snapshot.result.snapshot`, and the session UUIDs from
+Read the layout from `.snapshot.result.snapshot` and the session UUIDs from
 `.sessions[]`.
 
-The script writes each file to a temporary file and then renames it, so a crash
-during a write cannot damage latest.json. It stops with status 0 and prints
-nothing if the herdr server is not running: at night this is the usual condition,
-not an error.
+Each file is written to a temporary path and then renamed, so a crash during a
+write cannot damage latest.json. The script exits 0 and prints nothing if the
+herdr server is not running: at night this is normal, not an error.
 """
 
 from __future__ import annotations
@@ -90,10 +88,9 @@ STATE_DIR = Path(
 LATEST = STATE_DIR / "latest.json"
 CLAUDE_SESSION_DIR = Path.home() / ".claude" / "sessions"
 
-# The source id that `herdr pane report-agent-session` needs. herdr accepts only
-# the ids that it knows, and it drops a report with any other id without an error
-# and with exit status 0. "herdr-snapshot" therefore looked correct and did
-# nothing. Use the same id as the Claude Code hook of herdr.
+# `herdr pane report-agent-session` requires a known `--source` value. herdr
+# silently drops an unknown source with exit 0 -- "herdr-snapshot" looked correct
+# but did nothing. Use the same value as the Claude Code hook: "herdr:claude".
 REPORT_SOURCE = "herdr:claude"
 
 
@@ -204,8 +201,8 @@ def process_is_alive(pid: int) -> bool:
 def live_claude_sessions() -> dict[int, dict]:
     """Read ~/.claude/sessions/<pid>.json for every live Claude Code process.
 
-    Claude Code leaves the file of a dead process behind, so a pid that no longer
-    runs is dropped here: its data describes a session that has gone.
+    Claude Code does not remove the file when a process dies. This function
+    skips dead pids because their data describes sessions that no longer exist.
     """
     sessions: dict[int, dict] = {}
     try:
@@ -234,11 +231,10 @@ def live_claude_sessions() -> dict[int, dict]:
 
 
 def collect_sessions(herdr: str, snapshot: dict) -> list[dict]:
-    """Give one entry for each Claude Code pane, with its session UUID.
+    """Build one entry per Claude Code pane, with its session UUID.
 
-    An entry keeps `sessionId` empty if neither herdr nor the pid gave one. Keep
-    that entry: it records a pane whose session nobody can identify, which a
-    reader must see and must not have to guess.
+    An entry keeps `sessionId` empty if neither herdr nor the pid gave a UUID.
+    Keep that entry: it records a pane whose session is unidentifiable.
     """
     try:
         agents = snapshot["result"]["snapshot"]["agents"]
@@ -286,8 +282,8 @@ def collect_sessions(herdr: str, snapshot: dict) -> list[dict]:
             entry["pid"] = pid
             entry["cwd"] = record.get("cwd") or entry["cwd"]
             if report_back:
-                # Give the UUID back to herdr, so that the next snapshot reads it
-                # straight from `agent_session` and does no pid work at all.
+                # Report the UUID to herdr so the next snapshot reads it from
+                # `agent_session` directly, with no pid lookup.
                 try:
                     report_to_herdr(herdr, pane_id, record["sessionId"])
                 except (OSError, subprocess.SubprocessError):
@@ -366,8 +362,8 @@ def main() -> int:
         return 0
     snapshot = run_herdr(herdr, ["api", "snapshot"], SNAPSHOT_TIMEOUT)
     if snapshot is None:
-        # The server stopped between the check above and this call. That is the
-        # same condition as a stopped server, so stop quietly.
+        # The server stopped between the socket check and this call.
+        # Treat it the same as a stopped server: exit quietly.
         return 0
 
     sessions = collect_sessions(herdr, snapshot)
@@ -387,8 +383,8 @@ def main() -> int:
         [snapshot, sessions]
     )
     if not unchanged:
-        # Keep a history file only for a state that differs from the last one. An
-        # idle weekend must not make 336 equal files.
+        # Write a history file only when the state changed. An idle weekend
+        # must not produce 336 identical files.
         write_atomically(STATE_DIR / f"snapshot-{int(now)}.json", document)
     write_atomically(LATEST, document)
     prune()
