@@ -778,7 +778,7 @@
         "bun2nix": "bun2nix_2",
         "jail-nix": "jail-nix",
         "nixpkgs": [
-          "nixpkgs"
+          "nixpkgs-unstable"
         ],
         "systems": "systems_3"
       },
