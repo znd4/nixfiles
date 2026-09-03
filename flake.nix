@@ -157,6 +157,18 @@
       url = "github:netresearch/jujutsu-workflow-skill/a22e4befb7639004698f8f63035e99bbe4a39ffd";
       flake = false;
     };
+    # Pi coding agent — a terminal coding agent from pi.dev
+    # (earendil-works/pi). Upstream ships no Nix, so this is lukasl-dev's
+    # third-party packaging, which also carries the home-manager module.
+    #
+    # Pinned to a reviewed revision on purpose: an unpinned url would let a
+    # `nix flake update` pull unreviewed code from an intermediary onto every
+    # machine that follows this flake. It also drags in bun2nix, flake-parts
+    # and jail.nix. Bump it deliberately, after reading the diff.
+    pi-coding-agent = {
+      url = "github:lukasl-dev/pi.nix/92c057264e847c4676a80a5d57e968b5d25828a6";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     darwin = {
       url = "git+ssh://git@github.com/LnL7/nix-darwin.git?shallow=1&ref=nix-darwin-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
