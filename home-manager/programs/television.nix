@@ -28,13 +28,11 @@ let
     ''glab api --hostname ${host} "merge_requests?state=opened&order_by=updated_at&per_page=100&${query}" 2>/dev/null | ''
     + mrLines;
 
-  # ctrl-s cycles these in order, so the first entry is what `tv mrs` opens
-  # with. That first entry is every open MR in the repo of the current directory
-  # (mine or not) — the repo you are sitting in is almost always the one you
-  # want, and it needs no host because glab infers it from the remote. The up to
-  # three instance-wide queries per configured host follow. With no hosts
-  # configured the repo-local source is the only one, which is still a usable
-  # channel.
+  # ctrl-s cycles these in order; the first entry is the default for `tv mrs`
+  # and lists every open MR in the current repo by any author. glab infers
+  # the host from the remote, so it needs no `--hostname`. instance-wide
+  # per-host queries follow; with no hosts configured, only the repo-local
+  # source remains.
   mrSources = [
     ("glab mr list --output json --per-page 100 2>/dev/null | " + mrLines)
   ]
