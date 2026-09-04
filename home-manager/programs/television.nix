@@ -29,23 +29,26 @@ let
     + mrLines;
 
   # ctrl-s cycles these in order, so the first entry is what `tv mrs` opens
-  # with. Up to three instance-wide queries per configured host, then every open MR
-  # in the repo of the current directory (mine or not), which needs no host —
-  # glab infers it from the remote. With no hosts configured only that last
-  # source remains, which is still a usable channel.
-  mrSources =
-    lib.concatMap (
-      host:
-      [ (glabMrs host "scope=created_by_me") ]
-      # no `scope=review_requested_by_me` exists, so this one needs the
-      # username spelled out; skip it when none is configured rather than
-      # spending a `glab api user` round trip on every launch.
-      ++ lib.optional (cfg.gitlab.username != null) (
-        glabMrs host "scope=all&reviewer_username=${cfg.gitlab.username}"
-      )
-      ++ [ (glabMrs host "scope=assigned_to_me") ]
-    ) cfg.gitlab.hosts
-    ++ [ ("glab mr list --output json --per-page 100 2>/dev/null | " + mrLines) ];
+  # with. That first entry is every open MR in the repo of the current directory
+  # (mine or not) — the repo you are sitting in is almost always the one you
+  # want, and it needs no host because glab infers it from the remote. The up to
+  # three instance-wide queries per configured host follow. With no hosts
+  # configured the repo-local source is the only one, which is still a usable
+  # channel.
+  mrSources = [
+    ("glab mr list --output json --per-page 100 2>/dev/null | " + mrLines)
+  ]
+  ++ lib.concatMap (
+    host:
+    [ (glabMrs host "scope=created_by_me") ]
+    # no `scope=review_requested_by_me` exists, so this one needs the
+    # username spelled out; skip it when none is configured rather than
+    # spending a `glab api user` round trip on every launch.
+    ++ lib.optional (cfg.gitlab.username != null) (
+      glabMrs host "scope=all&reviewer_username=${cfg.gitlab.username}"
+    )
+    ++ [ (glabMrs host "scope=assigned_to_me") ]
+  ) cfg.gitlab.hosts;
 in
 {
   options.programs.znd4-television.gitlab = {
