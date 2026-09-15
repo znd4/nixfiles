@@ -20,7 +20,8 @@ let
   # that server's own executable cannot be found. Keep the repo in sync with the
   # `herdr` input in ../../flake.nix by hand: flake inputs are a static attrset,
   # so the URL cannot be shared from here.
-  herdrFlakeRefFor = tag: "git+ssh://git@github.com/herdrdev/herdr.git?shallow=1&ref=refs/tags/${tag}#default";
+  herdrFlakeRefFor =
+    tag: "git+ssh://git@github.com/herdrdev/herdr.git?shallow=1&ref=refs/tags/${tag}#default";
 
   # Upgrade the running herdr server in place, without exiting pane processes.
   #
@@ -300,6 +301,40 @@ let
     '';
   };
 
+  # lazygit at whichever Claude Code agent currently has focus, regardless of
+  # which pane/tab this key is pressed from -- `herdr agent list` reports a
+  # `focused` bool per agent plus its `foreground_cwd`, so no navigation is
+  # needed first. Bound as a popup rather than a pane split: a popup is a
+  # session-modal overlay that leaves tab/pane layout (and, so far as tested,
+  # the underlying `focused` bookkeeping) alone, whereas a pane split creates
+  # and focuses a new pane of its own -- which could flip the source agent's
+  # `focused` flag to false before this script gets to read it.
+  herdrAgentLazygit = pkgs.writeShellApplication {
+    name = "herdr-agent-lazygit";
+    runtimeInputs = [
+      pkgs.jq
+      pkgs.coreutils
+      pkgs.lazygit
+      herdr
+    ];
+    text = ''
+      cwd=$(herdr agent list 2>/dev/null | jq -r '
+        [(.result.agents // [])[] | select(.agent == "claude" and .focused)]
+        | .[0]
+        | (.foreground_cwd // .cwd // empty)
+      ')
+
+      if [ -z "$cwd" ]; then
+        echo "no focused Claude Code agent -- focus its pane/tab first." >&2
+        read -r -p "press enter to close..." _ || true
+        exit 1
+      fi
+
+      cd "$cwd"
+      exec lazygit
+    '';
+  };
+
   # New empty workspace with a prompted name, ported from the tmux `M-s`
   # new-session gum popup. herdr has a native `new_workspace` (prefix+shift+n)
   # that creates an unnamed workspace in the follow-cwd; this variant prompts
@@ -362,6 +397,15 @@ let
     type = "pane"
     command = "lazygit"
     description = "lazygit in a temporary pane"
+
+    # lazygit at the currently-focused Claude Code agent's cwd, from anywhere.
+    [[keys.command]]
+    key = "alt+shift+g"
+    type = "popup"
+    width = "85%"
+    height = "80%"
+    command = "${herdrAgentLazygit}/bin/herdr-agent-lazygit"
+    description = "lazygit at the focused Claude Code agent's cwd"
 
     # tmux M-r: PR/MR review. Clone + worktree + open a herdr workspace laid out
     # with a terminal (left) and tuicr on the PR/MR (right), matching the old
