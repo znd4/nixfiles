@@ -14,9 +14,6 @@ let
   television = inputs.nixpkgs-television.legacyPackages.${system}.television;
 
   workDir = "$HOME/Work";
-  # Same directory for TOML, where $HOME does not expand. herdr resolves a
-  # leading ~ in path-valued settings itself.
-  workDirTilde = "~/Work";
 
   # Flake ref for an arbitrary herdr release tag. herdr-handoff below uses it
   # only as a fallback, to materialize a CLI matching the running server when
@@ -317,9 +314,7 @@ let
     text = ''
       name=$(gum input --placeholder "workspace name") || exit 0
       [ -z "$name" ] && exit 0
-      # No --cwd: the server applies the `new_cwd` policy from config.toml
-      # (~/Work), so this stays in step with every other unqualified new pane.
-      herdr workspace create --label "$name" --focus
+      herdr workspace create --label "$name" --cwd "${workDir}" --focus
     '';
   };
 
@@ -337,14 +332,6 @@ let
 
   configToml = ''
     # Managed by home-manager (home-manager/programs/herdr.nix). Edit there.
-
-    [terminal]
-    # CWD for new panes/tabs/workspaces created without an explicit --cwd.
-    # Default is "follow" (inherit the source pane). ~/Work is where every repo
-    # lives (~/Work/{forge}/{org}/{repo}), so a bare new workspace starts there
-    # instead of $HOME. This key lives under [terminal] — at the top level it
-    # parses fine and is silently dropped (herdr <=0.7.4 did not even warn).
-    new_cwd = "${workDirTilde}"
 
     [ui]
     # Agent sidebar ordering: "spaces" (grouped by space, the default) or
