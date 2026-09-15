@@ -17,7 +17,7 @@ function interactive_setup
     fish_vi_key_bindings
     setup_zoxide
 
-    add_to_path $HOME/.local/bin
+    fish_add_path $HOME/.local/bin
     skim_bind_keys
 
     set -g fish_function_path $HOME/.config/fish/functions $fish_function_path
