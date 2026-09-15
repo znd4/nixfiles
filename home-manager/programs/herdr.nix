@@ -301,14 +301,16 @@ let
     '';
   };
 
-  # lazygit at whichever Claude Code agent currently has focus, regardless of
-  # which pane/tab this key is pressed from -- `herdr agent list` reports a
-  # `focused` bool per agent plus its `foreground_cwd`, so no navigation is
-  # needed first. Bound as a popup rather than a pane split: a popup is a
-  # session-modal overlay that leaves tab/pane layout (and, so far as tested,
-  # the underlying `focused` bookkeeping) alone, whereas a pane split creates
-  # and focuses a new pane of its own -- which could flip the source agent's
-  # `focused` flag to false before this script gets to read it.
+  # lazygit at the focused pane's cwd, from anywhere -- preferring a Claude
+  # Code agent's own live `foreground_cwd` when the focused pane is one, and
+  # falling back to the plain pane's cwd otherwise (a bare shell sitting in a
+  # repo, no agent involved). `herdr agent list` / `herdr pane list` each
+  # report a per-row `focused` bool, so no navigation is needed first. Bound
+  # as a popup rather than a pane split: a popup is a session-modal overlay
+  # that leaves tab/pane layout (and, so far as tested, the underlying
+  # `focused` bookkeeping) alone, whereas a pane split creates and focuses a
+  # new pane of its own -- which could flip the source pane's `focused` flag
+  # to false before this script gets to read it.
   herdrAgentLazygit = pkgs.writeShellApplication {
     name = "herdr-agent-lazygit";
     runtimeInputs = [
@@ -325,7 +327,15 @@ let
       ')
 
       if [ -z "$cwd" ]; then
-        echo "no focused Claude Code agent -- focus its pane/tab first." >&2
+        cwd=$(herdr pane list 2>/dev/null | jq -r '
+          [(.result.panes // [])[] | select(.focused)]
+          | .[0]
+          | (.foreground_cwd // .cwd // empty)
+        ')
+      fi
+
+      if [ -z "$cwd" ]; then
+        echo "no focused pane found." >&2
         read -r -p "press enter to close..." _ || true
         exit 1
       fi
@@ -398,14 +408,14 @@ let
     command = "lazygit"
     description = "lazygit in a temporary pane"
 
-    # lazygit at the currently-focused Claude Code agent's cwd, from anywhere.
+    # lazygit at the focused pane's cwd, from anywhere (agent or plain shell).
     [[keys.command]]
     key = "alt+shift+g"
     type = "popup"
     width = "85%"
     height = "80%"
     command = "${herdrAgentLazygit}/bin/herdr-agent-lazygit"
-    description = "lazygit at the focused Claude Code agent's cwd"
+    description = "lazygit at the focused pane's cwd"
 
     # tmux M-r: PR/MR review. Clone + worktree + open a herdr workspace laid out
     # with a terminal (left) and tuicr on the PR/MR (right), matching the old
