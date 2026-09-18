@@ -123,6 +123,7 @@
       vale
       vulnix
       wget
+      xan
       xh
       yamale
       yq-go
