@@ -375,8 +375,13 @@ let
   # server. Linked at activation below; bound to prefix+space further down.
   herdrThumbs = inputs.herdr-plugin-thumbs.packages.${system}.default;
 
+  # A switch rewrites ~/.config/herdr/config.toml, but the running server keeps
+  # the copy it read at start-up: finish with `herdr server reload-config`.
+  # Skipping it is quiet — every keybinding below holds a nix store path, so a
+  # stale server launches the previous build. See docs/herdr.md.
   configToml = ''
     # Managed by home-manager (home-manager/programs/herdr.nix). Edit there.
+    # After a switch: `herdr server reload-config`.
 
     [ui]
     # Agent sidebar ordering: "spaces" (grouped by space, the default) or
