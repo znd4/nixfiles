@@ -2,17 +2,19 @@
 # herdr-launcher — the `alt+d` workspace picker, driven by television (`tv`).
 #
 # Wrapped and bound in home-manager/programs/herdr.nix. Lists the open
-# workspaces first, then every directory worth opening. Picking a workspace
-# focuses it; picking a directory focuses the workspace already rooted there,
-# or creates one.
+# workspaces first, each followed by its named tabs, then every directory worth
+# opening. Picking a workspace focuses it; picking a tab focuses that tab;
+# picking a directory focuses the workspace already rooted there, or creates
+# one.
 #
 # Replaces the earlier fzf popup (itself a port of the tmux `M-d` sesh-connect
 # binding). What tv buys over it is a real preview panel: a workspace shows its
 # pane tree and the live output of its focused pane, a directory shows its git
 # state, recent commits and contents.
 #
-# The fzf popup had ^a/^w/^x/^f tabs that `reload(...)`ed the list. There are no
-# tabs here, and no cable channels either — tv is driven entirely inline, with
+# The fzf popup had ^a/^w/^x/^f modes that `reload(...)`ed the list — "tabs" in
+# the fzf sense, unrelated to the herdr tabs this script now lists. There are no
+# modes here, and no cable channels either — tv is driven entirely inline, with
 # `--source-command` / `--preview-command`. One source is all tv's ad-hoc mode
 # accepts (`--source-command` "cannot be used multiple times", and tv has no
 # "switch to source N" action), and one source turns out to be the better UX
@@ -27,15 +29,17 @@
 #   $0 resolve <entry>   say what a pick would do, do nothing
 #
 # Entries are self-describing rather than tab-delimited with a hidden payload
-# column: a workspace line leads with "▣ <id>" and a directory line with
-# "󰉋 <path>". tv's `{}` then carries everything both the preview and the final
-# pick need, and no source-display template has to hide a column.
+# column: a workspace line leads with "▣ <id>", a tab line with "󰓩 <tab-id>"
+# and a directory line with "󰉋 <path>". tv's `{}` then carries everything both
+# the preview and the final pick need, and no source-display template has to
+# hide a column.
 
 set -euo pipefail
 
 WORK_DIR=${HERDR_WORK_DIR:-$HOME/Work}
 
 WS_SIGIL='▣'
+TAB_SIGIL='󰓩'
 DIR_SIGIL='󰉋'
 
 # tv runs `list`/`preview` through $SHELL, so it needs an absolute path back to
@@ -72,6 +76,7 @@ rule() { printf '%s── %s %s%s\n' "$C_DIM" "$1" "$(printf '─%.0s' $(seq 1 $
 herdr_json() { herdr "$@" 2>/dev/null || echo '{}'; }
 panes_json() { herdr_json pane list; }
 workspaces_json() { herdr_json workspace list; }
+tabs_json() { herdr_json tab list; }
 
 # =============================================================================
 # the source
@@ -80,30 +85,58 @@ workspaces_json() { herdr_json workspace list; }
 # A workspace's directory is the cwd of its first pane — the one it was created
 # with. `herdr workspace list` does not carry a cwd, so join it against
 # `herdr pane list`; group_by preserves input order, so .[0] is that pane.
+#
+# Each workspace is followed by its named tabs rather than the tabs being
+# collected into a block of their own. A tab sits next to the workspace that
+# holds it, and because the tab line carries the workspace name, a search for
+# either one surfaces both.
 list_workspaces() {
   jq -rn \
     --argjson ws "$(workspaces_json)" \
     --argjson pn "$(panes_json)" \
+    --argjson tb "$(tabs_json)" \
     --arg home "$HOME" \
     --arg sigil "$WS_SIGIL" \
+    --arg tsigil "$TAB_SIGIL" \
     --arg c "$C_CYAN" --arg d "$C_DIM" --arg b "$C_BLUE" --arg g "$C_GREEN" \
-    --arg y "$C_YELLOW" --arg r "$C_RESET" '
+    --arg y "$C_YELLOW" --arg m "$C_MAGENTA" --arg r "$C_RESET" '
       def tilde: if startswith($home) then "~" + ltrimstr($home) else . end;
       # Only the states worth spotting at a glance get a colour of their own.
       def agent_colour: { working: $g, blocked: $y, idle: $d }[.] // $d;
+      # Reads .agent_status off whatever is in scope — a workspace or a tab.
+      def agent_tag: (.agent_status // "unknown") as $a
+        | if $a == "unknown" then []
+          else [ ($a | agent_colour) + "(" + $a + ")" + $r ] end;
       ( ($pn.result.panes // [])
         | group_by(.workspace_id)
         | map({ key: .[0].workspace_id, value: (.[0].cwd // "") })
         | from_entries ) as $cwd
+      # Until a tab is renamed, its label is just a number — the same
+      # information the workspace row already shows. Match on all-digits
+      # rather than `.label == .number`: closing a tab renumbers the ones
+      # after it but leaves their labels alone, so the two fields disagree
+      # on most open workspaces.
+      | ( ($tb.result.tabs // [])
+          | map(select(.label | test("^[0-9]+$") | not))
+          | group_by(.workspace_id)
+          | map({ key: .[0].workspace_id, value: . })
+          | from_entries ) as $tabs
       | ($ws.result.workspaces // [])[]
       | (($cwd[.workspace_id] // "") | tilde) as $dir
-      | (.agent_status // "unknown") as $agent
-      | [ $c + $sigil + $r, $d + .workspace_id + $r, .label ]
-        + (if $dir == "" or $dir == .label then []
-           else [ $d + "·" + $r, $b + $dir + $r ] end)
-        + (if $agent == "unknown" then []
-           else [ ($agent | agent_colour) + "(" + $agent + ")" + $r ] end)
-      | join(" ")
+      | .label as $wslabel
+      | ( [ ( [ $c + $sigil + $r, $d + .workspace_id + $r, $wslabel ]
+              + (if $dir == "" or $dir == $wslabel then []
+                 else [ $d + "·" + $r, $b + $dir + $r ] end)
+              + agent_tag
+              | join(" ") ) ]
+          + [ ($tabs[.workspace_id] // [])[]
+              | [ $m + $tsigil + $r, $d + .tab_id + $r, .label,
+                  $d + "·" + $r, $c + $wslabel + $r, $d + "·" + $r,
+                  $d + (.pane_count | tostring)
+                     + (if .pane_count == 1 then " pane" else " panes" end) + $r ]
+                + agent_tag
+              | join(" ") ]
+        )[]
     '
 }
 
@@ -158,7 +191,8 @@ list_all() {
 # entry parsing
 # =============================================================================
 
-# Echoes "ws <id>" or "dir <abs-path>"; exits 1 on anything unrecognised.
+# Echoes "ws <id>", "tab <tab-id>" or "dir <abs-path>"; exits 1 on anything
+# unrecognised.
 #
 # The source lines carry colour, and `--ansi` means tv hands the preview the
 # text with the styles already lifted off. Strip them again anyway — the same
@@ -171,6 +205,10 @@ parse_entry() {
     "$WS_SIGIL "*)
       rest=${entry#"$WS_SIGIL "}
       printf 'ws %s\n' "${rest%% *}"
+      ;;
+    "$TAB_SIGIL "*)
+      rest=${entry#"$TAB_SIGIL "}
+      printf 'tab %s\n' "${rest%% *}"
       ;;
     "$DIR_SIGIL "*)
       printf 'dir %s\n' "$(untilde "${entry#"$DIR_SIGIL "}")"
@@ -301,7 +339,7 @@ preview_dir() {
 # pane tree tells you which one that is, and the tail of its output tells you
 # what you left running there.
 preview_workspace() {
-  local id=$1 ws pane_rows focus_pane
+  local id=$1 ws
 
   ws=$(workspaces_json | jq -r --arg id "$id" \
     '(.result.workspaces // [])[] | select(.workspace_id == $id)
@@ -327,18 +365,62 @@ preview_workspace() {
     git_summary "$cwd" || true
   fi
 
-  # Focused pane if the workspace has one, else its first. Resolved before the
-  # table so the ▸ marker points at the pane whose output is actually shown.
-  focus_pane=$(panes_json | jq -r --arg id "$id" '
-    [(.result.panes // [])[] | select(.workspace_id == $id)] as $p
+  pane_block workspace_id "$id"
+}
+
+# A tab's preview is the workspace preview narrowed to the tab: which panes it
+# holds, and the live output of the focused pane.
+preview_tab() {
+  local id=$1 tab label ws wslabel agent panes cwd
+
+  tab=$(tabs_json | jq -r --arg id "$id" \
+    '(.result.tabs // [])[] | select(.tab_id == $id)
+     | [.label, .workspace_id, (.agent_status // "unknown"), (.pane_count|tostring)]
+     | @tsv')
+  if [ -z "$tab" ]; then
+    printf '%stab %s is gone%s\n' "$C_YELLOW" "$id" "$C_RESET"
+    return 0
+  fi
+
+  IFS=$'\t' read -r label ws agent panes <<<"$tab"
+  wslabel=$(workspaces_json | jq -r --arg id "$ws" \
+    '(.result.workspaces // [])[] | select(.workspace_id == $id) | .label')
+
+  printf '%s%s %s%s\n' "$C_BOLD$C_MAGENTA" "$TAB_SIGIL" "$label" "$C_RESET"
+  printf '%s%s · in %s %s · %s pane(s) · agent %s%s\n' \
+    "$C_DIM" "$id" "$WS_SIGIL" "$wslabel" "$panes" "$agent" "$C_RESET"
+
+  # The tab's own directory, not the workspace's: a tab is often opened
+  # somewhere else in the tree, so its cwd is the one worth showing.
+  cwd=$(panes_json | jq -r --arg id "$id" \
+    '[(.result.panes // [])[] | select(.tab_id == $id)] | .[0].cwd // ""')
+  if [ -n "$cwd" ]; then
+    printf '\n%s%s%s\n' "$C_BLUE" "$(tilde "$cwd")" "$C_RESET"
+    git_summary "$cwd" || true
+  fi
+
+  pane_block tab_id "$id"
+}
+
+# The pane table, then the live tail of the focused pane. Both previews above
+# want it, each over a different set of panes, so the caller names the field
+# to match on: `workspace_id` for a whole workspace, `tab_id` for one tab.
+pane_block() {
+  local field=$1 value=$2 pane_rows focus_pane out
+
+  # Focused pane if the set has one, else its first. Resolved before the table
+  # so the ▸ marker points at the pane whose output is actually shown.
+  focus_pane=$(panes_json | jq -r --arg f "$field" --arg v "$value" '
+    [(.result.panes // [])[] | select(.[$f] == $v)] as $p
     | (([$p[] | select(.focused)] + $p) | first).pane_id // ""')
 
   printf '\n'
   rule panes
-  pane_rows=$(panes_json | jq -r --arg id "$id" --arg home "$HOME" --arg focus "$focus_pane" '
+  pane_rows=$(panes_json | jq -r \
+    --arg f "$field" --arg v "$value" --arg home "$HOME" --arg focus "$focus_pane" '
     def tilde: if startswith($home) then "~" + ltrimstr($home) else . end;
     (.result.panes // [])[]
-    | select(.workspace_id == $id)
+    | select(.[$f] == $v)
     | [ (if .pane_id == $focus then "▸" else " " end),
         .pane_id,
         ((.foreground_cwd // .cwd // "") | tilde),
@@ -348,18 +430,17 @@ preview_workspace() {
     -v b="$C_BLUE" -v d="$C_DIM" -v r="$C_RESET" \
     '{ printf "%s %-10s %s%s%s  %s%s%s\n", $1, $2, b, $3, r, d, $4, r }'
 
-  if [ -n "$focus_pane" ]; then
-    printf '\n'
-    rule "$focus_pane"
-    # `herdr pane read` exits 0 on a pane with nothing in scrollback, so test
-    # the output rather than the status.
-    local out
-    out=$(herdr pane read "$focus_pane" --source recent --lines 30 --format text 2>/dev/null || true)
-    if [ -n "${out//[[:space:]]/}" ]; then
-      printf '%s\n' "$out"
-    else
-      printf '%s(pane is empty)%s\n' "$C_DIM" "$C_RESET"
-    fi
+  [ -n "$focus_pane" ] || return 0
+
+  printf '\n'
+  rule "$focus_pane"
+  # `herdr pane read` exits 0 on a pane with nothing in scrollback, so test the
+  # output rather than the status.
+  out=$(herdr pane read "$focus_pane" --source recent --lines 30 --format text 2>/dev/null || true)
+  if [ -n "${out//[[:space:]]/}" ]; then
+    printf '%s\n' "$out"
+  else
+    printf '%s(pane is empty)%s\n' "$C_DIM" "$C_RESET"
   fi
 }
 
@@ -368,6 +449,7 @@ do_preview() {
   read -r kind payload <<<"$(parse_entry "$1" || true)"
   case $kind in
     ws) preview_workspace "$payload" ;;
+    tab) preview_tab "$payload" ;;
     dir) preview_dir "$payload" ;;
     *) printf '%sno preview for: %s%s\n' "$C_DIM" "$1" "$C_RESET" ;;
   esac
@@ -391,6 +473,13 @@ act_on() {
         return 0
       fi
       exec herdr workspace focus "$payload"
+      ;;
+    tab)
+      if [ -n "${DRY_RUN-}" ]; then
+        echo "focus tab $payload"
+        return 0
+      fi
+      exec herdr tab focus "$payload"
       ;;
     dir) ;;
     *)
@@ -449,7 +538,7 @@ sel=$(tv \
   --ansi \
   --preview-size 55 \
   --input-prompt '󰍉 ' \
-  --input-header "$WS_SIGIL workspaces · $DIR_SIGIL zoxide + $(tilde "$WORK_DIR")" \
+  --input-header "$WS_SIGIL workspaces · $TAB_SIGIL tabs · $DIR_SIGIL zoxide + $(tilde "$WORK_DIR")" \
   --no-remote) || exit 0
 [ -n "$sel" ] || exit 0
 
