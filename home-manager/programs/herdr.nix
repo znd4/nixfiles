@@ -434,8 +434,8 @@ let
     # modifier instead of macOS-composing (alt+d -> ∂). Valid because herdr runs
     # as the top-level multiplexer directly in Ghostty (no tmux layer between).
 
-    # tmux M-d: sesh connect picker. Pick an open workspace (-> focus it) or a
-    # zoxide/find dir (-> open it as a workspace).
+    # tmux M-d: sesh connect picker. Pick an open workspace (-> focus it), a
+    # named tab (-> focus it) or a zoxide/find dir (-> open it as a workspace).
     #
     # `popup` rather than `pane`: this descends from a tmux *popup*, and a
     # session-modal terminal is the honest equivalent — `pane` splits the tab
@@ -448,7 +448,7 @@ let
     width = "85%"
     height = "80%"
     command = "${herdrLauncher}/bin/herdr-launcher"
-    description = "workspace picker: open workspaces / zoxide / find"
+    description = "workspace picker: open workspaces / named tabs / zoxide / find"
 
     # tmux M-m: clone-creator. gh/glab/URL repo picker -> clone -> open workspace.
     [[keys.command]]
