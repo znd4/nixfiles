@@ -375,13 +375,13 @@ let
   # server. Linked at activation below; bound to prefix+space further down.
   herdrThumbs = inputs.herdr-plugin-thumbs.packages.${system}.default;
 
-  # A switch rewrites ~/.config/herdr/config.toml, but the running server keeps
-  # the copy it read at start-up: finish with `herdr server reload-config`.
-  # Skipping it is quiet — every keybinding below holds a nix store path, so a
-  # stale server launches the previous build. See docs/herdr.md.
+  # The running server keeps the config it read at start-up. The
+  # herdrReloadConfig activation step (end of file) reloads it after each
+  # switch. See docs/herdr.md.
   configToml = ''
     # Managed by home-manager (home-manager/programs/herdr.nix). Edit there.
-    # After a switch: `herdr server reload-config`.
+    # Each switch reloads the running server. To reload by hand:
+    # `herdr server reload-config`.
 
     [ui]
     # Agent sidebar ordering: "spaces" (grouped by space, the default) or
@@ -506,4 +506,22 @@ in
         warnEcho "herdr-thumbs: plugin link failed (is the herdr server running?)"
     fi
   '';
+
+  # Reload the running server after linkGeneration puts the new config.toml in
+  # place. A stale server shows no error: each keybinding holds a nix store
+  # path, so it runs the previous build. A failed call usually means no server
+  # is running, so it is not an error.
+  home.activation.herdrReloadConfig =
+    lib.hm.dag.entryAfter [ "linkGeneration" "herdrThumbsPlugin" ] ''
+      if [ -x "${herdr}/bin/herdr" ] && [ -z "''${DRY_RUN:-}" ]; then
+        if out=$(${herdr}/bin/herdr server reload-config 2>&1); then
+          case "$out" in
+            *'"diagnostics":[]'*) verboseEcho "herdr: config reloaded" ;;
+            *) warnEcho "herdr: reload-config did not apply cleanly: $out" ;;
+          esac
+        else
+          verboseEcho "herdr: reload-config skipped (is the herdr server running?): $out"
+        fi
+      fi
+    '';
 }

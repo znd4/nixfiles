@@ -34,16 +34,17 @@ The launcher shows its picker in television (`tv`), a terminal fuzzy finder.
 3. **Push** to `main`. If another flake uses this repo as an input, update
    that input in the other flake too.
 4. **Switch** with `nix run .#home-manager-switch`.
-5. **Reload.** The switch alone does not change the running server:
+5. **Check the reload.** The switch reloads the running server (the
+   `herdrReloadConfig` activation step). If the switch prints
+   `herdr: reload-config did not apply cleanly`, fix what it lists and switch
+   again. To reload by hand:
 
    ```bash
    herdr server reload-config   # expect "status":"applied" and no diagnostics
    ```
 
-   The running server keeps the `config.toml` it read at start-up. Each
-   keybinding holds a nix store path. Without a reload, the server runs the
-   previous build of each script and shows no error. `herdr config --help`
-   does not list the reload. It is under `herdr server`.
+   A stale server runs the previous build of each script and shows no error.
+   See [`docs/herdr.md`](https://github.com/znd4/nixfiles/blob/main/docs/herdr.md).
 6. **Check** with `herdr config check`, then use the keybinding once.
 
 ## Traps

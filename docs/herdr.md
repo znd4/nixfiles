@@ -13,21 +13,25 @@ this file covers configuration.
 | `alt+r` MR review workspace | `home-manager/bin/herdr-mr-review.py` |
 | `alt+m` clone-creator, `alt+s` new workspace | `herdr.nix`, inline |
 | Live server upgrade | `herdr.nix`, `herdrHandoff` |
+| Config reload after a switch | `herdr.nix`, `herdrReloadConfig` |
 
-## Changing the config: a switch is not enough
+## Changing the config: the switch reloads the server
 
 `nix run .#home-manager-switch` rewrites `~/.config/herdr/config.toml`, but the
-running server keeps the copy it read at start-up. Finish with:
+running server keeps the copy it read at start-up. So at the end of each
+switch, the `herdrReloadConfig` activation step in `herdr.nix` runs:
 
 ```bash
 herdr server reload-config
 ```
 
-`herdr config --help` does not list this — it offers only `check` and
-`reset-keys`. The reload sits under `herdr server`.
+A `herdr: reload-config did not apply cleanly` warning means the new config
+has problems. Fix what it lists, then switch again. You can also run the
+command by hand. `herdr config --help` does not list it; it is under
+`herdr server`.
 
-Skipping the reload is quiet rather than broken — every keybinding holds a nix
-store path, so a stale server launches the previous build of each script.
+A missed reload shows no error. Each keybinding holds a nix store path, so a
+stale server runs the previous build of each script.
 
 ## The alt+d launcher
 
