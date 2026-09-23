@@ -490,6 +490,11 @@ in
 
   xdg.configFile."herdr/config.toml".text = configToml;
 
+  # Agent skill for changing this module. It is one file, so it does not need
+  # the mkSkillFiles directory walk from claude-code.nix.
+  home.file.".claude/skills/herdr-development/SKILL.md".source =
+    ../claude-skills/herdr-development/SKILL.md;
+
   # Link the herdr-thumbs plugin from its store path. herdr keeps its plugin
   # registry in ~/.config/herdr; linking is idempotent here (unlink-then-link)
   # so a rebuild always points at the current store path. Guarded on the herdr
