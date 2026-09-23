@@ -57,6 +57,9 @@ from pathlib import Path
 NOTEBOOK = Path(os.environ.get("ASK_NOTEBOOK", Path.home() / "notes"))
 STALE_DAYS = int(os.environ.get("ASK_STALE_DAYS", "7"))
 VERIFY_TIMEOUT = 8  # seconds; a probe that hangs must not hang the list
+# Seconds between TUI checks for added, edited, or removed notes.
+# 0 turns the check off; R still reloads by hand.
+POLL_SECONDS = float(os.environ.get("ASK_TUI_POLL", "5"))
 
 ID_CHARSET = "abcdefghijklmnopqrstuvwxyz0123456789"  # zk: alphanum, lower
 ID_LEN = 4
@@ -166,6 +169,21 @@ def fenced(body: str, heading: str) -> str:
 def section(body: str, heading: str) -> str:
     m = re.search(rf"^## {re.escape(heading)}\s*$(.*?)(?=^## |\Z)", body, re.M | re.S)
     return m.group(1).strip() if m else ""
+
+
+def notebook_stamp() -> tuple[int, int]:
+    """Return (count of *.md notes, newest mtime in ns).
+
+    An add or remove changes the count; an edit changes the newest mtime.
+    The TUI compares stamps to skip a full parse when nothing changed.
+    """
+    count, newest = 0, 0
+    with os.scandir(NOTEBOOK) as it:
+        for e in it:
+            if e.name.endswith(".md") and e.is_file():
+                count += 1
+                newest = max(newest, e.stat().st_mtime_ns)
+    return count, newest
 
 
 def load_all() -> list[dict]:
@@ -481,7 +499,8 @@ HELP_TEXT = """\
   /                filter by text       t   filter by tag
   a                show closed items too
   C                clear every filter
-  R                read the notebook again
+  R                read the notebook again. The list also
+                   reloads when a note changes, unless ASK_TUI_POLL=0
 
   The previous filter returns selected. Type to replace it,
   press End to edit it.
@@ -618,6 +637,7 @@ def build_app_class():
             self.undo_stack: list[list[tuple[Path, str]]] = []
             self.prompt_mode = ""
             self.col_what = None  # set in on_mount; on_resize can fire first
+            self.stamp: tuple[int, int] = (0, 0)  # notebook_stamp() at the last read
 
         # -- layout ----------------------------------------------------------
 
@@ -642,6 +662,8 @@ def build_app_class():
             self.col_what = table.add_column("what", key="what", width=40)
             self.reload_items()
             table.focus()
+            if POLL_SECONDS > 0:
+                self.set_interval(POLL_SECONDS, self.poll_notebook)
 
         def what_width(self) -> int:
             """Width left for the text column after the fixed columns and padding.
@@ -666,8 +688,27 @@ def build_app_class():
 
         def reload_items(self, keep_cursor: bool = True) -> None:
             row = self.query_one("#items", DataTable).cursor_row if keep_cursor else 0
+            self.stamp = notebook_stamp()
             self.items = load_all()
             self.apply_filters(cursor=row)
+
+        def poll_notebook(self) -> None:
+            """Read the notebook again when a note changed on disk.
+
+            Skips while a prompt or modal is open, so it never redraws under
+            the user. The cursor follows the item id, not the row number,
+            because an added or removed note shifts the rows.
+            """
+            if self.prompt_mode or isinstance(self.screen, ModalScreen):
+                return
+            if notebook_stamp() == self.stamp:
+                return
+            it = self.current()
+            self.reload_items()
+            if it:
+                ids = [i["id"] for i in self.view]
+                if it["id"] in ids:
+                    self.query_one("#items", DataTable).move_cursor(row=ids.index(it["id"]))
 
         def apply_filters(self, cursor: int = 0) -> None:
             out = self.items
