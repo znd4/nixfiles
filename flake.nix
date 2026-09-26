@@ -213,24 +213,6 @@
                 sudo unbuffer nixos-rebuild switch --flake "''${1:-.}" |& nom
               '';
             };
-            nix-darwin-switch = pkgs.writeShellApplication {
-              name = "nix-darwin-switch";
-              runtimeInputs = with pkgs; [
-                expect
-                darwin.packages.${pkgs.system}.darwin-rebuild
-                nix-output-monitor
-              ];
-              text = ''
-                #!/usr/bin/env bash
-                set -euo pipefail
-                set -x
-                # Activation must run as root. sudo resets PATH, so call
-                # darwin-rebuild by its store path.
-                unbuffer sudo ${
-                  lib.getExe' darwin.packages.${pkgs.system}.darwin-rebuild "darwin-rebuild"
-                } switch --flake "''${1:-.}" |& nom
-              '';
-            };
             home-manager-switch = pkgs.writeShellApplication {
               name = "home-manager-switch";
               runtimeInputs = with pkgs; [
