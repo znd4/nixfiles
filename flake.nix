@@ -224,7 +224,11 @@
                 #!/usr/bin/env bash
                 set -euo pipefail
                 set -x
-                unbuffer darwin-rebuild switch --flake "''${1:-.}" |& nom
+                # Activation must run as root. sudo resets PATH, so call
+                # darwin-rebuild by its store path.
+                unbuffer sudo ${
+                  lib.getExe' darwin.packages.${pkgs.system}.darwin-rebuild "darwin-rebuild"
+                } switch --flake "''${1:-.}" |& nom
               '';
             };
             home-manager-switch = pkgs.writeShellApplication {
@@ -296,8 +300,16 @@
             };
             modules = [ self.darwinModules.default ] ++ extraModules;
           };
-        darwinConfigurations."Zanes-MacBook-Neo.local" = self.darwinFactory {
+        # darwin-rebuild picks the config named after `scutil --get LocalHostName`,
+        # which has no ".local" suffix.
+        darwinConfigurations."Zanes-MacBook-Neo" = self.darwinFactory {
           username = "znd4";
+          stateVersion = 6;
+          extraModules = [
+            ./darwin/determinate.nix
+            # nix-darwin owns /etc/pam.d/sudo_local, which already enabled this.
+            { security.pam.services.sudo_local.touchIdAuth = true; }
+          ];
         };
         darwinConfigurations.work = self.darwinFactory {
           username = "znd4";
