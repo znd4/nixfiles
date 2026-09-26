@@ -28,6 +28,11 @@ return {
       require('luasnip.loaders.from_vscode').lazy_load()
     end,
     config = function()
+      -- minuet is a bare dependency here, so lazy never runs its own config;
+      -- blink's minuet source reads minuet.config, which only setup() populates.
+      -- https://github.com/milanglacier/minuet-ai.nvim/blob/5d565cb23e0b365af14f9e9a2a45b2b46e7c4f3e/README.md#L96-L113
+      require('minuet').setup {}
+
       require('blink.cmp').setup {
         -- 'default' (recommended) for mappings similar to built-in completions (C-y to accept, C-n/C-p for up/down)
         -- 'super-tab' for mappings similar to vscode (tab to accept, arrow keys for up/down)
@@ -63,6 +68,8 @@ return {
 
         completion = {
           documentation = { auto_show = true },
+          -- https://github.com/milanglacier/minuet-ai.nvim/blob/5d565cb23e0b365af14f9e9a2a45b2b46e7c4f3e/README.md#L207-L208
+          trigger = { prefetch_on_insert = false },
         },
 
         appearance = {
