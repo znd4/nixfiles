@@ -33,7 +33,7 @@ The launcher shows its picker in television (`tv`), a terminal fuzzy finder.
    `nix-instantiate --parse` on a changed `.nix` file.
 3. **Push** to `main`. If another flake uses this repo as an input, update
    that input in the other flake too.
-4. **Switch** with `nix run .#home-manager-switch`.
+4. **Switch** with `nh home switch`.
 5. **Check the reload.** The switch reloads the running server (the
    `herdrReloadConfig` activation step). If the switch prints
    `herdr: reload-config did not apply cleanly`, fix what it lists and switch
