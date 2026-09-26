@@ -337,10 +337,10 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1738731564,
-        "narHash": "sha256-NBhtjQzyAO8vOATrFrjO0UBBAE3DcljKPL+0t+VzvZI=",
+        "lastModified": 1790453608,
+        "narHash": "sha256-RhjxywJ1Qfrs9aMjqEDG5lnMfW6q0bJ/DXQpipgBSpo=",
         "ref": "home-manager",
-        "rev": "dfd6d9f3deb1d434e8355e959eee800491539872",
+        "rev": "61aeac2c993a474c817e4b8a943c5282dcaa991c",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/znd4/git-town.git"
