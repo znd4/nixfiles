@@ -103,7 +103,6 @@ in
     inputs.git-town-znd4.homeManagerModules.default
   ];
 
-  nix.package = pkgs.nix;
   nix.registry.nixpkgs.flake = inputs.nixpkgs;
   home.packages = [
     personal_python
