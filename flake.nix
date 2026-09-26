@@ -213,22 +213,37 @@
                 sudo unbuffer nixos-rebuild switch --flake "''${1:-.}" |& nom
               '';
             };
+            # `darwin-rebuild switch` must run as root, and it evaluates the
+            # flake as root too, which Nix refuses for a repo owned by another
+            # user. So build as the current user, then use sudo only for the
+            # two steps switch does after building: point the system profile
+            # at the build and run its activate script.
             nix-darwin-switch = pkgs.writeShellApplication {
               name = "nix-darwin-switch";
               runtimeInputs = with pkgs; [
-                expect
-                darwin.packages.${pkgs.system}.darwin-rebuild
                 nix-output-monitor
               ];
               text = ''
                 #!/usr/bin/env bash
                 set -euo pipefail
-                set -x
-                # Activation must run as root. sudo resets PATH, so call
-                # darwin-rebuild by its store path.
-                unbuffer sudo ${
-                  lib.getExe' darwin.packages.${pkgs.system}.darwin-rebuild "darwin-rebuild"
-                } switch --flake "''${1:-.}" |& nom
+                # Usage: nix-darwin-switch [FLAKE[#HOST]]. HOST defaults to
+                # LocalHostName, as with darwin-rebuild.
+                flake="''${1:-.}"
+                host=$(/usr/sbin/scutil --get LocalHostName)
+                if [[ $flake == *#* ]]; then
+                  host="''${flake#*#}"
+                  flake="''${flake%%#*}"
+                fi
+
+                out=$(mktemp -d)
+                trap 'rm -rf "$out"' EXIT
+                nom build --out-link "$out/system" "$flake#darwinConfigurations.$host.system"
+                system=$(readlink "$out/system")
+
+                # sudo resets PATH, so pass nix-env by path.
+                nix_env=$(command -v nix-env)
+                sudo "$nix_env" -p /nix/var/nix/profiles/system --set "$system"
+                sudo "$system/activate"
               '';
             };
             home-manager-switch = pkgs.writeShellApplication {
