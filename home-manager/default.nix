@@ -103,9 +103,6 @@ in
     inputs.git-town-znd4.homeManagerModules.default
   ];
 
-  # No nix.package: activation then uses the nix-env on PATH (Determinate Nix
-  # on macOS, the system Nix on NixOS) instead of an upstream Nix that warns
-  # about Determinate-only settings in /etc/nix/nix.conf.
   nix.registry.nixpkgs.flake = inputs.nixpkgs;
   home.packages = [
     personal_python
