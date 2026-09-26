@@ -205,6 +205,14 @@ in
 
   programs.gh-dash.enable = true;
 
+  # `nh darwin switch` builds as the user and only elevates to activate, so it
+  # works on a flake in $HOME (sudo darwin-rebuild evaluates it as root, which
+  # Nix refuses for a repo root doesn't own).
+  programs.nh = {
+    enable = true;
+    flake = "${config.home.homeDirectory}/nixfiles";
+  };
+
   home.sessionVariables = {
     EDITOR = "nvim";
     OP_PLUGIN_ALIASES_SOURCED = 1;
