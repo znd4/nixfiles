@@ -255,30 +255,21 @@ in
     enable = true;
     extraConfig = "IdentityAgent ${if identityAgent != null then identityAgent else authSocks.${system}}";
 
-    # home-manager is dropping its implicit `Host *` defaults, so spell out
-    # the ones it used to write.
+    # home-manager's implicit `Host *` defaults only restated OpenSSH's own.
     enableDefaultConfig = false;
     matchBlocks = {
       "*" = {
-        forwardAgent = false;
-        serverAliveInterval = 0;
-        serverAliveCountMax = 3;
-        compression = false;
         # "yes" (not "confirm"): with "confirm", every key *use* needs an
         # interactive TouchID/prompt, which silently fails non-interactive git
         # pushes (the key is in the agent but each use is blocked). No-op on
         # machines whose IdentityAgent is Secretive/1Password (those manage
         # keys internally and ignore this).
         addKeysToAgent = "yes";
-        hashKnownHosts = false;
         userKnownHostsFile = "${
           (pkgs.writeText "known_hosts" (
             builtins.concatStringsSep "\n" (lib.attrsets.mapAttrsToList (name: value: value) knownHosts)
           ))
         }";
-        controlMaster = "no";
-        controlPath = "~/.ssh/master-%r@%n:%p";
-        controlPersist = "no";
       };
     }
     // lib.attrsets.mapAttrs (name: value: {

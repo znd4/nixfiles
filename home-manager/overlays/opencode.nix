@@ -5,7 +5,7 @@
 }:
 (final: prev: 
 let
-  opencode = inputs.nixpkgs-opencode.legacyPackages.${prev.stdenv.hostPlatform.system}.opencode;
+  opencode = inputs.nixpkgs-opencode.legacyPackages.${prev.stdenv.system}.opencode;
 in
 {
   opencode = opencode.overrideAttrs (oldAttrs: {
