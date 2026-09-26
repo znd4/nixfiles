@@ -17,7 +17,7 @@ this file covers configuration.
 
 ## Changing the config: the switch reloads the server
 
-`nix run .#home-manager-switch` rewrites `~/.config/herdr/config.toml`, but the
+`nh home switch` rewrites `~/.config/herdr/config.toml`, but the
 running server keeps the copy it read at start-up. So at the end of each
 switch, the `herdrReloadConfig` activation step in `herdr.nix` runs:
 

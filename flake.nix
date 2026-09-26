@@ -213,24 +213,6 @@
                 sudo unbuffer nixos-rebuild switch --flake "''${1:-.}" |& nom
               '';
             };
-            home-manager-switch = pkgs.writeShellApplication {
-              name = "home-manager-switch";
-              runtimeInputs = with pkgs; [
-                expect
-                home-manager
-                nix-output-monitor
-              ];
-              text = ''
-                #!/usr/bin/env bash
-                set -euo pipefail
-                which home-manager
-                set -x
-
-                # shellcheck disable=SC2046 # Intended splitting of OPTIONS
-                read -ra options <<<"''${1:-.}"
-                home-manager switch --flake "''${options[@]}" |& nom
-              '';
-            };
           };
         };
       systems = [
@@ -417,7 +399,8 @@
               [
                 {
                   username = "znd4";
-                  hostname = "Zanes-MacBook-Neo.local";
+                  # nh looks for username@hostname without ".local".
+                  hostname = "Zanes-MacBook-Neo";
                   system = "aarch64-darwin";
                   identityAgent = ''"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"'';
                   _1password_ssh = true;

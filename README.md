@@ -29,7 +29,9 @@ sudo nixos-rebuild switch --flake ".#$hostname"
 ```sh
 user=znd4
 hostname=work
-nix run ".#home-manager-switch" ".#$user@$hostname"
+nh home switch . -c "$user@$hostname"
+# First time, before home-manager has installed nh:
+nix run nixpkgs#nh -- home switch . -c "$user@$hostname"
 ```
 
 ## Future plans

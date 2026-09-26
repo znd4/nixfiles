@@ -16,7 +16,7 @@ nix run nix-darwin -- switch --flake ".#work"  # Direct command
 
 # Home Manager (user environment)
 just home-manager                       # Build and switch home-manager config
-nix run .#home-manager-switch .        # Direct command for current user@hostname
+nh home switch .                        # Direct command for current user@hostname
 ```
 
 ### Target System Hostnames
