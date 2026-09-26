@@ -17,24 +17,18 @@ in
     enable = true;
     lfs.enable = true;
 
-    userName = "Zane Dufour";
-    userEmail = "zane@znd4.dev";
     ignores = [
       "**/.claude/settings.local.json"
       ".zn-work"
       ".jj"
     ];
-    delta = {
-      # enable = true;
-      options = {
-        pager = "less";
-      };
-    };
     signing = {
       signByDefault = true;
       key = "${pkgs.writeText "github.com_id_rsa.pub" keys."github.com"}";
     };
     settings = {
+      user.name = "Zane Dufour";
+      user.email = "zane@znd4.dev";
       # https://git-scm.com/book/en/v2/Git-Tools-Rerere
       rerere.enabled = true;
       # pager = {
@@ -89,8 +83,8 @@ in
         ];
       };
     };
-    extraConfig.http.sslCAInfo = lib.mkIf (certificateAuthority != null) certificateAuthority;
-    aliases = {
+    settings.http.sslCAInfo = lib.mkIf (certificateAuthority != null) certificateAuthority;
+    settings.alias = {
       a = "add";
       pl = "pull";
       c = "commit";
@@ -106,6 +100,12 @@ in
       conflicted = "!nvim +Conflicted";
       cb = "branch --show-current";
       root = "!pwd";
+    };
+  };
+  programs.delta = {
+    # enable = true;
+    options = {
+      pager = "less";
     };
   };
 }

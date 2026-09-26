@@ -14,7 +14,7 @@
     settings = {
       window = {
         opacity = 0.9;
-        option_as_alt = lib.mkIf (pkgs.system == "aarch64-darwin") "Both";
+        option_as_alt = lib.mkIf (pkgs.stdenv.hostPlatform.system == "aarch64-darwin") "Both";
       };
       shell = {
         program = "${pkgs.fish}/bin/fish";
