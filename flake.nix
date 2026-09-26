@@ -427,6 +427,16 @@
                   system = "aarch64-darwin";
                   identityAgent = ''"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"'';
                   _1password_ssh = true;
+                  extraModules = [
+                    {
+                      # The GitHub PAT item that the gh wrapper authenticates with.
+                      programs.op-gh.credential = {
+                        accountId = "L6CQPYXBPJGN7NFCMZKGHXPDLM";
+                        vaultId = "gmfmxem6r3etdq2i2wuxfj7lda";
+                        itemId = "5vr4i7clsvizvyhr7kjn5ysfde";
+                      };
+                    }
+                  ];
                 }
                 {
                   username = "znd4";
