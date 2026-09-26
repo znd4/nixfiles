@@ -10,7 +10,7 @@ let
     if (builtins.elem pkgs.stdenv.system ghosttyFlakePackage.meta.platforms) then
       ghosttyFlakePackage
     else
-      pkgs.emptyDirectory;
+      null;
 in
 {
   home.packages = lib.mkIf pkgs.stdenv.isLinux [

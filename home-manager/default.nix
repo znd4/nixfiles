@@ -252,25 +252,30 @@ in
     ];
 
   programs.ssh = {
-    # "yes" (not "confirm"): with "confirm", every key *use* needs an interactive
-    # TouchID/prompt, which silently fails non-interactive git pushes (the key is
-    # in the agent but each use is blocked). No-op on machines whose IdentityAgent
-    # is Secretive/1Password (those manage keys internally and ignore this).
-    addKeysToAgent = "yes";
     enable = true;
-    userKnownHostsFile = "${
-      (pkgs.writeText "known_hosts" (
-        builtins.concatStringsSep "\n" (lib.attrsets.mapAttrsToList (name: value: value) knownHosts)
-      ))
-    }";
     extraConfig = "IdentityAgent ${if identityAgent != null then identityAgent else authSocks.${system}}";
 
-    matchBlocks = (
-      lib.attrsets.mapAttrs (name: value: {
-        identitiesOnly = true;
-        identityFile = "${pkgs.writeText "${name}_id_rsa.pub" value}";
-      }) keys
-    );
+    # home-manager's implicit `Host *` defaults only restated OpenSSH's own.
+    enableDefaultConfig = false;
+    matchBlocks = {
+      "*" = {
+        # "yes" (not "confirm"): with "confirm", every key *use* needs an
+        # interactive TouchID/prompt, which silently fails non-interactive git
+        # pushes (the key is in the agent but each use is blocked). No-op on
+        # machines whose IdentityAgent is Secretive/1Password (those manage
+        # keys internally and ignore this).
+        addKeysToAgent = "yes";
+        userKnownHostsFile = "${
+          (pkgs.writeText "known_hosts" (
+            builtins.concatStringsSep "\n" (lib.attrsets.mapAttrsToList (name: value: value) knownHosts)
+          ))
+        }";
+      };
+    }
+    // lib.attrsets.mapAttrs (name: value: {
+      identitiesOnly = true;
+      identityFile = "${pkgs.writeText "${name}_id_rsa.pub" value}";
+    }) keys;
   };
 
   # Add stuff for your user as you see fit:
@@ -301,7 +306,7 @@ in
         };
       }
     ];
-    initExtra = ''
+    initContent = ''
       setopt interactivecomments
       # Use nvr inside neovim terminals
       if [[ -n "$NVIM" ]]; then

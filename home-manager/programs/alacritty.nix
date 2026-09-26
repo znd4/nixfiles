@@ -2,6 +2,7 @@
   pkgs,
   lib,
   outputs,
+  system,
   ...
 }:
 {
@@ -14,7 +15,7 @@
     settings = {
       window = {
         opacity = 0.9;
-        option_as_alt = lib.mkIf (pkgs.system == "aarch64-darwin") "Both";
+        option_as_alt = lib.mkIf (system == "aarch64-darwin") "Both";
       };
       shell = {
         program = "${pkgs.fish}/bin/fish";
