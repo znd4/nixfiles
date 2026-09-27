@@ -10,6 +10,21 @@ return {
   --   "BufReadPre path/to/my-vault/**.md",
   --   "BufNewFile path/to/my-vault/**.md",
   -- },
+  -- obsidian.nvim warns on BufEnter of a vault note when conceallevel is 0.
+  -- FileType fires before BufEnter, so set it here for vault markdown buffers.
+  init = function()
+    local vault = vim.fn.resolve(vim.fn.expand '~/Documents/obsidian-gtd-main')
+    vim.api.nvim_create_autocmd('FileType', {
+      group = vim.api.nvim_create_augroup('ObsidianConceal', { clear = true }),
+      pattern = 'markdown',
+      callback = function(ev)
+        local path = vim.fn.resolve(vim.api.nvim_buf_get_name(ev.buf))
+        if vim.startswith(path, vault .. '/') then
+          vim.opt_local.conceallevel = 2
+        end
+      end,
+    })
+  end,
   dependencies = {
     -- Required.
     'nvim-lua/plenary.nvim',
