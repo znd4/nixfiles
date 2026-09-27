@@ -383,6 +383,11 @@ let
     # Each switch reloads the running server. To reload by hand:
     # `herdr server reload-config`.
 
+    # Skip the first-run welcome overlay. Its "continue" button writes
+    # `onboarding = false` back into this file, which fails because the file is
+    # a read-only store symlink — so without this it shows on every launch.
+    onboarding = false
+
     [ui]
     # Agent sidebar ordering: "spaces" (grouped by space, the default) or
     # "priority" (a single attention queue — blocked/working float to the top).
