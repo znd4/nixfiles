@@ -49,8 +49,8 @@
   programs.zsh.enable = true;
 
   launchd.user.envVariables = {
-    EDITOR = "nvim";
-    VISUAL = "nvim";
+    EDITOR = "${pkgs.neovim}/bin/nvim";
+    VISUAL = "${pkgs.neovim}/bin/nvim";
   };
 
   system.primaryUser = username;
