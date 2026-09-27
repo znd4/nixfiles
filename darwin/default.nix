@@ -48,6 +48,11 @@
   programs.fish.enable = true;
   programs.zsh.enable = true;
 
+  launchd.user.envVariables = {
+    EDITOR = "nvim";
+    VISUAL = "nvim";
+  };
+
   system.primaryUser = username;
   homebrew = {
     enable = true;
