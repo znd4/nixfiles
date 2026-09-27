@@ -1,17 +1,13 @@
 return {
-  'ahmedkhalf/project.nvim',
+  -- Maintained fork of ahmedkhalf/project.nvim. The original is unmaintained and
+  -- calls the deprecated vim.lsp.buf_get_clients() on every BufEnter/VimEnter.
+  'DrKJeff16/project.nvim',
   config = function()
-    -- local statepath = vim.fn.stdpath("state")
-    local datapath = vim.fn.stdpath 'data'
-    require('project_nvim').setup {
-      -- your configuration comes here
-      -- or leave it empty to use the default settings
-      -- refer to the configuration section below
-      ignore_lsp = { 'null-ls', 'terraform_lsp' },
-      detection_methods = { 'pattern', 'lsp' },
+    require('project').setup {
+      lsp = { enabled = true, ignore = { 'null-ls', 'terraform_lsp' } },
       patterns = { '.git', '.hg', '.svn', 'package.json', 'go.mod', 'pyproject.toml' },
       show_hidden = true,
-      datapath = datapath,
+      history = { save_dir = vim.fn.stdpath 'data' },
     }
     require('telescope').load_extension 'projects'
     local file_browser = require('telescope').load_extension 'file_browser'
