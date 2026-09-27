@@ -2,6 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Workflow
+
+Unless the user asks for a PR, don't open one. Several agents work in this repo at once, so:
+
+1. Do the work in a git worktree under `.claude/worktrees/<name>`, branched from `origin/main`. Never edit the root checkout (`~/nixfiles`) directly.
+2. Commit there, check that the affected config builds, then rebase onto `origin/main` and push it straight to `main` (`git push origin HEAD:main`). If the push is rejected because another agent landed first, rebase and retry.
+3. Pull it into the root checkout with `git -C ~/nixfiles pull --ff-only`, and promote from there (`just darwin`, `just home-manager`, ...). The root checkout is what gets activated, and home-manager symlinks some files back into it, so always switch from `~/nixfiles`, not from a worktree.
+4. Remove the worktree and its branch once the change is on `main`.
+
 ## Commands
 
 ### Build and Switch Configurations
