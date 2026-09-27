@@ -48,9 +48,6 @@
   programs.fish.enable = true;
   programs.zsh.enable = true;
 
-  # GUI apps and anything launchd spawns (e.g. a herdr server started outside a
-  # shell) never read home.sessionVariables, so set the editor in the user's
-  # launchd domain too. Applied with `launchctl setenv` on activation/login.
   launchd.user.envVariables = {
     EDITOR = "nvim";
     VISUAL = "nvim";
