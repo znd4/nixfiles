@@ -37,6 +37,13 @@ in
       font-style = "Medium";
       font-family-italic = "MonaspiceRn Nerd Font Mono";
       font-style-italic = "Italic";
+    }
+    # On a terminal bell (BEL), play a soft sound and mark the window. tmux
+    # sends bells from all panes to Ghostty, so you hear an agent in a hidden pane.
+    // lib.optionalAttrs pkgs.stdenv.isDarwin {
+      bell-features = "audio,attention,title";
+      bell-audio-path = "/System/Library/Sounds/Glass.aiff";
+      bell-audio-volume = 0.4;
     };
   };
 }
