@@ -69,7 +69,7 @@ in
           		--bind 'ctrl-x:change-prompt(📁  )+reload(sesh list -z)' \
           		--bind 'ctrl-f:change-prompt(🔎  )+reload(fd -H -d 2 -t d -E .Trash . ~)' \
           		--bind 'ctrl-d:execute-silent(tmux kill-session -t {})+reload(sesh list -tzs)'
-        )"
+        ) || true"
 
         bind -n M-m display-popup -E "_sesh-cl-fuzzy \
           --gitlab-hosts '[${lib.strings.concatStringsSep " " seshClConfig.gitlabHosts}]' \
