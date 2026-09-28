@@ -77,6 +77,13 @@
       url = "git+ssh://git@github.com/raine/workmux.git?shallow=1&ref=refs/tags/v0.1.268";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+    # tmux-claude-hatch — tmux plugin that opens Claude Code sessions in a
+    # popup. It is only shell scripts and has no flake. Pinned to a release
+    # tag; bump deliberately.
+    tmux-claude-hatch = {
+      url = "git+ssh://git@github.com/craftzdog/tmux-claude-hatch.git?shallow=1&ref=refs/tags/v1.5.0";
+      flake = false;
+    };
     catppuccin-ghostty = {
       url = "git+ssh://git@github.com/catppuccin/ghostty.git?shallow=1";
       flake = false;

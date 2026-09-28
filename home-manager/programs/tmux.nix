@@ -9,6 +9,25 @@
 }:
 let
   cfg = config.programs.tmux-new-session;
+
+  # The scripts look up fzf and jq on PATH. The tmux server PATH can lack
+  # them, so postInstall adds the Nix store paths to the start of PATH in
+  # each script.
+  claude-hatch = pkgs.tmuxPlugins.mkTmuxPlugin {
+    pluginName = "claude-hatch";
+    version = "1.5.0";
+    src = inputs.tmux-claude-hatch;
+    postInstall = ''
+      for f in $target/scripts/*.sh; do
+        sed -i '1a export PATH=${
+          lib.makeBinPath [
+            pkgs.fzf
+            pkgs.jq
+          ]
+        }:$PATH' "$f"
+      done
+    '';
+  };
 in
 {
   options.programs.tmux-new-session = {
@@ -136,6 +155,9 @@ in
         pain-control
         sensible
         tmux-fzf
+        # prefix (C-a) y: open Claude for this directory;
+        # prefix u: select a running Claude session from a list
+        claude-hatch
         {
           plugin = tmux-thumbs;
           extraConfig = ''

@@ -826,6 +826,7 @@
         "pi-coding-agent": "pi-coding-agent",
         "sesh": "sesh",
         "sessionx": "sessionx",
+        "tmux-claude-hatch": "tmux-claude-hatch",
         "tuicr-src": "tuicr-src",
         "workmux": "workmux",
         "xdg-config": "xdg-config"
@@ -935,6 +936,24 @@
         "owner": "nix-systems",
         "repo": "default",
         "type": "github"
+      }
+    },
+    "tmux-claude-hatch": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790581161,
+        "narHash": "sha256-7lBNWpCdkhIEYS0GLGWyBwyqU4weu/lOImYnoe0kCkk=",
+        "ref": "refs/tags/v1.5.0",
+        "rev": "e0bcfd189ddd2019a9cda012f2b3446cd83e16a9",
+        "shallow": true,
+        "type": "git",
+        "url": "ssh://git@github.com/craftzdog/tmux-claude-hatch.git"
+      },
+      "original": {
+        "ref": "refs/tags/v1.5.0",
+        "shallow": true,
+        "type": "git",
+        "url": "ssh://git@github.com/craftzdog/tmux-claude-hatch.git"
       }
     },
     "treefmt-nix": {
