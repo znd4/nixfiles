@@ -17,6 +17,24 @@ that is more than one line.
 
 The launcher shows its picker in television (`tv`), a terminal fuzzy finder.
 
+## The tmux equivalents
+
+Under tmux, different files set the same keys. Edit those files, not
+`herdr.nix`:
+
+| Key | herdr script | tmux replacement |
+|---|---|---|
+| `alt+d` | `herdr-launcher` | `sesh connect` popup, in `programs/tmux.nix` |
+| `alt+m` | `herdr-clone` | `_sesh-cl-fuzzy` popup, in `programs/tmux.nix` |
+| `alt+s` | `herdr-new-named` | `programs.tmux-new-session`, in `programs/tmux.nix` |
+| `alt+r` | `herdr-mr-review` | `programs/tmux-mr-review.nix` (opens Hunk, not tuicr) |
+| `alt+shift+g` | `herdr-agent-lazygit` | `M-G` popup at `#{pane_current_path}`, in `programs/tmux.nix` |
+| `prefix+alt+g` | lazygit pane | `prefix M-g` split, in `programs/tmux.nix` |
+| `prefix+space` | herdr-thumbs plugin | `tmux-thumbs` plugin, in `programs/tmux.nix` |
+
+To open a new worktree with an agent in it, use `workmux add` (configured in
+`programs/workmux.nix`).
+
 ## The change chain
 
 1. **Edit** in a worktree of `~/nixfiles`.
