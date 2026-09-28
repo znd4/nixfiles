@@ -827,6 +827,7 @@
         "sesh": "sesh",
         "sessionx": "sessionx",
         "tuicr-src": "tuicr-src",
+        "workmux": "workmux",
         "xdg-config": "xdg-config"
       }
     },
@@ -995,6 +996,28 @@
         "ref": "fix/gitlab-commit-order",
         "repo": "tuicr",
         "type": "github"
+      }
+    },
+    "workmux": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790410826,
+        "narHash": "sha256-ilB9K6HggnPFMp0mPmX98GZyS8iQ4rOh75ODBM0PBmw=",
+        "ref": "refs/tags/v0.1.268",
+        "rev": "0e2e3cde8bfc9737e4f48c1086c0ed3921bdfc24",
+        "shallow": true,
+        "type": "git",
+        "url": "ssh://git@github.com/raine/workmux.git"
+      },
+      "original": {
+        "ref": "refs/tags/v0.1.268",
+        "shallow": true,
+        "type": "git",
+        "url": "ssh://git@github.com/raine/workmux.git"
       }
     },
     "xdg-config": {

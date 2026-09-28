@@ -100,6 +100,7 @@ in
     ./darwin
     ./nixos
     ./programs
+    ./modules/workmux.nix
     inputs.git-town-znd4.homeManagerModules.default
   ];
 

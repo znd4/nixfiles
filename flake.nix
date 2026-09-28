@@ -67,6 +67,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.herdr.follows = "herdr";
     };
+    # workmux — pairs git worktrees with tmux windows. Its flake ships a
+    # package only; our module is home-manager/modules/workmux.nix. Pinned to
+    # a release tag; bump deliberately. The crate builds with the Rust in our
+    # nixpkgs, so follow it and do not pull in a second nixpkgs.
+    workmux = {
+      url = "git+ssh://git@github.com/raine/workmux.git?shallow=1&ref=refs/tags/v0.1.268";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     catppuccin-ghostty = {
       url = "git+ssh://git@github.com/catppuccin/ghostty.git?shallow=1";
       flake = false;
@@ -323,6 +331,7 @@
 
         homeModules = {
           default = ./home-manager;
+          workmux = ./home-manager/modules/workmux.nix;
         };
         homeConfigurationFactory =
           {

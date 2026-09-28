@@ -20,6 +20,7 @@ in
     ignores = [
       "**/.claude/settings.local.json"
       ".zn-work"
+      ".worktrees"
       ".jj"
     ];
     signing = {
