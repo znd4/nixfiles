@@ -140,9 +140,12 @@ in
       default = null;
       example = "wm";
       description = ''
-        A short name for `workmux`. Fish gets it as an abbreviation, which
-        expands to `workmux` when you type it. Bash and zsh get it as an
-        alias. The default, null, adds nothing.
+        A short name for `workmux`. Fish gets it as an abbreviation in
+        programs.fish.shellAbbrs, which expands to `workmux` when you type it.
+        Bash and zsh get it as an alias in programs.bash.shellAliases and
+        programs.zsh.shellAliases. A shell gets the name only when its
+        enableBashIntegration, enableFishIntegration or enableZshIntegration
+        option is true. The default, null, adds nothing.
       '';
     };
 
