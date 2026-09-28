@@ -59,7 +59,7 @@ in
       # tmuxp.enable = true;
       extraConfig = ''
         set -g default-command ${pkgs.fish}/bin/fish
-        bind -n M-d run-shell "sesh connect $(
+        bind -n M-d run-shell "s=$(
           sesh list -tzs | fzf-tmux -p 55%,60% \
           		--no-sort --border-label ' sesh ' --prompt '⚡  ' \
           		--header '  ^a all ^t tmux ^x zoxide ^f find ^d delete' \
@@ -69,7 +69,7 @@ in
           		--bind 'ctrl-x:change-prompt(📁  )+reload(sesh list -z)' \
           		--bind 'ctrl-f:change-prompt(🔎  )+reload(fd -H -d 2 -t d -E .Trash . ~)' \
           		--bind 'ctrl-d:execute-silent(tmux kill-session -t {})+reload(sesh list -tzs)'
-        ) || true"
+        ); [ -z \"\$s\" ] || sesh connect \"\$s\""
 
         bind -n M-m display-popup -E "_sesh-cl-fuzzy \
           --gitlab-hosts '[${lib.strings.concatStringsSep " " seshClConfig.gitlabHosts}]' \
