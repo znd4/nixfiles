@@ -3,7 +3,11 @@
 {
   programs.workmux = {
     enable = true;
-    package = inputs.workmux.packages.${system}.default;
+    # No checks: in the darwin build sandbox, the test
+    # socket_path_for_a_long_instance_can_be_bound fails because the build
+    # directory makes the socket path longer than SUN_LEN. numtide/llm-agents.nix
+    # disables the checks for the same package.
+    package = inputs.workmux.packages.${system}.default.overrideAttrs { doCheck = false; };
 
     settings = {
       nerdfont = true;

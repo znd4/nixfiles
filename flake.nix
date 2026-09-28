@@ -69,11 +69,13 @@
     };
     # workmux — pairs git worktrees with tmux windows. Its flake ships a
     # package only; our module is home-manager/modules/workmux.nix. Pinned to
-    # a release tag; bump deliberately. The crate builds with the Rust in our
-    # nixpkgs, so follow it and do not pull in a second nixpkgs.
+    # a release tag; bump deliberately. It follows nixpkgs-unstable, not
+    # nixpkgs: panw-nixfiles points our nixpkgs at 25.05 (rustc 1.86), and
+    # v0.1.268 needs rustc 1.88 or later. Downstream flakes do not override
+    # nixpkgs-unstable, so the build is the same everywhere.
     workmux = {
       url = "git+ssh://git@github.com/raine/workmux.git?shallow=1&ref=refs/tags/v0.1.268";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     catppuccin-ghostty = {
       url = "git+ssh://git@github.com/catppuccin/ghostty.git?shallow=1";
