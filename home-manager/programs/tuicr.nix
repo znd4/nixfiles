@@ -158,9 +158,9 @@ in
 {
   home.packages = [
     tuicr
-    # Also shipped inside the skill directory; on PATH so it is usable by hand.
-    tuicr-wrapper-herdr
-  ];
+  ]
+  # Also shipped inside the skill directory; on PATH so it is usable by hand.
+  ++ lib.optional config.programs.znd4-herdr.enable tuicr-wrapper-herdr;
 
   # ~/.config/tuicr/config.toml. Unknown keys are ignored with a startup
   # warning, so keep this to keys documented in upstream docs/CONFIG.md.

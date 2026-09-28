@@ -1,4 +1,5 @@
 {
+  config,
   inputs,
   system,
   pkgs,
@@ -488,45 +489,58 @@ let
   '';
 in
 {
-  home.packages = [
-    herdr
-    herdrHandoff
-  ];
+  options.programs.znd4-herdr.enable = lib.mkOption {
+    type = lib.types.bool;
+    default = true;
+    description = ''
+      Install herdr and everything built on it: this module, the snapshot
+      launchd agent (darwin/herdr-snapshot.nix) and the tuicr herdr wrapper.
+      Set it to false on a machine where herdr is not allowed.
+    '';
+  };
 
-  xdg.configFile."herdr/config.toml".text = configToml;
+  config = lib.mkIf config.programs.znd4-herdr.enable {
+    home.packages = [
+      herdr
+      herdrHandoff
+    ];
 
-  # Agent skill for changing this module. It is one file, so it does not need
-  # the mkSkillFiles directory walk from claude-code.nix.
-  home.file.".claude/skills/herdr-development/SKILL.md".source =
-    ../claude-skills/herdr-development/SKILL.md;
+    xdg.configFile."herdr/config.toml".text = configToml;
 
-  # Link the herdr-thumbs plugin from its store path. herdr keeps its plugin
-  # registry in ~/.config/herdr; linking is idempotent here (unlink-then-link)
-  # so a rebuild always points at the current store path. Guarded on the herdr
-  # binary existing so activation doesn't fail on a machine mid-install.
-  home.activation.herdrThumbsPlugin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    if [ -x "${herdr}/bin/herdr" ]; then
-      run ${herdr}/bin/herdr plugin unlink ${herdrThumbs.pluginId} >/dev/null 2>&1 || true
-      run ${herdr}/bin/herdr plugin link ${herdrThumbs} >/dev/null 2>&1 || \
-        warnEcho "herdr-thumbs: plugin link failed (is the herdr server running?)"
-    fi
-  '';
+    # Agent skill for changing this module. It is one file, so it does not need
+    # the mkSkillFiles directory walk from claude-code.nix.
+    home.file.".claude/skills/herdr-development/SKILL.md".source =
+      ../claude-skills/herdr-development/SKILL.md;
 
-  # Reload the running server after linkGeneration puts the new config.toml in
-  # place. A stale server shows no error: each keybinding holds a nix store
-  # path, so it runs the previous build. A failed call usually means no server
-  # is running, so it is not an error.
-  home.activation.herdrReloadConfig =
-    lib.hm.dag.entryAfter [ "linkGeneration" "herdrThumbsPlugin" ] ''
-      if [ -x "${herdr}/bin/herdr" ] && [ -z "''${DRY_RUN:-}" ]; then
-        if out=$(${herdr}/bin/herdr server reload-config 2>&1); then
-          case "$out" in
-            *'"diagnostics":[]'*) verboseEcho "herdr: config reloaded" ;;
-            *) warnEcho "herdr: reload-config did not apply cleanly: $out" ;;
-          esac
-        else
-          verboseEcho "herdr: reload-config skipped (is the herdr server running?): $out"
-        fi
+    # Link the herdr-thumbs plugin from its store path. herdr keeps its plugin
+    # registry in ~/.config/herdr; linking is idempotent here (unlink-then-link)
+    # so a rebuild always points at the current store path. Guarded on the herdr
+    # binary existing so activation doesn't fail on a machine mid-install.
+    home.activation.herdrThumbsPlugin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      if [ -x "${herdr}/bin/herdr" ]; then
+        run ${herdr}/bin/herdr plugin unlink ${herdrThumbs.pluginId} >/dev/null 2>&1 || true
+        run ${herdr}/bin/herdr plugin link ${herdrThumbs} >/dev/null 2>&1 || \
+          warnEcho "herdr-thumbs: plugin link failed (is the herdr server running?)"
       fi
     '';
+
+    # Reload the running server after linkGeneration puts the new config.toml in
+    # place. A stale server shows no error: each keybinding holds a nix store
+    # path, so it runs the previous build. A failed call usually means no server
+    # is running, so it is not an error.
+    home.activation.herdrReloadConfig =
+      lib.hm.dag.entryAfter [ "linkGeneration" "herdrThumbsPlugin" ]
+        ''
+          if [ -x "${herdr}/bin/herdr" ] && [ -z "''${DRY_RUN:-}" ]; then
+            if out=$(${herdr}/bin/herdr server reload-config 2>&1); then
+              case "$out" in
+                *'"diagnostics":[]'*) verboseEcho "herdr: config reloaded" ;;
+                *) warnEcho "herdr: reload-config did not apply cleanly: $out" ;;
+              esac
+            else
+              verboseEcho "herdr: reload-config skipped (is the herdr server running?): $out"
+            fi
+          fi
+        '';
+  };
 }
