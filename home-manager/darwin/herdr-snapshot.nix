@@ -3,6 +3,7 @@
   system,
   config,
   pkgs,
+  lib,
   ...
 }:
 # Save herdr session state every 30 minutes so a server crash cannot lose more
@@ -37,7 +38,8 @@ let
 
   logDir = "${config.home.homeDirectory}/Library/Logs";
 in
-{
+# programs.znd4-herdr.enable (programs/herdr.nix) controls this module too.
+lib.mkIf config.programs.znd4-herdr.enable {
   home.packages = [ herdrSnapshot ];
 
   launchd.agents.herdr-snapshot = {
