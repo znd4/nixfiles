@@ -93,6 +93,14 @@ in
         # open pull request in browser
         bind -n M-p run-shell "_pull-request-open"
 
+        # alt+shift+g: lazygit in a popup, in the focused pane's directory.
+        # This replaces herdr's alt+shift+g (herdr-agent-lazygit). tmux needs
+        # no script: #{pane_current_path} is the directory of the pane's
+        # foreground process. In a Claude pane, that is Claude's working directory.
+        bind -n M-G display-popup -E -w 85% -h 80% -d "#{pane_current_path}" lazygit
+        # prefix+alt+g: lazygit in a temporary split. It closes when lazygit exits.
+        bind M-g split-window -c "#{pane_current_path}" lazygit
+
         set -s set-clipboard off
         if-shell "[ -z '$WAYLAND_DISPLAY' ]" \
             "set -s copy-command 'cb copy'" \
