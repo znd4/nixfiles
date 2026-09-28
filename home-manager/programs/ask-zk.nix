@@ -55,6 +55,20 @@ let
     '';
   };
 
+  # Popup that shows the queue of the Claude Code session in one tmux pane.
+  # runtimeInputs supplies ask-zk from this module, so the popup does not
+  # depend on PATH.
+  tmuxAskZk = pkgs.writeShellApplication {
+    name = "tmux-ask-zk";
+    runtimeInputs = with pkgs; [
+      askZk
+      jq
+      tmux
+      coreutils
+    ];
+    text = builtins.readFile ../bin/tmux-ask-zk.sh;
+  };
+
   # Install the agent skill into ~/.claude/skills/, mirroring claude-code.nix.
   mkSkillFiles =
     dir: prefix:
@@ -100,6 +114,17 @@ in
         exits 3.
       '';
     };
+
+    tmuxKeybinding = lib.mkOption {
+      type = lib.types.str;
+      default = "M-a";
+      description = ''
+        Tmux key that opens and closes a popup with the queue of the Claude
+        Code session in the current pane. The key is bound with `-n`, so it
+        needs no prefix. The popup runs
+        `ask-zk tui --tag claude-<first 8 characters of the session id>`.
+      '';
+    };
   };
 
   config = {
@@ -107,6 +132,13 @@ in
       askZk
       claudeStatusline
     ];
+
+    # Outside the popup, the key runs ../bin/tmux-ask-zk.sh. Inside the
+    # popup, the current session is the nested _ask-zk-<tag> session, so the
+    # key kills that session. This closes the popup.
+    programs.tmux.extraConfig = ''
+      bind -n ${cfg.tmuxKeybinding} if-shell -F "#{m:_ask-zk-*,#{session_name}}" kill-session { run-shell -b "${tmuxAskZk}/bin/tmux-ask-zk '#{client_name}' '#{pane_id}'" }
+    '';
 
     home.file = {
       # settings.json points statusLine at this path, and several skills call
