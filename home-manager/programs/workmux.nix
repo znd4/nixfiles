@@ -29,4 +29,7 @@
 
     claudeCode.hooks.enable = true;
   };
+
+  programs.fish.shellAbbrs.wm = "workmux";
+  programs.zsh.shellAliases.wm = "workmux";
 }
