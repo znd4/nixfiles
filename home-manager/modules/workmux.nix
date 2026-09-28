@@ -135,6 +135,21 @@ in
       };
     };
 
+    shellAlias = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      example = "wm";
+      description = ''
+        A short name for `workmux`. Fish gets it as an abbreviation, which
+        expands to `workmux` when you type it. Bash and zsh get it as an
+        alias. The default, null, adds nothing.
+      '';
+    };
+
+    enableBashIntegration = lib.hm.shell.mkBashIntegrationOption { inherit config; };
+    enableFishIntegration = lib.hm.shell.mkFishIntegrationOption { inherit config; };
+    enableZshIntegration = lib.hm.shell.mkZshIntegrationOption { inherit config; };
+
     claudeCode.hooks.enable = mkOption {
       type = types.bool;
       default = false;
@@ -170,6 +185,12 @@ in
       programs.tmux.extraConfig = concatStringsSep "\n" (
         mapAttrsToList (key: command: "bind-key ${key} ${command}") bindings
       );
+    })
+
+    (mkIf (cfg.shellAlias != null) {
+      programs.bash.shellAliases = mkIf cfg.enableBashIntegration { ${cfg.shellAlias} = "workmux"; };
+      programs.fish.shellAbbrs = mkIf cfg.enableFishIntegration { ${cfg.shellAlias} = "workmux"; };
+      programs.zsh.shellAliases = mkIf cfg.enableZshIntegration { ${cfg.shellAlias} = "workmux"; };
     })
 
     (mkIf cfg.claudeCode.hooks.enable {

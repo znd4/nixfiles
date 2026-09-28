@@ -27,9 +27,8 @@
       "Tab" = ''run-shell "workmux last-agent"'';
     };
 
+    shellAlias = "wm";
+
     claudeCode.hooks.enable = true;
   };
-
-  programs.fish.shellAbbrs.wm = "workmux";
-  programs.zsh.shellAliases.wm = "workmux";
 }
