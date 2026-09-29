@@ -1,5 +1,13 @@
 # Personal workmux configuration. ../modules/workmux.nix defines the options.
-{ inputs, lib, system, ... }:
+{ inputs, lib, pkgs, system, ... }:
+let
+  # Sets the Claude session name to the workmux handle. Panes start in the
+  # worktree, and the worktree directory name is the handle (the branch
+  # slug). The tmux window name is the icon prefix plus the handle.
+  claudeNamed = pkgs.writeShellScript "workmux-claude" ''
+    exec claude -n "$(basename "$PWD")" "$@"
+  '';
+in
 {
   programs.workmux = {
     enable = true;
@@ -13,6 +21,13 @@
       nerdfont = true;
       # Relative to the repo root. Ignored globally in git.nix.
       worktree_dir = ".worktrees";
+      # type = claude keeps the built-in workmux Claude support: prompt
+      # injection and the continue/resume flags.
+      agent = "claude-named";
+      agents.claude-named = {
+        type = "claude";
+        command = "${claudeNamed}";
+      };
     };
 
     # The prefix is C-a. Upstream recommends C-s for the dashboard and L for
