@@ -149,6 +149,11 @@ in
           extraConfig = ''
             set -g @catppuccin_flavor 'macchiato'
             set -g @catppuccin_window_status_style 'rounded'
+            # Show the window name when it was set on purpose (automatic-rename
+            # is off, for example in a workmux window). Otherwise show the pane
+            # title, which Claude sets to its session summary.
+            set -g @catppuccin_window_text ' #{?automatic-rename,#T,#W}'
+            set -g @catppuccin_window_current_text ' #{?automatic-rename,#T,#W}'
 
             set -g status-right-length 100
             set -g status-left-length 100
