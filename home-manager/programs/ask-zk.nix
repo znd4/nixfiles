@@ -10,7 +10,7 @@ let
   # The queue CLI. ../bin/ask-zk.py is a PEP 723 script with a PyPI dependency
   # (textual), so it runs through `uv run --script` -- same pattern as
   # herdr-mr-review in herdr.nix. Scripts without dependencies use pkgs.python3
-  # directly (see herdr-snapshot.nix).
+  # directly (see herdrSnapshot in herdr.nix).
   #
   # ASK_NOTEBOOK is a default, not a forced value: a one-off invocation can
   # still point the CLI at another notebook.

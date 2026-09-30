@@ -158,9 +158,10 @@ in
 {
   home.packages = [
     tuicr
-    # Also shipped inside the skill directory; on PATH so it is usable by hand.
-    tuicr-wrapper-herdr
-  ];
+  ]
+  # The skill directory also ships the herdr wrapper. It goes on PATH too, so
+  # you can run it by hand, but only when programs.herdr.enable is true.
+  ++ lib.optional config.programs.herdr.enable tuicr-wrapper-herdr;
 
   # ~/.config/tuicr/config.toml. Unknown keys are ignored with a startup
   # warning, so keep this to keys documented in upstream docs/CONFIG.md.

@@ -14,6 +14,24 @@ this file covers configuration.
 | `alt+m` clone-creator, `alt+s` new workspace | `herdr.nix`, inline |
 | Live server upgrade | `herdr.nix`, `herdrHandoff` |
 | Config reload after a switch | `herdr.nix`, `herdrReloadConfig` |
+| Session snapshot every 30 minutes (macOS launchd) | `herdr.nix`, `herdrSnapshot`; `home-manager/bin/herdr-snapshot.py` |
+| `tuicr-wrapper-herdr` (opens [tuicr](https://github.com/agavra/tuicr) in a herdr pane) | `home-manager/programs/tuicr.nix` |
+
+## Turning it off
+
+`herdr.nix` defines two options. Both default to `true`.
+
+| Option | Effect when `false` |
+| --- | --- |
+| `programs.herdr.enable` | Removes everything in [Where it is wired](#where-it-is-wired). This includes the snapshot agent and `tuicr-wrapper-herdr`. |
+| `programs.herdr.snapshot.enable` | Removes only the `herdr-snapshot` [launchd](https://www.launchd.info/) agent and its script. |
+
+To turn off herdr on one machine, add this line to a module in the config
+of that machine:
+
+```nix
+programs.herdr.enable = false;
+```
 
 ## Changing the config: the switch reloads the server
 

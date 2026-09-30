@@ -1,12 +1,15 @@
 {
   inputs,
   system,
+  config,
   pkgs,
   lib,
   seshClConfig,
   ...
 }:
 let
+  cfg = config.programs.herdr;
+
   herdr = inputs.herdr.packages.${system}.default;
 
   # Same build television.nix pins, so the launcher below cannot drift onto a
@@ -486,47 +489,136 @@ let
     command = "${herdrThumbs.pluginId}.launch"
     description = "thumbs: hint + copy/open matches"
   '';
+
+  # Save herdr session state every 30 minutes so a server crash cannot lose more
+  # than 30 minutes of session UUIDs.
+  #
+  # herdr keeps workspace labels, layout, and working directories across a crash.
+  # It does not keep the Claude Code session UUID for each pane. Without that
+  # UUID, `claude --resume <uuid>` cannot work, and each killed session becomes
+  # unreachable. One crash lost 12 sessions this way.
+  #
+  # See ../bin/herdr-snapshot.py for the output format, file names, and the
+  # pid-based UUID recovery that supplements `herdr api snapshot`.
+  #
+  # The script has a `uv run --script` shebang and PEP 723 metadata, so you
+  # can run it by hand. The launchd job uses the Nix python3 instead because
+  # the script needs no PyPI packages, and launchd gives jobs almost no
+  # environment -- `uv run` would need to find or download a Python interpreter
+  # over the company TLS proxy every 30 minutes and at each wake. The Nix
+  # python needs no network and always gives the same result.
+  herdrSnapshot = pkgs.writeShellApplication {
+    name = "herdr-snapshot";
+    runtimeInputs = [
+      herdr
+      pkgs.coreutils
+    ];
+    text = ''
+      exec ${pkgs.python3}/bin/python3 ${../bin/herdr-snapshot.py} "$@"
+    '';
+  };
+
+  logDir = "${config.home.homeDirectory}/Library/Logs";
 in
 {
-  home.packages = [
-    herdr
-    herdrHandoff
-  ];
+  # Upstream home-manager has no programs.herdr module, so this file owns the
+  # name. herdr is on by default. A machine drops it only when its own config
+  # sets `programs.herdr.enable = false` (see docs/herdr.md, "Turning it off").
+  options.programs.herdr = {
+    enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Install herdr and all of its parts: the package, the helper scripts,
+        config.toml, the thumbs plugin, the agent skill, the activation
+        steps, the snapshot agent, and tuicr-wrapper-herdr. Set to false on
+        a machine where herdr must not run.
+      '';
+    };
 
-  xdg.configFile."herdr/config.toml".text = configToml;
+    snapshot.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        On macOS, run a launchd agent that saves herdr session state every
+        30 minutes (see home-manager/bin/herdr-snapshot.py). Has no effect
+        on Linux, or when programs.herdr.enable is false.
+      '';
+    };
+  };
 
-  # Agent skill for changing this module. It is one file, so it does not need
-  # the mkSkillFiles directory walk from claude-code.nix.
-  home.file.".claude/skills/herdr-development/SKILL.md".source =
-    ../claude-skills/herdr-development/SKILL.md;
+  config = lib.mkIf cfg.enable (
+    lib.mkMerge [
+      {
+        home.packages = [
+          herdr
+          herdrHandoff
+        ];
 
-  # Link the herdr-thumbs plugin from its store path. herdr keeps its plugin
-  # registry in ~/.config/herdr; linking is idempotent here (unlink-then-link)
-  # so a rebuild always points at the current store path. Guarded on the herdr
-  # binary existing so activation doesn't fail on a machine mid-install.
-  home.activation.herdrThumbsPlugin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    if [ -x "${herdr}/bin/herdr" ]; then
-      run ${herdr}/bin/herdr plugin unlink ${herdrThumbs.pluginId} >/dev/null 2>&1 || true
-      run ${herdr}/bin/herdr plugin link ${herdrThumbs} >/dev/null 2>&1 || \
-        warnEcho "herdr-thumbs: plugin link failed (is the herdr server running?)"
-    fi
-  '';
+        xdg.configFile."herdr/config.toml".text = configToml;
 
-  # Reload the running server after linkGeneration puts the new config.toml in
-  # place. A stale server shows no error: each keybinding holds a nix store
-  # path, so it runs the previous build. A failed call usually means no server
-  # is running, so it is not an error.
-  home.activation.herdrReloadConfig =
-    lib.hm.dag.entryAfter [ "linkGeneration" "herdrThumbsPlugin" ] ''
-      if [ -x "${herdr}/bin/herdr" ] && [ -z "''${DRY_RUN:-}" ]; then
-        if out=$(${herdr}/bin/herdr server reload-config 2>&1); then
-          case "$out" in
-            *'"diagnostics":[]'*) verboseEcho "herdr: config reloaded" ;;
-            *) warnEcho "herdr: reload-config did not apply cleanly: $out" ;;
-          esac
-        else
-          verboseEcho "herdr: reload-config skipped (is the herdr server running?): $out"
-        fi
-      fi
-    '';
+        # Agent skill for changing this module. It is one file, so it does not need
+        # the mkSkillFiles directory walk from claude-code.nix.
+        home.file.".claude/skills/herdr-development/SKILL.md".source =
+          ../claude-skills/herdr-development/SKILL.md;
+
+        # Link the herdr-thumbs plugin from its store path. herdr keeps its plugin
+        # registry in ~/.config/herdr; linking is idempotent here (unlink-then-link)
+        # so a rebuild always points at the current store path. Guarded on the herdr
+        # binary existing so activation doesn't fail on a machine mid-install.
+        home.activation.herdrThumbsPlugin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          if [ -x "${herdr}/bin/herdr" ]; then
+            run ${herdr}/bin/herdr plugin unlink ${herdrThumbs.pluginId} >/dev/null 2>&1 || true
+            run ${herdr}/bin/herdr plugin link ${herdrThumbs} >/dev/null 2>&1 || \
+              warnEcho "herdr-thumbs: plugin link failed (is the herdr server running?)"
+          fi
+        '';
+
+        # Reload the running server after linkGeneration puts the new config.toml in
+        # place. A stale server shows no error: each keybinding holds a nix store
+        # path, so it runs the previous build. A failed call usually means no server
+        # is running, so it is not an error.
+        home.activation.herdrReloadConfig =
+          lib.hm.dag.entryAfter [ "linkGeneration" "herdrThumbsPlugin" ]
+            ''
+              if [ -x "${herdr}/bin/herdr" ] && [ -z "''${DRY_RUN:-}" ]; then
+                if out=$(${herdr}/bin/herdr server reload-config 2>&1); then
+                  case "$out" in
+                    *'"diagnostics":[]'*) verboseEcho "herdr: config reloaded" ;;
+                    *) warnEcho "herdr: reload-config did not apply cleanly: $out" ;;
+                  esac
+                else
+                  verboseEcho "herdr: reload-config skipped (is the herdr server running?): $out"
+                fi
+              fi
+            '';
+      }
+
+      (lib.mkIf (cfg.snapshot.enable && pkgs.stdenv.isDarwin) {
+        home.packages = [ herdrSnapshot ];
+
+        launchd.agents.herdr-snapshot = {
+          enable = true;
+          config = {
+            ProgramArguments = [ "${herdrSnapshot}/bin/herdr-snapshot" ];
+
+            # Every 30 minutes. launchd delays a missed run until the next wake.
+            # A sleeping laptop runs no sessions to save.
+            StartInterval = 1800;
+
+            # Also snapshot at login. Most sessions appear in the first 30
+            # minutes after a restart.
+            RunAtLoad = true;
+
+            # The job prints nothing on success or when the server is stopped.
+            # Any output in this file is a fault.
+            StandardOutPath = "${logDir}/herdr-snapshot.log";
+            StandardErrorPath = "${logDir}/herdr-snapshot.log";
+
+            ProcessType = "Background";
+          };
+        };
+      })
+    ]
+  );
 }
