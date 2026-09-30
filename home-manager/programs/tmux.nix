@@ -128,8 +128,10 @@ in
 
         bind @ break-pane -d
 
-        # tmux-sensible fills an empty default-command with /bin/sh on macOS.
-        # exec makes fish the pane process, so tmux-resurrect sees the program that runs in fish.
+        # On macOS, tmux-sensible sets an empty default-command to run $SHELL.
+        # The tmux server's $SHELL is /bin/sh, so panes would start sh, not fish.
+        # exec replaces the tmux shell with fish, so fish is the pane process.
+        # tmux-resurrect then sees the program that runs in fish.
         set -g default-command "exec ${pkgs.fish}/bin/fish"
       ''
       + lib.optionalString cfg.enable ''
