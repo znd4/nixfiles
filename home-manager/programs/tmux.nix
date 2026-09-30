@@ -127,6 +127,10 @@ in
         set-option -g allow-passthrough on
 
         bind @ break-pane -d
+
+        # tmux-sensible fills an empty default-command with /bin/sh on macOS.
+        # exec makes fish the pane process, so tmux-resurrect sees the program that runs in fish.
+        set -g default-command "exec ${pkgs.fish}/bin/fish"
       ''
       + lib.optionalString cfg.enable ''
 
