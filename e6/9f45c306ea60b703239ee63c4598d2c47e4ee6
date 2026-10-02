@@ -1,5 +1,7 @@
 home-manager/programs/tmux.nix
   s_1cfac74464e1de::t_c8600aa221ee3a 154
+  s_1cfac74464e1de::t_b876f941313f83 160-162
+  s_1cfac74464e1de::t_bd119fb5b181b3 13-36
 ---
 {
   "schema_version": "authorship/3.0.0",
