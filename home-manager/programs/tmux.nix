@@ -10,6 +10,33 @@
 let
   cfg = config.programs.tmux-new-session;
 
+  # Runs the editor in a pane of a hidden window. edit-scrollback swaps that
+  # pane into the place of the original pane. When the editor exits, this
+  # script swaps the original pane back, and the hidden window closes.
+  edit-scrollback-editor = pkgs.writeShellScript "tmux-edit-scrollback-editor" ''
+    orig=$1 file=$2
+    editor=''${EDITOR:-vi}
+    case "$(basename "''${editor%% *}")" in
+      *vi | *vim) $editor + "$file" ;; # start at the bottom
+      *) $editor "$file" ;;
+    esac
+    rm -f "$file"
+    tmux swap-pane -s "$TMUX_PANE" -t "$orig" \; select-pane -t "$orig"
+  '';
+
+  edit-scrollback = pkgs.writeShellScript "tmux-edit-scrollback" ''
+    orig=$1
+    file=$(mktemp "''${TMPDIR:-/tmp}/tmux-scrollback.XXXXXX")
+    # drop the empty lines at the end
+    tmux capture-pane -p -J -S - -t "$orig" |
+      ${pkgs.gawk}/bin/awk 'NF { for (; n > 0; n--) print ""; print; next } { n++ }' > "$file"
+    session=$(tmux display-message -p -t "$orig" '#{session_id}')
+    dir=$(tmux display-message -p -t "$orig" '#{pane_current_path}')
+    new=$(tmux new-window -d -P -F '#{pane_id}' -t "$session:" -n scrollback -c "$dir" \
+      ${edit-scrollback-editor} "$orig" "$file")
+    tmux swap-pane -s "$new" -t "$orig" \; select-pane -t "$new"
+  '';
+
   # The scripts look up fzf and jq on PATH. The tmux server PATH can lack
   # them, so postInstall adds the Nix store paths to the start of PATH in
   # each script.
@@ -133,6 +160,9 @@ in
         # exec replaces the tmux shell with fish, so fish is the pane process.
         # tmux-resurrect then sees the program that runs in fish.
         set -g default-command "exec ${pkgs.fish}/bin/fish"
+
+        # open the current pane's scrollback in $EDITOR, in place of the pane
+        bind e run-shell '${edit-scrollback} #{pane_id}'
       ''
       + lib.optionalString cfg.enable ''
 
