@@ -27,9 +27,10 @@ let
   edit-scrollback = pkgs.writeShellScript "tmux-edit-scrollback" ''
     orig=$1
     file=$(mktemp "''${TMPDIR:-/tmp}/tmux-scrollback.XXXXXX")
-    # drop the empty lines at the end
+    # -J joins wrapped lines, but it also keeps trailing spaces. Remove them,
+    # then remove the empty lines at the end of the output.
     tmux capture-pane -p -J -S - -t "$orig" |
-      ${pkgs.gawk}/bin/awk 'NF { for (; n > 0; n--) print ""; print; next } { n++ }' > "$file"
+      ${pkgs.gawk}/bin/awk '{ sub(/[ \t]+$/, "") } NF { for (; n > 0; n--) print ""; print; next } { n++ }' > "$file"
     session=$(tmux display-message -p -t "$orig" '#{session_id}')
     dir=$(tmux display-message -p -t "$orig" '#{pane_current_path}')
     new=$(tmux new-window -d -P -F '#{pane_id}' -t "$session:" -n scrollback -c "$dir" \
