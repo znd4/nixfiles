@@ -64,6 +64,10 @@ POLL_SECONDS = float(os.environ.get("ASK_TUI_POLL", "5"))
 ID_CHARSET = "abcdefghijklmnopqrstuvwxyz0123456789"  # zk: alphanum, lower
 ID_LEN = 4
 
+# The status views, in the order that `s` shows them. "closed" shows the
+# done items and the drop items together.
+STATUSES = ("open", "done", "drop", "closed", "all")
+
 TAG_OK = re.compile(r"[^a-z0-9_-]")
 OPEN_BOX = re.compile(r"^- \[ \] ")
 DONE_BOX = re.compile(r"^- \[x\] ", re.I)
@@ -337,6 +341,14 @@ def age_label(days: float) -> str:
     return f"{int(days)}d"
 
 
+def status_matches(item: dict, status: str) -> bool:
+    if status == "all":
+        return True
+    if status == "closed":
+        return item["state"] != "open"
+    return item["state"] == status
+
+
 def select(items: list[dict], args: argparse.Namespace) -> list[dict]:
     out = items
     if getattr(args, "tag", None):
@@ -497,7 +509,10 @@ HELP_TEXT = """\
 
 [b]Filter[/b]
   /                filter by text       t   filter by tag
-  a                show closed items too
+  s                show the next status: open, done, drop,
+                   closed (done and drop), all
+  a                from open, show all items. From any
+                   other status, show open items
   C                clear every filter
   R                read the notebook again. The list also
                    reloads when a note changes, unless ASK_TUI_POLL=0
@@ -614,6 +629,7 @@ def build_app_class():
             Binding("n", "note", "note", show=False),
             Binding("slash", "filter", "filter", key_display="/"),
             Binding("t", "tag_filter", "tag", show=False),
+            Binding("s", "cycle_status", "status"),
             Binding("a", "toggle_closed", "closed", show=False),
             Binding("C", "clear_filters", "clear filters", show=False),
             Binding("R", "reload", "reload", show=False),
@@ -625,13 +641,13 @@ def build_app_class():
             Binding("k", "cursor_up", "up", show=False),
         ]
 
-        def __init__(self, tags: list[str] | None, show_closed: bool) -> None:
+        def __init__(self, tags: list[str] | None, status: str) -> None:
             super().__init__()
             self.items: list[dict] = []
             self.view: list[dict] = []
             self.tag_filter: list[str] = [t for t in (clean_tag(x) for x in (tags or [])) if t]
             self.text_filter = ""
-            self.show_closed = show_closed
+            self.status = status  # one of STATUSES
             self.selected: set[str] = set()
             self.probes: dict[str, str] = {}  # id -> "ok" | "no" | "run"
             self.undo_stack: list[list[tuple[Path, str]]] = []
@@ -712,8 +728,7 @@ def build_app_class():
 
         def apply_filters(self, cursor: int = 0) -> None:
             out = self.items
-            if not self.show_closed:
-                out = [i for i in out if i["state"] == "open"]
+            out = [i for i in out if status_matches(i, self.status)]
             if self.tag_filter:
                 want = set(self.tag_filter)
                 out = [i for i in out if want <= set(i["tags"])]
@@ -797,8 +812,8 @@ def build_app_class():
                 bits.append("tag:" + ",".join(self.tag_filter))
             if self.text_filter:
                 bits.append(f"/{self.text_filter}")
-            if self.show_closed:
-                bits.append("closed too")
+            if self.status != "open":
+                bits.append(f"status:{self.status}")
             self.query_one("#summary", Static).update("  ·  ".join(bits))
 
         def update_detail(self) -> None:
@@ -1059,14 +1074,19 @@ def build_app_class():
 
         # -- the rest ----------------------------------------------------------
 
+        def action_cycle_status(self) -> None:
+            n = STATUSES.index(self.status)
+            self.status = STATUSES[(n + 1) % len(STATUSES)]
+            self.apply_filters()
+
         def action_toggle_closed(self) -> None:
-            self.show_closed = not self.show_closed
+            self.status = "all" if self.status == "open" else "open"
             self.apply_filters()
 
         def action_clear_filters(self) -> None:
             self.text_filter = ""
             self.tag_filter = []
-            self.show_closed = False
+            self.status = "open"
             self.apply_filters()
 
         def action_reload(self) -> None:
@@ -1085,7 +1105,10 @@ def cmd_tui(args: argparse.Namespace) -> int:
     except ModuleNotFoundError as exc:
         print(f"ask: no TUI ({exc.name} is missing); showing the list", file=sys.stderr)
         return cmd_list(args)
-    app_class(getattr(args, "tag", None), bool(getattr(args, "all", False))).run()
+    status = getattr(args, "status", None)
+    if not status:
+        status = "all" if args.all else "closed" if args.closed else "open"
+    app_class(getattr(args, "tag", None), status).run()
     return 0
 
 
@@ -1127,6 +1150,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("tui")
     filters(p)
+    p.add_argument("--status", choices=STATUSES, help="the status view at start (default: open)")
     p.set_defaults(fn=cmd_tui)
 
     p = sub.add_parser("show")
