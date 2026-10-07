@@ -257,7 +257,7 @@ def cmd_add(args: argparse.Namespace) -> int:
     if args.why:
         out += ["## Why", "", args.why.strip(), ""]
     if args.cmd:
-        out += ["## Do this", "", "```bash", *args.cmd, "```", ""]
+        out += ["## Do this", "", "```fish", *args.cmd, "```", ""]
     if args.verify:
         out += [
             "## Done when",
@@ -541,14 +541,21 @@ def copy_to_system_clipboard(text: str) -> bool:
 
 
 def run_cmd_in_terminal(cmd: str, cwd: str) -> int:
-    """Run a shell command with full terminal control.
+    """Run an item's commands as one fish script, with full terminal control.
+
+    `cmd` is the whole "Do this" block: every --cmd line, in order, joined
+    with newlines. One `fish -c` runs all of it, so a variable that an
+    earlier line sets is still set for a later line. A failed line does not
+    stop the script. The return code is the exit status of the last line.
+    fish loads the user's config, which sets PATH. This function does not
+    run --verify: probe() runs it through /bin/sh.
 
     The command can ask for TouchID, open a browser, or draw its own UI.
     The caller must release the screen first -- see App.suspend.
     """
     print(f"\n\033[1m$ {cmd}\033[0m\n", flush=True)
     try:
-        rc = subprocess.run(["bash", "-c", cmd], cwd=cwd or None).returncode
+        rc = subprocess.run(["fish", "-c", cmd], cwd=cwd or None).returncode
     except (OSError, subprocess.SubprocessError) as exc:
         print(f"could not run it: {exc}")
         rc = 127
