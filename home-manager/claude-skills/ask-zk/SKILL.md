@@ -29,6 +29,18 @@ ask-zk add --what "Re-authenticate the deploy identity (browser)" \
   the item when the user acts outside the queue. An item with no probe can never
   close itself.
 - Repeat `--cmd` for a sequence. Paste the real command, not a description.
+- **Write `--cmd` in fish syntax.** The user pastes the commands into fish 4.
+  Use `set -gx VAR value` (one variable per line), `begin; …; end`, and
+  `and` / `or`. Do not use bash-only syntax, for example heredocs,
+  `if …; then … fi` or `for …; do … done`. `--verify` stays POSIX `sh`,
+  because `ask-zk` runs it with `/bin/sh`.
+- **Make each `--cmd` line safe to run alone.** A failed step must not make a
+  later line fail in a confusing way. Do not chain `git fetch`,
+  `git worktree add` and `cd` with `&&` on one line.
+- **Run repo tools through the repo's environment.** direnv blocks the
+  `.envrc` of a new worktree until someone allows it. Use
+  `direnv allow <dir>`, then `direnv exec <dir> <tool>`. Do not trust the
+  tool version on the user's PATH.
 - **Never put a secret in `--cmd`.** Pipe the credential in at run time.
 - One item for one thing the user must do.
 
