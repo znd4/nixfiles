@@ -275,7 +275,17 @@ in
     // lib.attrsets.mapAttrs (name: value: {
       identitiesOnly = true;
       identityFile = "${pkgs.writeText "${name}_id_rsa.pub" value}";
-    }) keys;
+    }) keys
+    // {
+      # Nobara gaming PC; same 1Password "Desktop" key as desktop.local.
+      desktop = {
+        hostname = "nobara-pc.local";
+        user = "znd4";
+        extraOptions.HostKeyAlias = "desktop";
+        identitiesOnly = true;
+        identityFile = "${pkgs.writeText "desktop_id_rsa.pub" keys."desktop.local"}";
+      };
+    };
   };
 
   # Add stuff for your user as you see fit:
