@@ -7,10 +7,14 @@
   ...
 }:
 {
+  users.knownUsers = [ username ];
   users.users.${username} = {
     name = "${username}";
     home = "/Users/${username}";
-    shell = "${pkgs.fish}/bin/fish";
+    # nix-darwin only applies `shell` to users listed in knownUsers, which
+    # also requires the uid.
+    uid = 501;
+    shell = pkgs.fish;
     isHidden = false;
     packages = with pkgs; [
       home-manager
@@ -46,6 +50,7 @@
   ];
 
   programs.fish.enable = true;
+  environment.shells = [ pkgs.fish ];
   programs.zsh.enable = true;
 
   launchd.user.envVariables = {
