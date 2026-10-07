@@ -1,0 +1,20 @@
+home-manager/bin/ask-zk.py
+  s_6460c5f7fa6fd5::t_8901ad7dbc51e4 544-550,557
+  s_6460c5f7fa6fd5::t_ece8d5ffeb5137 260
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "526a1ac75ae1e30610e7f3d5ea9c7bb022b57816",
+  "prompts": {},
+  "sessions": {
+    "s_6460c5f7fa6fd5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b87162a0-3726-4fef-8026-ed3f79857c9f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}
