@@ -130,6 +130,27 @@
         "url": "ssh://git@github.com/LnL7/nix-darwin.git"
       }
     },
+    "disko": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1789770686,
+        "narHash": "sha256-uZkBR7yHdIKUFB5SZdfgh1qkGfI3XmYmI/lTiquxbck=",
+        "ref": "refs/heads/master",
+        "rev": "725ea35e410ad83be4931d1bff7e090eacaf3563",
+        "shallow": true,
+        "type": "git",
+        "url": "ssh://git@github.com/nix-community/disko.git"
+      },
+      "original": {
+        "shallow": true,
+        "type": "git",
+        "url": "ssh://git@github.com/nix-community/disko.git"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -803,6 +824,7 @@
         "claude-skills-bendrucker": "claude-skills-bendrucker",
         "dagger": "dagger",
         "darwin": "darwin",
+        "disko": "disko",
         "flake-parts": "flake-parts",
         "gh-f": "gh-f",
         "gh-s": "gh-s",
