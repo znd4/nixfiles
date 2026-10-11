@@ -102,6 +102,11 @@
     ghostty-hm-module.url = "git+ssh://git@github.com/znd4/ghostty-hm-module.git?shallow=1";
     git-town-znd4.url = "git+ssh://git@github.com/znd4/git-town.git?shallow=1&ref=home-manager";
 
+    disko = {
+      url = "git+ssh://git@github.com/nix-community/disko.git?shallow=1";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     home-manager = {
       url = "git+ssh://git@github.com/nix-community/home-manager.git?shallow=1&ref=release-25.11"; # Match your nixpkgs version
       inputs.nixpkgs.follows = "nixpkgs"; # Ensure it uses the same nixpkgs
@@ -218,6 +223,19 @@
         { config, pkgs, ... }:
         {
           formatter = pkgs.nixfmt-rfc-style;
+          checks = lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux (
+            let
+              luks = import ./nixos/tests/luks-ssh-unlock.nix {
+                inherit pkgs lib;
+                inherit (inputs) disko;
+                nixosSystem = lib.nixosSystem;
+              };
+            in
+            {
+              luks-ssh-unlock = luks.test;
+              luks-secrets-not-in-store = luks.secretsNotInStore;
+            }
+          );
           packages = (import ./pkgs { inherit pkgs inputs; }) // {
             nixos-rebuild-switch = pkgs.writeShellApplication {
               name = "nixos-rebuild-switch";
