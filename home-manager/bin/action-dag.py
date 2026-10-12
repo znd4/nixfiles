@@ -94,8 +94,13 @@ SECRET_PATTERNS = [
     re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}"),
     re.compile(r"\bxox[abposr]-[A-Za-z0-9\-]{10,}"),
     re.compile(r"\bya29\.[A-Za-z0-9_\-.]{20,}"),
-    re.compile(r"(?i)(\bBearer\s+)[A-Za-z0-9+/=_\-.]{20,}"),
-    re.compile(r"(?i)((?:PRIVATE|SECRET|TOKEN|PASSWORD)[A-Z_]*\s*[=:]\s*['\"]?)[A-Za-z0-9+/=_\-.]{16,}"),
+    re.compile(r"(?i)(?P<keep>\bBearer\s+)[A-Za-z0-9+/=_\-.]{20,}"),
+    # An upper-case shell variable only (GITLAB_TOKEN=..., API_SECRET=...). Case-
+    # sensitive, so a flag such as --secret=<name> (a secret's name) stays.
+    re.compile(
+        r"(?P<keep>\b[A-Z0-9_]*(?:PRIVATE|SECRET|TOKEN|PASSWORD)[A-Z0-9_]*\s*[=:]\s*['\"]?)"
+        r"[A-Za-z0-9+/=_\-.]{16,}"
+    ),
 ]
 REDACTED = "[REDACTED]"
 
@@ -107,8 +112,8 @@ class GraphError(Exception):
 def redact(text: str) -> str:
     """Replace each string that looks like a token with [REDACTED]."""
     for pat in SECRET_PATTERNS:
-        if pat.groups and pat.pattern.startswith("(?i)("):
-            text = pat.sub(lambda m: m.group(1) + REDACTED, text)
+        if "keep" in pat.groupindex:  # keep the prefix, replace only the value
+            text = pat.sub(lambda m: m.group("keep") + REDACTED, text)
         else:
             text = pat.sub(REDACTED, text)
     return text

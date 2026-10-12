@@ -472,6 +472,15 @@ def test_redact_known_token_shapes():
     assert ad.redact("plain text, no token: gs://bucket/terragrunt/") == "plain text, no token: gs://bucket/terragrunt/"
 
 
+def test_redact_upper_case_variable_but_not_a_secret_name_flag():
+    flag = "gcloud secrets versions access latest --secret=chronosphere-api-token-frmod --project=p"
+    assert ad.redact(flag) == flag
+    assert ad.redact("--secret=foo") == "--secret=foo"
+    assert ad.redact("GITLAB_TOKEN=abc123def456ghi789jkl") == "GITLAB_TOKEN=[REDACTED]"
+    assert ad.redact("export API_SECRET='abcdefghijklmnop1234'") == "export API_SECRET='[REDACTED]'"
+    assert ad.redact("password=abcdefghijklmnop1234") == "password=abcdefghijklmnop1234"
+
+
 def test_md_to_html_escapes_html_adds_copy_and_redacts():
     meta, body = ad.split_frontmatter(ASK_NOTE)
     assert meta["created"] == "2026-10-08T17:18:47Z"
