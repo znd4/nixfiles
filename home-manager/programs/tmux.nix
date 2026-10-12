@@ -43,7 +43,7 @@ let
   # each script.
   claude-hatch = pkgs.tmuxPlugins.mkTmuxPlugin {
     pluginName = "claude-hatch";
-    version = "1.5.0";
+    version = "1.5.0-znd4";
     src = inputs.tmux-claude-hatch;
     postInstall = ''
       for f in $target/scripts/*.sh; do

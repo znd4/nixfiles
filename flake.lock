@@ -941,19 +941,19 @@
     "tmux-claude-hatch": {
       "flake": false,
       "locked": {
-        "lastModified": 1790581161,
-        "narHash": "sha256-7lBNWpCdkhIEYS0GLGWyBwyqU4weu/lOImYnoe0kCkk=",
-        "ref": "refs/tags/v1.5.0",
-        "rev": "e0bcfd189ddd2019a9cda012f2b3446cd83e16a9",
+        "lastModified": 1791822737,
+        "narHash": "sha256-56yKkRvY1TfEKN5tkxFDy8Kxpr+u7pDleAPdyvpd1to=",
+        "ref": "refs/heads/main",
+        "rev": "c278218d5965cba41ebc84d0c658383b0841f759",
         "shallow": true,
         "type": "git",
-        "url": "ssh://git@github.com/craftzdog/tmux-claude-hatch.git"
+        "url": "ssh://git@github.com/znd4/tmux-claude-hatch.git"
       },
       "original": {
-        "ref": "refs/tags/v1.5.0",
+        "ref": "refs/heads/main",
         "shallow": true,
         "type": "git",
-        "url": "ssh://git@github.com/craftzdog/tmux-claude-hatch.git"
+        "url": "ssh://git@github.com/znd4/tmux-claude-hatch.git"
       }
     },
     "treefmt-nix": {

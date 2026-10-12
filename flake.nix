@@ -78,10 +78,12 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     # tmux-claude-hatch — tmux plugin that opens Claude Code sessions in a
-    # popup. It is only shell scripts and has no flake. Pinned to a release
-    # tag; bump deliberately.
+    # popup. It is only shell scripts and has no flake. This is the znd4 fork
+    # of https://github.com/craftzdog/tmux-claude-hatch — upstream v1.5.0 plus
+    # window names in the picker. It tracks the fork's main branch; run
+    # `nix flake update tmux-claude-hatch` to bump it.
     tmux-claude-hatch = {
-      url = "git+ssh://git@github.com/craftzdog/tmux-claude-hatch.git?shallow=1&ref=refs/tags/v1.5.0";
+      url = "git+ssh://git@github.com/znd4/tmux-claude-hatch.git?shallow=1&ref=refs/heads/main";
       flake = false;
     };
     catppuccin-ghostty = {
