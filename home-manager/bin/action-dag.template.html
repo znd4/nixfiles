@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{{REFRESH}}
+<title>{{TITLE}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* action-dag writes this page. Edit the template, not this file: the next run writes over it.
+   Layout: lanes (columns) of steps from left to right. Each card is a button that opens the
+   detail panel. The script at the end draws the arrows between the cards as SVG. */
+:root {
+  --bg: #eef1f4; --panel: #ffffff; --ink: #17212b; --muted: #5b6875; --rule: #cfd6dd;
+  --edge: #8a97a4; --accent: #1f5fa8; --code-bg: #f3f5f8;
+  --next: #c8452f; --wait: #b77a07; --decide: #6d4bb4; --done: #2f7d52; --idle: #7a8794; --unknown: #8a6d3b;
+  --next-bg: #fbe9e5; --wait-bg: #fbf1dc; --decide-bg: #efe9f8; --done-bg: #e3f1e8; --idle-bg: #e6eaee; --unknown-bg: #f5efe2;
+  --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --drawer: min(460px, 42vw);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151b; --panel: #17202a; --ink: #e4eaf0; --muted: #96a3b0; --rule: #2b3846;
+    --edge: #5f6f80; --accent: #6aa5e8; --code-bg: #0f151b; --next: #ef7a62; --wait: #e2a93c; --decide: #ad92ea;
+    --done: #63c08d; --idle: #8796a5; --unknown: #c9a86a; --next-bg: #3a1f1a; --wait-bg: #352a12; --decide-bg: #261f3a;
+    --done-bg: #16301f; --idle-bg: #1c2631; --unknown-bg: #2e2617; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151b; --panel: #17202a; --ink: #e4eaf0; --muted: #96a3b0; --rule: #2b3846;
+  --edge: #5f6f80; --accent: #6aa5e8; --code-bg: #0f151b; --next: #ef7a62; --wait: #e2a93c; --decide: #ad92ea;
+  --done: #63c08d; --idle: #8796a5; --unknown: #c9a86a; --next-bg: #3a1f1a; --wait-bg: #352a12; --decide-bg: #261f3a;
+  --done-bg: #16301f; --idle-bg: #1c2631; --unknown-bg: #2e2617; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 var(--f-body); }
+.wrap { padding-inline: 16px; padding-block: 28px 48px; max-width: 1480px; margin: 0 auto; }
+@media (min-width: 720px) { .wrap { padding-inline: 20px; } }
+header { display: grid; gap: 6px; margin-bottom: 18px; }
+h1 { font: 800 1.9rem/1.1 var(--f-display); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+.goal { color: var(--muted); max-width: 70ch; margin: 0; }
+.goal b { color: var(--ink); font-weight: 600; }
+.meta { font: 500 0.75rem var(--f-mono); color: var(--muted); }
+.meta b { color: var(--ink); font-weight: 500; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 10px 0 22px; font-size: 0.85rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.scroll { overflow-x: auto; }
+.board { position: relative; display: grid; grid-template-columns: repeat({{COLUMNS}}, minmax(230px, 1fr)); gap: 0 64px; min-width: calc({{COLUMNS}} * 265px); padding-bottom: 6px; }
+svg.edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+svg.edges path { transition: opacity .15s ease; }
+svg.edges path.hot { stroke: var(--accent); stroke-width: 2.6; }
+.has-sel svg.edges path:not(.hot) { opacity: 0.3; }
+.lane { display: flex; flex-direction: column; gap: 14px; min-width: 0; position: relative; z-index: 1; }
+.lane h2 { font: 700 0.72rem var(--f-display); text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin: 0 0 2px; padding-bottom: 6px; border-bottom: 1px solid var(--rule); }
+.lane h2 small { display: block; font: 400 0.75rem var(--f-body); text-transform: none; letter-spacing: 0; margin-top: 2px; }
+.spacer { flex: 1; }
+/* Same specificity as the .s-* rules below, so their stripe colour wins. */
+.node { all: unset; box-sizing: border-box; display: grid; gap: 4px; cursor: pointer; color: var(--ink); background: var(--panel); border: 1px solid var(--rule); border-left: 4px solid var(--idle); border-radius: 6px; padding: 10px 12px; transition: transform .12s ease, box-shadow .12s ease; font: inherit; text-align: left; }
+.node > span { display: block; }
+button.node:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgb(0 0 0 / 0.12); }
+button.node:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+button.node.sel { box-shadow: 0 0 0 2px var(--accent), 0 6px 18px rgb(0 0 0 / 0.16); }
+.node .top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.node .id { font: 500 0.72rem var(--f-mono); color: var(--muted); }
+.node .title { font: 700 0.95rem/1.25 var(--f-display); }
+.node .sub { font-size: 0.83rem; color: var(--muted); }
+.pills { display: inline-flex; gap: 4px; align-items: baseline; }
+.pill { font: 600 0.68rem var(--f-body); text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+.chg { font: 600 0.62rem var(--f-mono); color: var(--accent); border: 1px solid var(--accent); padding: 1px 5px; border-radius: 999px; white-space: nowrap; }
+.s-next { border-left-color: var(--next); } .s-next .pill { color: var(--next); background: var(--next-bg); }
+.s-wait { border-left-color: var(--wait); } .s-wait .pill { color: var(--wait); background: var(--wait-bg); }
+.s-decide { border-left-color: var(--decide); } .s-decide .pill { color: var(--decide); background: var(--decide-bg); }
+.s-done { border-left-color: var(--done); } .s-done .pill { color: var(--done); background: var(--done-bg); }
+.s-blocked { border-left-color: var(--idle); } .s-blocked .pill { color: var(--idle); background: var(--idle-bg); }
+.s-unknown { border-left-color: var(--unknown); border-left-style: dashed; } .s-unknown .pill { color: var(--unknown); background: var(--unknown-bg); }
+.warn { color: var(--next); font-weight: 600; font-size: 0.83rem; }
+.doneline { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 0.85rem; color: var(--muted); }
+.doneline a { color: var(--done); text-decoration: none; background: var(--done-bg); padding: 3px 9px; border-radius: 999px; font-weight: 600; }
+.doneline a:hover { text-decoration: underline; }
+.side { margin-top: 22px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.side h3 { grid-column: 1 / -1; font: 700 0.72rem var(--f-display); text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin: 0; }
+
+/* Detail panel: below the board on narrow screens, a drawer on the right on wide screens. */
+.panel { margin-top: 24px; background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 16px 18px 24px; }
+.panel[hidden] { display: none; }
+.panel .bar { display: flex; justify-content: flex-end; }
+.panel .close { font: 600 0.8rem var(--f-body); color: var(--ink); background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.panel .close:focus-visible, .panel .btn:focus-visible, .panel .chip:focus-visible, .panel .copy:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.panel h3 { font: 800 1.25rem/1.2 var(--f-display); margin: 2px 0 8px; outline: none; }
+.panel .id { font: 500 0.75rem var(--f-mono); color: var(--muted); margin: 0; }
+.panel .state { margin: 0 0 8px; color: var(--muted); font-size: 0.9rem; border-left: 4px solid var(--idle); padding-left: 8px; }
+.panel .sub { color: var(--muted); }
+.panel .chgline { color: var(--accent); font-size: 0.85rem; margin: 4px 0; }
+.panel section { border-top: 1px solid var(--rule); margin-top: 14px; padding-top: 10px; }
+.panel h4 { font: 700 0.78rem var(--f-display); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 0 0 6px; display: inline; }
+.panel details summary { cursor: pointer; }
+.panel dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 8px 0; font-size: 0.88rem; }
+.panel dt { color: var(--muted); }
+.panel dd { margin: 0; overflow-wrap: anywhere; }
+.panel .err { color: var(--unknown); }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.btn { font: 600 0.82rem var(--f-body); color: var(--accent); background: transparent; border: 1px solid var(--accent); border-radius: 6px; padding: 4px 10px; text-decoration: none; }
+.btn:hover { background: var(--accent); color: var(--panel); }
+.rel { display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; align-items: center; margin: 12px 0 4px; font-size: 0.85rem; color: var(--muted); }
+.rel > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 600 0.75rem var(--f-mono); color: var(--ink); background: var(--bg); border: 1px solid var(--rule); border-left: 3px solid var(--idle); border-radius: 999px; padding: 2px 9px; cursor: pointer; }
+.chip:hover { border-color: var(--accent); }
+.none { font-style: italic; }
+.md { font-size: 0.9rem; overflow-wrap: anywhere; }
+.md h1 { font: 700 1rem/1.3 var(--f-display); margin: 8px 0; }
+.md h2 { font: 700 0.85rem var(--f-display); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 14px 0 4px; }
+.md ul { padding-left: 1.2em; }
+.md a { color: var(--accent); }
+.code { position: relative; margin: 8px 0; }
+.code .lang { position: absolute; left: 8px; top: 4px; font: 500 0.65rem var(--f-mono); color: var(--muted); }
+.code .copy { position: absolute; right: 6px; top: 4px; font: 600 0.72rem var(--f-body); color: var(--ink); background: var(--panel); border: 1px solid var(--rule); border-radius: 5px; padding: 2px 8px; cursor: pointer; }
+.panel pre { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 6px; padding: 24px 10px 10px; overflow-x: auto; font: 500 0.78rem/1.5 var(--f-mono); margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.panel pre.stderr { padding-top: 10px; color: var(--muted); }
+.panel code { font-family: var(--f-mono); font-size: 0.85em; }
+@media (min-width: 1100px) {
+  body.open .wrap { margin-right: calc(var(--drawer) + 8px); }
+  .panel { position: fixed; top: 0; right: 0; bottom: 0; width: var(--drawer); margin: 0; border-radius: 0; border-width: 0 0 0 1px; overflow-y: auto; z-index: 10; box-shadow: -8px 0 24px rgb(0 0 0 / 0.12); animation: slide .16s ease-out; }
+  @keyframes slide { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+}
+@media (prefers-reduced-motion: reduce) {
+  button.node, svg.edges path { transition: none; }
+  .panel { animation: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>{{TITLE}}</h1>
+    <p class="goal"><b>Goal:</b> {{SUMMARY}}</p>
+    <span class="meta">Generated <b>{{GENERATED}}</b> {{META}}</span>
+  </header>
+
+  <div class="legend" aria-label="Status legend">
+    <span><i class="dot" style="background:var(--next)"></i>Next: yours to do now</span>
+    <span><i class="dot" style="background:var(--wait)"></i>Waiting: for a review or a different person</span>
+    <span><i class="dot" style="background:var(--decide)"></i>Decide: needs your decision</span>
+    <span><i class="dot" style="background:var(--idle)"></i>Blocked: an earlier step is not done</span>
+    <span><i class="dot" style="background:var(--done)"></i>Done</span>
+    <span><i class="dot" style="background:var(--unknown)"></i>Unknown: the status lookup failed</span>
+    <span><i class="chg">was x</i>Changed since the last run</span>
+  </div>
+
+  <div class="scroll">
+    <div class="board" id="board">
+      <svg class="edges" id="edges" aria-hidden="true">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--edge)"></path>
+          </marker>
+          <marker id="arrow-done" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--done)"></path>
+          </marker>
+          <marker id="arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"></path>
+          </marker>
+        </defs>
+      </svg>
+{{LANES}}
+    </div>
+  </div>
+
+  {{DONE}}
+
+  {{SIDE}}
+
+  <aside class="panel" id="panel" hidden aria-label="Node details">
+    <div class="bar"><button type="button" class="close" id="panel-close">Close (Esc)</button></div>
+    <div id="panel-body"></div>
+  </aside>
+</div>
+
+{{PANELS}}
+
+<script>
+(function () {
+  const edges = {{EDGES_JSON}};
+  const KEY = "{{STORAGE_KEY}}";
+  const board = document.getElementById("board");
+  const svg = document.getElementById("edges");
+  const panel = document.getElementById("panel");
+  const body = document.getElementById("panel-body");
+  const NS = "http://www.w3.org/2000/svg";
+  let selected = null;
+
+  function store(k, v) { try { sessionStorage.setItem(KEY + ":" + k, v); } catch (e) {} }
+  function load(k) { try { return sessionStorage.getItem(KEY + ":" + k); } catch (e) { return null; } }
+
+  function draw() {
+    svg.querySelectorAll("path.e").forEach(p => p.remove());
+    const b = board.getBoundingClientRect();
+    for (const [f, t] of edges) {
+      const a = document.getElementById(f), z = document.getElementById(t);
+      if (!a || !z || !board.contains(a) || !board.contains(z)) continue;
+      const r1 = a.getBoundingClientRect(), r2 = z.getBoundingClientRect();
+      let d;
+      if (r2.left > r1.right - 4) {
+        const x1 = r1.right - b.left, y1 = r1.top + r1.height / 2 - b.top;
+        const x2 = r2.left - b.left - 2, y2 = r2.top + r2.height / 2 - b.top;
+        const mx = (x1 + x2) / 2;
+        d = `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`;
+      } else if (r2.top >= r1.bottom) {
+        const x1 = r1.left + r1.width / 2 - b.left, y1 = r1.bottom - b.top;
+        const x2 = r2.left + r2.width / 2 - b.left, y2 = r2.top - b.top - 2;
+        d = `M${x1},${y1} L${x2},${y2}`;
+      } else {
+        const x1 = r1.left + r1.width / 2 - b.left, y1 = r1.top - b.top;
+        const x2 = r2.left + r2.width / 2 - b.left, y2 = r2.bottom - b.top + 2;
+        d = `M${x1},${y1} L${x2},${y2}`;
+      }
+      const sel = selected && (f === "n-" + selected || t === "n-" + selected);
+      const done = a.classList.contains("s-done");
+      const p = document.createElementNS(NS, "path");
+      p.setAttribute("d", d);
+      p.setAttribute("class", sel ? "e hot" : "e");
+      p.setAttribute("fill", "none");
+      p.setAttribute("stroke", done ? "var(--done)" : "var(--edge)");
+      p.setAttribute("stroke-width", "1.5");
+      p.setAttribute("marker-end", sel ? "url(#arrow-hot)" : done ? "url(#arrow-done)" : "url(#arrow)");
+      svg.appendChild(p);
+    }
+  }
+
+  function addCopyButtons(root) {
+    root.querySelectorAll(".code .copy").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const code = btn.parentElement.querySelector("pre code") || btn.parentElement.querySelector("pre");
+        const text = code.textContent;
+        const done = msg => { btn.textContent = msg; setTimeout(() => { btn.textContent = "Copy"; }, 1500); };
+        const fallback = () => {
+          const r = document.createRange();
+          r.selectNodeContents(code);
+          const s = window.getSelection();
+          s.removeAllRanges();
+          s.addRange(r);
+          done("Selected: press Cmd-C");
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => done("Copied"), fallback);
+        } else {
+          fallback();
+        }
+      });
+    });
+  }
+
+  function select(id, opts) {
+    opts = opts || {};
+    const tpl = document.getElementById("p-" + id);
+    const card = document.getElementById("n-" + id);
+    if (!tpl || !card) return;
+    document.querySelectorAll("button.node.sel").forEach(n => { n.classList.remove("sel"); n.setAttribute("aria-expanded", "false"); });
+    card.classList.add("sel");
+    card.setAttribute("aria-expanded", "true");
+    selected = id;
+    body.replaceChildren(tpl.content.cloneNode(true));
+    addCopyButtons(body);
+    body.querySelectorAll("[data-goto]").forEach(c => c.addEventListener("click", () => select(c.dataset.goto, { focus: true })));
+    panel.hidden = false;
+    document.body.classList.add("open", "has-sel");
+    if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
+    draw();
+    if (!opts.restore) {
+      panel.scrollTop = 0;
+      if (opts.focus) body.querySelector("h3").focus({ preventScroll: true });
+      if (!window.matchMedia("(min-width: 1100px)").matches) panel.scrollIntoView({ block: "start" });
+    }
+  }
+
+  function close() {
+    if (!selected) return;
+    const card = document.getElementById("n-" + selected);
+    document.querySelectorAll("button.node.sel").forEach(n => { n.classList.remove("sel"); n.setAttribute("aria-expanded", "false"); });
+    selected = null;
+    panel.hidden = true;
+    document.body.classList.remove("open", "has-sel");
+    history.replaceState(null, "", location.pathname + location.search);
+    draw();
+    if (card) card.focus();
+  }
+
+  document.querySelectorAll("button.node").forEach(n => n.addEventListener("click", () => {
+    if (selected === n.dataset.node) close(); else select(n.dataset.node, { focus: true });
+  }));
+  document.getElementById("panel-close").addEventListener("click", close);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+
+  // A meta refresh reloads the page. Keep the place: the node in the hash,
+  // the scroll positions in sessionStorage.
+  window.addEventListener("pagehide", () => {
+    store("x", String(window.scrollX)); store("y", String(window.scrollY));
+    store("p", String(panel.scrollTop));
+    const sc = document.querySelector(".scroll");
+    if (sc) store("bx", String(sc.scrollLeft));
+  });
+  draw();
+  const start = decodeURIComponent(location.hash.slice(1));
+  if (start) select(start, { restore: true });
+  const y = load("y");
+  if (y !== null) {
+    window.scrollTo(Number(load("x")) || 0, Number(y) || 0);
+    const sc = document.querySelector(".scroll");
+    if (sc) sc.scrollLeft = Number(load("bx")) || 0;
+    if (selected) panel.scrollTop = Number(load("p")) || 0;
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+  window.addEventListener("resize", draw);
+  if ("ResizeObserver" in window) new ResizeObserver(draw).observe(board);
+})();
+</script>
+</body>
+</html>
