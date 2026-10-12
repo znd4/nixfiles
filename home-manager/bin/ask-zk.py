@@ -64,9 +64,8 @@ POLL_SECONDS = float(os.environ.get("ASK_TUI_POLL", "5"))
 ID_CHARSET = "abcdefghijklmnopqrstuvwxyz0123456789"  # zk: alphanum, lower
 ID_LEN = 4
 
-# The status views, in the order that `s` shows them. "closed" shows the
-# done items and the drop items together.
-STATUSES = ("open", "done", "drop", "closed", "all")
+# The states an item can have. `close()` writes "done" or "drop".
+STATES = ("open", "done", "drop")
 
 TAG_OK = re.compile(r"[^a-z0-9_-]")
 OPEN_BOX = re.compile(r"^- \[ \] ")
@@ -341,12 +340,32 @@ def age_label(days: float) -> str:
     return f"{int(days)}d"
 
 
-def status_matches(item: dict, status: str) -> bool:
-    if status == "all":
-        return True
-    if status == "closed":
-        return item["state"] != "open"
-    return item["state"] == status
+def state_of(item: dict) -> str:
+    """Return one of STATES. A closed item with an unknown verb counts as
+    done. parse() uses the same default when the verb is missing."""
+    return item["state"] if item["state"] in STATES else "done"
+
+
+def wanted_states(args: argparse.Namespace) -> set[str]:
+    """The states to show: --state, else the old --all and --closed flags."""
+    if getattr(args, "state", None):
+        return set(args.state)
+    if getattr(args, "all", False):
+        return set(STATES)
+    if getattr(args, "closed", False):
+        return {"done", "drop"}
+    return {"open"}
+
+
+def state_list(value: str) -> list[str]:
+    """argparse type for --state: one state, or several joined by commas."""
+    out = [v.strip() for v in value.split(",") if v.strip()]
+    bad = [v for v in out if v not in STATES]
+    if bad or not out:
+        raise argparse.ArgumentTypeError(
+            f"{value!r} is not a state or a comma list of states. Use {', '.join(STATES)}."
+        )
+    return out
 
 
 def select(items: list[dict], args: argparse.Namespace) -> list[dict]:
@@ -356,11 +375,8 @@ def select(items: list[dict], args: argparse.Namespace) -> list[dict]:
         out = [i for i in out if want <= set(i["tags"])]
     if getattr(args, "cwd", None):
         out = [i for i in out if i["cwd"] == args.cwd]
-    if getattr(args, "all", False):
-        return out
-    if getattr(args, "closed", False):
-        return [i for i in out if i["state"] != "open"]
-    return [i for i in out if i["state"] == "open"]
+    states = wanted_states(args)
+    return [i for i in out if state_of(i) in states]
 
 
 def cmd_list(args: argparse.Namespace) -> int:
@@ -509,10 +525,9 @@ HELP_TEXT = """\
 
 [b]Filter[/b]
   /                filter by text       t   filter by tag
-  s                show the next status: open, done, drop,
-                   closed (done and drop), all
-  a                from open, show all items. From any
-                   other status, show open items
+  s                choose the states to show: open, done, drop
+  a                if the view is open only, show all states.
+                   Else, go back to open only
   C                clear every filter
   R                read the notebook again. The list also
                    reloads when a note changes, unless ASK_TUI_POLL=0
@@ -607,6 +622,74 @@ def build_app_class():
         def action_close(self) -> None:
             self.dismiss(None)
 
+    class StatePicker(ModalScreen[set[str] | None]):
+        """A panel to tick the states to show. Return the ticked states on
+        enter, or None on escape.
+
+        This class draws the rows itself and does not use SelectionList.
+        SelectionList shows the same X on a ticked row and an unticked row.
+        Only the color is different.
+        """
+
+        BINDINGS = [
+            Binding("j,down", "move(1)", show=False),
+            Binding("k,up", "move(-1)", show=False),
+            Binding("space", "toggle", show=False),
+            Binding("o", "toggle('open')", show=False),
+            Binding("d", "toggle('done')", show=False),
+            Binding("x", "toggle('drop')", show=False),
+            Binding("a", "all", show=False),
+            Binding("enter", "apply", show=False),
+            Binding("escape,q", "cancel", show=False),
+        ]
+
+        def __init__(self, states: set[str], counts: dict[str, int]) -> None:
+            super().__init__()
+            self.states = set(states)
+            self.counts = counts
+            self.row = 0
+
+        def compose(self) -> ComposeResult:
+            yield Static("", id="picker")
+
+        def on_mount(self) -> None:
+            self.draw()
+
+        def draw(self) -> None:
+            lines = ["[b]Show these states[/b]", ""]
+            for n, st in enumerate(STATES):
+                box = "[green]\\[x][/green]" if st in self.states else "\\[ ]"
+                line = f" {box} {st:<5} {self.counts.get(st, 0):>5} "
+                lines.append(f"[reverse]{line}[/reverse]" if n == self.row else line)
+            lines += [
+                "",
+                "[dim]space  tick     o d x  tick open, done, drop",
+                "a      tick all enter  apply     escape  cancel[/dim]",
+            ]
+            self.query_one("#picker", Static).update("\n".join(lines))
+
+        def action_move(self, step: int) -> None:
+            self.row = (self.row + step) % len(STATES)
+            self.draw()
+
+        def action_toggle(self, state: str = "") -> None:
+            st = state or STATES[self.row]
+            self.states.symmetric_difference_update({st})
+            self.draw()
+
+        def action_all(self) -> None:
+            self.states = set(STATES)
+            self.draw()
+
+        def action_apply(self) -> None:
+            if not self.states:
+                self.notify("tick at least one state", severity="warning")
+                return
+            self.dismiss(self.states)
+
+        def action_cancel(self) -> None:
+            self.dismiss(None)
+
     class AskApp(App):
         TITLE = "ask-zk"
         CSS = """
@@ -620,6 +703,8 @@ def build_app_class():
         #ask { padding: 1 2; width: 60; border: thick $warning; background: $surface; }
         Help { align: center middle; }
         #help { padding: 1 2; width: 78; border: thick $primary; background: $surface; }
+        StatePicker { align: center middle; }
+        #picker { padding: 1 2; width: 54; height: auto; border: thick $primary; background: $surface; }
         """
         BINDINGS = [
             Binding("q", "quit", "quit"),
@@ -636,7 +721,7 @@ def build_app_class():
             Binding("n", "note", "note", show=False),
             Binding("slash", "filter", "filter", key_display="/"),
             Binding("t", "tag_filter", "tag", show=False),
-            Binding("s", "cycle_status", "status"),
+            Binding("s", "pick_states", "state"),
             Binding("a", "toggle_closed", "closed", show=False),
             Binding("C", "clear_filters", "clear filters", show=False),
             Binding("R", "reload", "reload", show=False),
@@ -648,13 +733,13 @@ def build_app_class():
             Binding("k", "cursor_up", "up", show=False),
         ]
 
-        def __init__(self, tags: list[str] | None, status: str) -> None:
+        def __init__(self, tags: list[str] | None, states: set[str]) -> None:
             super().__init__()
             self.items: list[dict] = []
             self.view: list[dict] = []
             self.tag_filter: list[str] = [t for t in (clean_tag(x) for x in (tags or [])) if t]
             self.text_filter = ""
-            self.status = status  # one of STATUSES
+            self.states = states  # a subset of STATES
             self.selected: set[str] = set()
             self.probes: dict[str, str] = {}  # id -> "ok" | "no" | "run"
             self.undo_stack: list[list[tuple[Path, str]]] = []
@@ -735,7 +820,7 @@ def build_app_class():
 
         def apply_filters(self, cursor: int = 0) -> None:
             out = self.items
-            out = [i for i in out if status_matches(i, self.status)]
+            out = [i for i in out if state_of(i) in self.states]
             if self.tag_filter:
                 want = set(self.tag_filter)
                 out = [i for i in out if want <= set(i["tags"])]
@@ -819,8 +904,8 @@ def build_app_class():
                 bits.append("tag:" + ",".join(self.tag_filter))
             if self.text_filter:
                 bits.append(f"/{self.text_filter}")
-            if self.status != "open":
-                bits.append(f"status:{self.status}")
+            if self.states != {"open"}:
+                bits.append("state:" + ",".join(s for s in STATES if s in self.states))
             self.query_one("#summary", Static).update("  ·  ".join(bits))
 
         def update_detail(self) -> None:
@@ -1081,19 +1166,26 @@ def build_app_class():
 
         # -- the rest ----------------------------------------------------------
 
-        def action_cycle_status(self) -> None:
-            n = STATUSES.index(self.status)
-            self.status = STATUSES[(n + 1) % len(STATUSES)]
-            self.apply_filters()
+        def action_pick_states(self) -> None:
+            counts: dict[str, int] = {}
+            for i in self.items:
+                counts[state_of(i)] = counts.get(state_of(i), 0) + 1
+
+            def chosen(states: set[str] | None) -> None:
+                if states:
+                    self.states = states
+                    self.apply_filters()
+
+            self.push_screen(StatePicker(self.states, counts), chosen)
 
         def action_toggle_closed(self) -> None:
-            self.status = "all" if self.status == "open" else "open"
+            self.states = set(STATES) if self.states == {"open"} else {"open"}
             self.apply_filters()
 
         def action_clear_filters(self) -> None:
             self.text_filter = ""
             self.tag_filter = []
-            self.status = "open"
+            self.states = {"open"}
             self.apply_filters()
 
         def action_reload(self) -> None:
@@ -1112,10 +1204,7 @@ def cmd_tui(args: argparse.Namespace) -> int:
     except ModuleNotFoundError as exc:
         print(f"ask: no TUI ({exc.name} is missing); showing the list", file=sys.stderr)
         return cmd_list(args)
-    status = getattr(args, "status", None)
-    if not status:
-        status = "all" if args.all else "closed" if args.closed else "open"
-    app_class(getattr(args, "tag", None), status).run()
+    app_class(getattr(args, "tag", None), wanted_states(args)).run()
     return 0
 
 
@@ -1134,6 +1223,12 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--cwd")
         p.add_argument("--closed", action="store_true")
         p.add_argument("--all", action="store_true")
+        p.add_argument(
+            "--state",
+            type=state_list,
+            action="extend",
+            help="show only the items in these states: open, done, drop. Give a comma list, or repeat the flag",
+        )
 
     a = sub.add_parser("add")
     a.add_argument("--what", required=True)
@@ -1157,7 +1252,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("tui")
     filters(p)
-    p.add_argument("--status", choices=STATUSES, help="the status view at start (default: open)")
     p.set_defaults(fn=cmd_tui)
 
     p = sub.add_parser("show")
@@ -1206,9 +1300,9 @@ def main() -> int:
             and os.environ.get("ASK_NO_TUI", "") not in ("1", "true", "yes")
         )
         args = ap.parse_args(sys.argv[1:] + ["tui" if want_tui else "list"])
-    for k in ("tag", "cwd", "closed", "all"):
+    for k in ("tag", "cwd", "state", "closed", "all"):
         if not hasattr(args, k):
-            setattr(args, k, None if k in ("tag", "cwd") else False)
+            setattr(args, k, None if k in ("tag", "cwd", "state") else False)
     return args.fn(args)
 
 
