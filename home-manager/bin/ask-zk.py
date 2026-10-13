@@ -61,8 +61,11 @@ VERIFY_TIMEOUT = 8  # seconds; a probe that hangs must not hang the list
 # 0 turns the check off; R still reloads by hand.
 POLL_SECONDS = float(os.environ.get("ASK_TUI_POLL", "5"))
 
-ID_CHARSET = "abcdefghijklmnopqrstuvwxyz0123456789"  # zk: alphanum, lower
-ID_LEN = 4
+# New ids are git-style short ids: 7 hex characters. These two values must
+# match id-charset and id-length in the notebook's .zk/config.toml.
+# Old 4-character ids stay valid.
+ID_CHARSET = "0123456789abcdef"  # zk: hex
+ID_LEN = 7
 
 # The states an item can have. `close()` writes "done" or "drop".
 STATES = ("open", "done", "drop")
@@ -217,7 +220,10 @@ def resolve(items: list[dict], token: str) -> dict | None:
 def new_id(taken: set[str]) -> str:
     while True:
         iid = "".join(random.choice(ID_CHARSET) for _ in range(ID_LEN))
-        if iid not in taken:
+        # resolve() reads an all-digit token as a 1-based position in the
+        # open-item list. A prefix of an all-digit id could then select the
+        # wrong item, so never make an all-digit id.
+        if iid not in taken and not iid.isdigit():
             return iid
 
 
