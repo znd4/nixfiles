@@ -5,8 +5,10 @@
 #    installs `installedSystem` onto it.
 # 2. The disk is booted as a second VM with the initrd's sshd forwarded to the
 #    test driver. The driver SSHes in, checking the host key it just saw
-#    generated, and answers the passphrase prompt.
-# 3. The system must then finish booting with / on the unlocked LUKS volume.
+#    generated. A wrong passphrase must be rejected and asked for again; the
+#    right one is then accepted.
+# 3. The system must then finish booting with / on the unlocked LUKS volume,
+#    and a file written to it during the install must be there.
 #
 # The passphrase doubles as a canary: it must not show up on the unencrypted
 # ESP, nor anywhere in the installed system's store closure.
@@ -101,6 +103,9 @@ in
       nix.settings.substituters = lib.mkForce [ ];
     };
 
+    # The driver predefines a Python variable per node (`installer`) and helpers
+    # such as `subtest`, `create_machine`, `driver` and `retry`:
+    # https://nixos.org/manual/nixos/stable/#sec-nixos-tests
     testScript = ''
       import os
       import select
@@ -111,6 +116,8 @@ in
       import time
 
       PASSPHRASE = "${canary}"
+      WRONG_PASSPHRASE = "not-the-passphrase"
+      MARKER = "written-during-install"
       HOST_KEY = "/mnt/etc/secrets/initrd/ssh_host_ed25519_key"
 
       with subtest("format the disk and install"):
@@ -138,6 +145,8 @@ in
           installer.succeed(
               "NIXOS_INSTALL_BOOTLOADER=1 nixos-enter --root /mnt -- ${toplevel}/bin/switch-to-configuration boot"
           )
+          # On the encrypted root; only readable after a real unlock.
+          installer.succeed(f"echo {MARKER} > /mnt/etc/luks-test-marker")
 
       with subtest("no secrets on the unencrypted ESP"):
           installer.fail(f"grep -rqaF {PASSPHRASE} /mnt/boot")
@@ -162,7 +171,7 @@ in
       booted = create_machine(start_command=" ".join(start_command), name="booted")
       driver.machines.append(booted)
 
-      def unlock_over_ssh(tmp: str) -> bool:
+      def answer_over_ssh(tmp: str, passphrase: str) -> bool:
           """One attempt. False if sshd is not up yet or nothing is asking."""
           cmd = [
               "${pkgs.openssh}/bin/ssh", "-F", "/dev/null", "-tt",
@@ -190,30 +199,40 @@ in
                   assert b"Host key verification failed" not in output, output
                   return False
               output += chunk
-          stdin.write(PASSPHRASE.encode() + b"\n")
+          stdin.write(passphrase.encode() + b"\n")
           stdin.close()
           proc.wait(timeout=60)
           return True
 
-      with subtest("unlock over SSH from the initrd"):
-          tmp = tempfile.mkdtemp()
-          shutil.copy("${clientKey}", f"{tmp}/id_ed25519")
-          os.chmod(f"{tmp}/id_ed25519", 0o600)
-          with open(f"{tmp}/known_hosts", "w") as f:
-              f.write(f"[127.0.0.1]:${toString sshPort} {host_pub}\n")
-
-          booted.start()
+      def answer_prompt(tmp: str, passphrase: str) -> None:
           for _ in range(60):
-              if unlock_over_ssh(tmp):
-                  break
+              if answer_over_ssh(tmp, passphrase):
+                  return
               time.sleep(3)
-          else:
-              raise AssertionError("never got a passphrase prompt over SSH")
+          raise AssertionError("never got a passphrase prompt over SSH")
+
+      tmp = tempfile.mkdtemp()
+      shutil.copy("${clientKey}", f"{tmp}/id_ed25519")
+      os.chmod(f"{tmp}/id_ed25519", 0o600)
+      with open(f"{tmp}/known_hosts", "w") as f:
+          f.write(f"[127.0.0.1]:${toString sshPort} {host_pub}\n")
+
+      booted.start()
+
+      with subtest("a wrong passphrase is rejected and asked for again"):
+          answer_prompt(tmp, WRONG_PASSPHRASE)
+          # Not wait_for_console_text: it takes one queued line per second,
+          # and the boot log ahead of this message is longer than the timeout.
+          retry(lambda _: "(Passphrase incorrect?)" in booted.get_console_log(), timeout=60)
+
+      with subtest("the right passphrase over SSH unlocks the disk"):
+          answer_prompt(tmp, PASSPHRASE)
 
       with subtest("system boots from the unlocked volume"):
           booted.wait_for_unit("multi-user.target")
           booted.succeed("findmnt -no SOURCE / | grep -q '^/dev/mapper/cryptroot'")
           booted.succeed("cryptsetup status cryptroot | grep -q 'is active'")
+          booted.succeed(f"grep -qx {MARKER} /etc/luks-test-marker")
           booted.fail(f"grep -rqaF {PASSPHRASE} /boot")
     '';
   };
