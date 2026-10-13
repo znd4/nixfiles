@@ -16,9 +16,11 @@ what changed since the last run.
 The page is static. Each card is a button that opens a detail panel. The
 script puts all panel content in the page when it writes it: the ask notes
 (markdown, rendered as HTML), the MR facts and the probe results. Thus the
-page works from file:// and as a claude.ai Artifact. A <meta refresh> tag
-reloads the page, and the URL hash (location.hash) keeps the selected node, so
-an open browser tab stays current.
+page works from file:// and as a claude.ai Artifact. JavaScript in the page
+reloads it every `refresh_seconds`, so an open browser tab stays current. If
+the browser does not run JavaScript, a <meta refresh> tag inside <noscript>
+reloads the page. The URL hash (location.hash) and sessionStorage keep the
+selected node through a reload.
 
 `<goal>.dag.state.json`, next to the YAML file, keeps the state of each node
 from the last run. The next run uses it to mark what changed.
@@ -1054,11 +1056,12 @@ def render(g: Graph, derived: dict[str, Derived], changed: dict[str, str], when:
     counts = {s: sum(1 for d in derived.values() if d.state == s) for s in STATES}
     count_txt = " · ".join(f"{counts[s]} {s}" for s in STATES if counts[s])
     refresh = (
-        f'<meta http-equiv="refresh" content="{g.refresh}">' if g.refresh else ""
+        f'<noscript><meta http-equiv="refresh" content="{g.refresh}"></noscript>' if g.refresh else ""
     )
     reload_txt = f" · reloads every {g.refresh} s" if g.refresh else ""
     repl = {
         "{{REFRESH}}": refresh,
+        "{{RELOAD_SECONDS}}": str(g.refresh),
         "{{TITLE}}": esc(g.title),
         "{{SUMMARY}}": esc(g.summary),
         "{{GENERATED}}": esc(when),

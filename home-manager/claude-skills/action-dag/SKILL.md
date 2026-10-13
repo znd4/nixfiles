@@ -112,6 +112,8 @@ Give the user the summary. Copy the URLs exactly as the CLI prints them.
   narrow screen, it is below the board. Escape or the Close button closes it.
 - The selected card has a highlight. Its edges show in the accent colour. The
   other edges are dim.
+- When you select a card, each card that has an arrow to it or from it gets
+  a thin outline in the accent colour.
 - The panel shows:
   - **Every node**: the state, the warnings, the `notes:` text, and one
     button for each link. "Waits on" and "Unblocks" show the predecessors and
@@ -130,15 +132,16 @@ Give the user the summary. Copy the URLs exactly as the CLI prints them.
 
 ## Keep the open page current
 
-- The page has a
+- JavaScript in the page reloads it every `refresh_seconds` (default 60; `0`
+  turns it off). If the browser does not run JavaScript, a
   [`<meta http-equiv="refresh">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#http-equiv)
-  tag. The browser reloads the page every `refresh_seconds` (default 60; `0`
-  turns it off).
-- The URL hash holds the selected node, for example `#C1`. After a reload,
-  the page opens the panel of that node again.
-- The page keeps the scroll positions in
-  [`sessionStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage),
-  so a reload does not move the view.
+  tag in `<noscript>` reloads the page.
+- The URL hash holds the selected node, for example `#C1`.
+  [`sessionStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage)
+  also holds it, so the node stays selected if a reload removes the hash.
+  After a reload, the page opens the panel of that node again.
+- The page keeps the scroll positions in `sessionStorage`, so a reload does
+  not move the view.
 - A reload shows only the data of the last run. To get new data, run
   `action-dag <goal> --watch` in a terminal. The page cannot get new data by
   itself, because browsers block fetch requests from `file://` pages.

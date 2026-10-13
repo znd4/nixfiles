@@ -527,7 +527,8 @@ def test_panel_shows_ask_note_mr_facts_probe_and_chips(tmp_path):
     assert 'data-goto="A"' in page and 'data-goto="C"' in page
     assert "glpat-AAAA" not in page and "<script>alert" not in page
     assert '<button type="button" class="node' in page and '<a class="node' not in page
-    assert 'http-equiv="refresh" content="60"' in page
+    assert '<noscript><meta http-equiv="refresh" content="60"></noscript>' in page
+    assert "const RELOAD = 60;" in page and "location.reload()" in page
     assert "Generated <b>2026-10-12 12:00:00 UTC</b>" in page
 
 
@@ -542,7 +543,7 @@ def test_output_path_refresh_and_open_only_when_new(tmp_path, monkeypatch, capsy
     assert ad.main([str(yml)], sources=FakeSources()) == 0
     page = tmp_path / "custom-page.html"
     assert page.exists() and not (tmp_path / "g.dag.html").exists()
-    assert "http-equiv" not in page.read_text()
+    assert "http-equiv" not in page.read_text() and "const RELOAD = 0;" in page.read_text()
     assert (tmp_path / "g.dag.state.json").exists()
     assert opened == [page]
     assert ad.main([str(yml)], sources=FakeSources()) == 0
