@@ -1,0 +1,69 @@
+home-manager/bin/tests/test_action_dag.py
+  s_e84d7afe4c12c1::t_b78e5551e6d8b1 44-45
+  s_e84d7afe4c12c1::t_179bf30502eaf3 326-447
+  s_e84d7afe4c12c1::t_915da9fdbefb56 898-909
+  s_e84d7afe4c12c1::t_103feeb394f0e0 888-890
+home-manager/bin/action-dag.template.html
+  s_e84d7afe4c12c1::t_2e6d21fd638471 229-232
+  s_e84d7afe4c12c1::t_b95fc50a0ff2c8 62-63
+  s_e84d7afe4c12c1::t_61760091e066ea 239-241
+  s_e84d7afe4c12c1::t_667c97816fed65 118
+  s_e84d7afe4c12c1::t_8080df5ca9e69f 12-13
+  s_e84d7afe4c12c1::t_130e7db07582fe 14-15
+  s_e84d7afe4c12c1::t_109e1f4646e174 190
+  s_e84d7afe4c12c1::t_983cc2ac253229 98-100
+  s_e84d7afe4c12c1::t_55786357fb5589 59-61,64
+  s_e84d7afe4c12c1::t_169a3bafd69ef8 242-243
+home-manager/bin/action-dag.py
+  s_e84d7afe4c12c1::t_521e0047b1eee3 366
+  s_e84d7afe4c12c1::t_428741eedb1364 1077
+  s_e84d7afe4c12c1::t_49442aba2496b9 2089
+  s_e84d7afe4c12c1::t_70617187f263c7 1144,1146,1148-1149
+  s_e84d7afe4c12c1::t_3e8ff1449bb46c 367
+  s_e84d7afe4c12c1::t_3ddf88c6751e47 828-829,832-833,836
+  s_e84d7afe4c12c1::t_b721b66ce91068 1145
+  s_e84d7afe4c12c1::t_9f5f049f440137 146
+  s_e84d7afe4c12c1::t_dbe6a81a51819e 1089
+  s_e84d7afe4c12c1::t_fec4a9f9eb5b43 383
+  s_e84d7afe4c12c1::t_6d6c7f901d20bb 1924
+  s_e84d7afe4c12c1::t_d0f514351d392d 806-809
+  s_e84d7afe4c12c1::t_86ace5c81e7cb7 1922-1923,1925
+  s_e84d7afe4c12c1::t_0130b70f8278c8 845
+  s_e84d7afe4c12c1::t_df4d1475e2c546 1767-1768
+  s_e84d7afe4c12c1::t_839f4135ea6cd2 1102-1108
+  s_e84d7afe4c12c1::t_376203f88ec3ea 1078-1081
+  s_e84d7afe4c12c1::t_92eef946496b8c 1756
+  s_e84d7afe4c12c1::t_1593cf5583917f 795-805,810-827,830-831,834-835,837-844,846-854
+home-manager/claude-skills/action-dag/SKILL.md
+  s_e84d7afe4c12c1::t_aec9b01659bb66 353-355,358
+  s_e84d7afe4c12c1::t_8e739096471c0f 161-164
+  s_e84d7afe4c12c1::t_b19bdc30df208b 207
+  s_e84d7afe4c12c1::t_eec5f66581bb55 20-27
+  s_e84d7afe4c12c1::t_6c9a32449e0336 217-220,223,238
+  s_e84d7afe4c12c1::t_24aedfda59c3cf 215-216,221-222,224-237
+  s_e84d7afe4c12c1::t_ba7e26fc334a56 126
+  s_e84d7afe4c12c1::t_b04664d7993741 187-189
+  s_e84d7afe4c12c1::t_495b542dc99f02 423-424
+  s_e84d7afe4c12c1::t_0ee4dbb0e1b1c4 430-433,437-438
+  s_e84d7afe4c12c1::t_7829c56241ad5f 67
+  s_e84d7afe4c12c1::t_966722722b0eb4 56
+  s_e84d7afe4c12c1::t_48829d467470ac 420-421
+  s_e84d7afe4c12c1::t_d412c728282b4d 441-443
+  s_e84d7afe4c12c1::t_ddb6fe7fd07ba6 419,422
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "21ca84b6653d729a49265ab4924747ebb645d591",
+  "prompts": {},
+  "sessions": {
+    "s_e84d7afe4c12c1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "160cfec7-1655-4898-8ea2-423a1bf91992",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}
