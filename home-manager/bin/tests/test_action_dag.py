@@ -910,5 +910,126 @@ def test_editing_the_json_style_seed_still_validates(tmp_path, monkeypatch):
     assert ad.load_graph(path).nodes["A"].sources == [{"manual": "done"}]
 
 
+# ---------------------------------------------------------------- --public
+
+
+@pytest.fixture
+def pub(tmp_path, monkeypatch):
+    """A graph with asks, local paths and wiki links, and a fake home directory."""
+    home = tmp_path / "home" / "zed"
+    monkeypatch.setenv("HOME", str(home))
+    yml = tmp_path / "g.dag.yaml"
+    yml.write_text(json.dumps({
+        "goal": "g",
+        "title": "Plan for f1db478",
+        "summary": f"See {home}/notes/hub.md",
+        "defaults": DEFAULTS,
+        "lanes": [{"id": "l1", "title": "One"}, {"id": "l2", "title": "Two"}],
+        "nodes": [
+            node("A", {"ask": "a1"}, asks=["r9"], notes="Hub: [[eg6m|the hub note]] and [[0rfw]]."),
+            node("B", [{"mr": 5}, {"ask": "a2"}], lane="l2", sub="commit f1db478 in ~/src/repo",
+                 link="https://example.com/commit/f1db478"),
+            node("C", {"probe": f"test -e {home}/x"}, lane="l2", notes="Run `$HOME/bin/tool`."),
+        ],
+        "edges": [["A", "B"]],
+        "done": [{"label": "old [[zz11|first MR]]", "link": "https://example.com/old"}],
+    }))
+    src = FakeSources(
+        asks={
+            "a1": {"state": "done", "age_days": 0, "what": ""},
+            "a2": {"state": "open", "age_days": 0, "what": ""},
+            "r9": {"state": "open", "age_days": 30, "what": ""},
+        },
+        notes={"a1": "# SECRETASKTEXT\n", "a2": "# OTHERASKTEXT\n", "r9": "# RELATEDTEXT\n"},
+        mrs={5: {**mr(state="merged"), "title": f"Fix {home}/x"}},
+        probes={f"test -e {home}/x": {"rc": 1, "stderr": f"no {home}/x"}},
+    )
+    return yml, home, src
+
+
+def test_public_removes_all_ask_data(pub, capsys):
+    yml, _, src = pub
+    assert ad.main([str(yml), "--public"], sources=src) == 0
+    page = (yml.parent / "g.public.dag.html").read_text()
+    for text in ("SECRETASKTEXT", "OTHERASKTEXT", "RELATEDTEXT", "ask a1", "ask a2", "ask r9",
+                 "Related ask", "is stale", "tick the ask", "/notebook/"):
+        assert text not in page, text
+    # The nodes keep the state that the asks give.
+    assert 'class="node s-done" id="n-A"' in page
+    assert "private note closed" in page
+    out = capsys.readouterr().out
+    assert "removed 3 ask references, 2 ask warnings" in out
+
+
+def test_public_strips_local_paths_and_wiki_links(pub, capsys):
+    yml, home, src = pub
+    assert ad.main([str(yml), "--public"], sources=src) == 0
+    page = (yml.parent / "g.public.dag.html").read_text()
+    assert str(home) not in page and "~/" not in page and "$HOME" not in page
+    assert "[local path]" in page
+    assert "[[" not in page and "eg6m" not in page and "0rfw" not in page and "zz11" not in page
+    assert "Hub: the hub note and ." in page and "old first MR" in page
+    assert '[ ["n-A", "n-B"]]' in page  # the edge list is still there, without "[["
+    out = capsys.readouterr().out
+    assert "3 wiki links" in out and "local paths" in out
+
+
+def test_public_redact_pattern_removes_text_but_keeps_urls(pub, capsys):
+    yml, _, src = pub
+    assert ad.main([str(yml), "--public", "--redact-pattern", r"\bf1db478\b",
+                    "--redact-pattern", "Plan"], sources=src) == 0
+    page = (yml.parent / "g.public.dag.html").read_text()
+    assert "<title> for </title>" in page
+    assert "commit  in" in page
+    assert page.count("f1db478") == 1 and "https://example.com/commit/f1db478" in page
+    assert "3 --redact-pattern matches" in capsys.readouterr().out
+
+
+def test_public_writes_no_state_file_and_keeps_the_normal_page(pub, tmp_path):
+    yml, _, src = pub
+    normal = yml.parent / "g.dag.html"
+    normal.write_text("normal page")
+    state = yml.parent / "g.dag.state.json"
+    out = tmp_path / "share" / "x.html"
+    assert ad.main([str(yml), "--public", "--output", str(out)], sources=src) == 0
+    assert out.exists() and not (yml.parent / "g.public.dag.html").exists()
+    assert normal.read_text() == "normal page"
+    assert not state.exists()
+    page = out.read_text()
+    assert "http-equiv" not in page and "const RELOAD = 0;" in page
+    # An old state file stays as it was, and the page shows no changes.
+    state.write_text(json.dumps({"generated": "x", "nodes": {"A": {"state": "next", "detail": ""}}}))
+    before = state.read_text()
+    assert ad.main([str(yml), "--public", "--output", str(out)], sources=src) == 0
+    assert state.read_text() == before
+    assert 'title="Changed since the last run"' not in out.read_text()
+    assert not list(yml.parent.glob(".*.tmp"))
+
+
+def test_public_self_check_fails_and_writes_nothing(pub, tmp_path, monkeypatch, capsys):
+    yml, home, src = pub
+    template = tmp_path / "leaky.html"
+    template.write_text(ad.TEMPLATE.read_text() + f"<!-- {home}/leak -->")
+    monkeypatch.setattr(ad, "TEMPLATE", template)
+    assert ad.main([str(yml), "--public"], sources=src) == 1
+    assert "still contains the home directory path" in capsys.readouterr().err
+    assert not (yml.parent / "g.public.dag.html").exists()
+    assert not list(yml.parent.glob(".*.tmp"))
+
+
+def test_public_option_errors(pub):
+    yml, _, src = pub
+    for argv in (
+        ["--output", "x.html"],
+        ["--redact-pattern", "x"],
+        ["--public", "--json"],
+        ["--public", "--watch"],
+        ["--public", "--redact-pattern", "("],
+    ):
+        with pytest.raises(SystemExit):
+            ad.main([str(yml), *argv], sources=src)
+    assert ad.main([str(yml), "--public", "--output", str(yml)], sources=src) == 2
+
+
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__, "-q", "-p", "no:cacheprovider"]))

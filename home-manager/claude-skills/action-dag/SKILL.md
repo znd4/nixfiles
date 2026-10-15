@@ -60,6 +60,7 @@ notebook is `$ACTION_DAG_NOTEBOOK`. The default is the ask-zk notebook.
 | `<goal>.dag.yaml` | you, with the [editing commands](#edit-the-graph) | the graph: lanes, nodes, edges, status sources |
 | `<goal>.dag.html`, or the `output:` path | `action-dag` | the page. Each run writes it again. Do not edit it. |
 | `<goal>.dag.state.json` | `action-dag` | the state of each node at the last run. It is always next to the YAML file. |
+| `<goal>.public.dag.html`, or the `--output` path | `action-dag --public` | the page to share (see [Share the page](#share-the-page)). |
 
 The CLI writes the page to a temporary file in the same directory, then
 renames it. Thus a browser that reloads the page never reads a half-written
@@ -76,6 +77,9 @@ action-dag <goal> --check      # check the YAML only. Get no status
 action-dag <goal> --json       # print the state of each node as JSON, not the summary
 action-dag --list              # list the graphs in the notebook
 action-dag path/to/x.dag.yaml  # use a graph file in a different directory
+action-dag <goal> --public     # write the page to share: <goal>.public.dag.html
+action-dag <goal> --public --output <file> --redact-pattern '<regex>'
+                               # the same, to <file>, and remove each match of <regex>
 ```
 
 `<goal>` is the file name without `.dag.yaml`.
@@ -416,9 +420,47 @@ user the summary. After a series of `--no-render` edits, run
 
 ## Share the page
 
-In a session with a claude.ai login, you can publish the page with the
-Artifact tool. Read the page before you publish it. Publish it again after
-each run, from the same file path, so the URL stays the same.
+**For each page that leaves this machine (an Asana attachment, Slack, email
+or an Artifact), use `--public`.** The normal page contains the ask notes and
+local paths.
+
+```bash
+action-dag <goal> --public [--output <file>] [--redact-pattern '<regex>' ...]
+```
+
+The public page:
+
+- has no ask data: no ask panels, no ask ids on the cards, no `asks:` lists
+  and no ask warnings. A node with an ask source keeps the state that the
+  ask gives. Its detail line says only "private note open" (or `closed`,
+  `not found`, `was dropped`).
+- replaces each local path with `[local path]`: a path under the home
+  directory, `/Users/<name>/…`, `/home/<name>/…`, `~/…`, `$HOME/…`.
+- replaces each zk wiki link with its label: `[[id|label]]` becomes `label`,
+  and `[[id]]` is removed.
+- removes each match of each `--redact-pattern` (a Python regular
+  expression; give the option more than once for more patterns). The
+  patterns apply to titles, subtitles, notes, details, warnings, MR titles
+  and probe text, but not to URLs, so the links still work. Use them for bare
+  note ids and commit hashes. The CLI cannot find these by itself.
+- does not reload in the browser, and shows no "changed since the last run"
+  marks.
+
+`--public` never reads or writes the state file. It never opens the page. It
+writes the normal page only if `--output` names that file.
+
+Before it writes, the CLI checks the page. If the page still contains the
+home directory path, `~/` or `[[`, the CLI writes nothing and exits with
+code 1. Otherwise it prints the number of items it removed of each type,
+and then the page path.
+
+The check does not find all private text. For example, it does not find an
+email address or a note id with no brackets. Read the public page before you
+share it.
+
+In a session with a claude.ai login, you can publish the public page with the
+Artifact tool. Publish it again after each run, from the same file path, so
+the URL stays the same.
 
 ## Rules
 

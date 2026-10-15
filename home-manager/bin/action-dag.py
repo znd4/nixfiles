@@ -25,6 +25,11 @@ selected node through a reload.
 `<goal>.dag.state.json`, next to the YAML file, keeps the state of each node
 from the last run. The next run uses it to mark what changed.
 
+`--public` writes a page that is safe to share outside this machine
+(default `<goal>.public.dag.html`). It has no ask data, no local paths and
+no zk wiki links. It does not read or write the state file. See the
+"public page" comment block below.
+
 Read-only by design:
 
   * The script always calls ask-zk with `--no-verify`. Without it,
@@ -1032,7 +1037,10 @@ def panel(node: Node, d: Derived, g: Graph, derived, preds, succs, prev: str | N
     )
 
 
-def render(g: Graph, derived: dict[str, Derived], changed: dict[str, str], when: str, template: str) -> str:
+def render(
+    g: Graph, derived: dict[str, Derived], changed: dict[str, str], when: str, template: str,
+    public: bool = False,
+) -> str:
     lanes_html = []
     for ln in g.lanes:
         cards = [
@@ -1073,6 +1081,12 @@ def render(g: Graph, derived: dict[str, Derived], changed: dict[str, str], when:
         f'<noscript><meta http-equiv="refresh" content="{g.refresh}"></noscript>' if g.refresh else ""
     )
     reload_txt = f" · reloads every {g.refresh} s" if g.refresh else ""
+    # json.dumps output sits in a <script>: escape "</" so it cannot close it.
+    edges_json = json.dumps(edges).replace("</", "<\\/")
+    if public:
+        # The --public self-check refuses a page that contains "[[" (a zk wiki
+        # link). A space between the brackets keeps the JSON valid.
+        edges_json = edges_json.replace("[[", "[ [")
     repl = {
         "{{REFRESH}}": refresh,
         "{{RELOAD_SECONDS}}": str(g.refresh),
@@ -1089,8 +1103,7 @@ def render(g: Graph, derived: dict[str, Derived], changed: dict[str, str], when:
         "{{SIDE}}": side_html,
         "{{PANELS}}": panels,
         "{{STORAGE_KEY}}": esc(f"action-dag:{g.goal}"),
-        # json.dumps output sits in a <script>: escape "</" so it cannot close it.
-        "{{EDGES_JSON}}": json.dumps(edges).replace("</", "<\\/"),
+        "{{EDGES_JSON}}": edges_json,
     }
     # One pass, so a "{{...}}" inside inserted text is never replaced again.
     out = re.sub(r"\{\{[A-Z_]+\}\}", lambda m: repl.get(m.group(0), m.group(0)), template)
@@ -1217,6 +1230,186 @@ def open_page(path: Path) -> None:
         subprocess.run(["open", str(path)], check=False)
     elif shutil.which("xdg-open"):
         subprocess.run(["xdg-open", str(path)], check=False)
+
+
+# --------------------------------------------------------------------------
+# public page (--public)
+#
+# `action-dag <goal> --public` writes a page that is safe to share outside
+# this machine, for example as an Asana attachment. The normal page contains
+# the ask notes and local file paths. The public page:
+#
+#   * removes all ask data: the ask panels, the ask ids on the cards, the
+#     `asks:` lists and the ask warnings. A node keeps the state that its ask
+#     gives, but its detail says only "private note open" (or closed, ...).
+#   * replaces each local path (under the home directory, `~/`, `$HOME`) with
+#     "[local path]".
+#   * replaces each zk wiki link with its label: `[[id|label]]` gives `label`,
+#     and `[[id]]` gives nothing.
+#   * removes the matches of each --redact-pattern from the text of the page
+#     (titles, subtitles, notes, details, warnings, MR titles, probe text).
+#     URLs keep their matches, so the links still work.
+#   * turns off the browser reload, and shows no "changed since the last run"
+#     marks.
+#
+# It never writes the state file and never opens the page. Before it writes,
+# it checks the page again (public_leaks()). If the home directory path,
+# `~/` or `[[` is still in the page, it writes nothing and exits 1.
+
+LOCAL_PATH = "[local path]"
+# [[id]] or [[id|label]]
+WIKI_LINK = re.compile(r"\[\[([^\[\]|]*)(?:\|([^\[\]]*))?\]\]")
+# The ask details that ask_result() makes, for example "ask ab12 open".
+ASK_DETAIL = re.compile(r"^ask \S+ (open|closed|not found|was dropped)$")
+
+
+def local_path_re() -> re.Pattern:
+    """Matches a path under the home directory, in any of its usual forms.
+    It reads $HOME at call time, so tests can change it."""
+    home = str(Path.home()).rstrip("/")
+    roots = [r"/Users/[\w.-]+", r"/home/[\w.-]+", r"~(?=/)", r"\$HOME\b", r"\$\{HOME\}"]
+    if len(home) > 1:
+        roots.insert(0, re.escape(home) + r"(?![\w.-])")
+    return re.compile(rf"(?:file://)?(?:{'|'.join(roots)})(?:/[^\s'\"<>()\[\]`]*)?")
+
+
+@dataclass
+class Scrub:
+    """Removes the private text and counts each removal."""
+
+    patterns: list[re.Pattern] = field(default_factory=list)
+    asks: int = 0
+    ask_warnings: int = 0
+    paths: int = 0
+    wiki: int = 0
+    redacted: int = 0
+
+    def __post_init__(self) -> None:
+        self._path_re = local_path_re()
+
+    def url(self, s: str) -> str:
+        s, n = self._path_re.subn(LOCAL_PATH, s or "")
+        self.paths += n
+        return s
+
+    def text(self, s) -> str:
+        s = "" if s is None else str(s)
+        s, n = WIKI_LINK.subn(lambda m: (m.group(2) or "").strip(), s)
+        self.wiki += n
+        s = self.url(s)
+        for pat in self.patterns:
+            s, n = pat.subn("", s)
+            self.redacted += n
+        return s
+
+    def line(self) -> str:
+        return (
+            f"Public page: removed {self.asks} ask references, {self.ask_warnings} ask warnings, "
+            f"{self.paths} local paths, {self.wiki} wiki links and {self.redacted} "
+            "--redact-pattern matches. Browser reload off. No state file written."
+        )
+
+
+def public_fact(f: dict, s: Scrub) -> dict:
+    f = dict(f)
+    for key in ("title", "cmd", "stderr", "error"):
+        if f.get(key):
+            f[key] = s.text(f[key])
+    for key in ("url", "pipeline_url"):
+        if f.get(key):
+            f[key] = s.url(f[key])
+    return f
+
+
+def public_result(r: Result, s: Scrub) -> Result:
+    """A copy of one node's result with no ask data and no private text."""
+    warn = []
+    for w in r.warn:
+        if w.startswith("ask "):  # all ask warnings start with "ask " (ask_result, combine)
+            s.ask_warnings += 1
+        else:
+            warn.append(s.text(w))
+    m = ASK_DETAIL.match(r.detail)
+    if m:
+        detail = f"private note {m.group(1)}"
+    elif r.detail.startswith("ask-zk "):  # the ask-zk call failed
+        detail = "private note: lookup failed"
+    else:
+        detail = s.text(r.detail)
+    facts = [public_fact(f, s) for f in r.facts if f["kind"] != "ask"]
+    return dataclasses.replace(r, detail=detail, warn=warn, facts=facts)
+
+
+def public_graph(g: Graph, s: Scrub) -> Graph:
+    """A copy of the graph with no ask references and no private text. The
+    node sources keep their mr, probe and manual entries for the id row."""
+    nodes = {}
+    for nid, n in g.nodes.items():
+        s.asks += len(n.asks) + sum(1 for src in n.sources if "ask" in src)
+        nodes[nid] = dataclasses.replace(
+            n,
+            title=s.text(n.title),
+            sub=s.text(n.sub),
+            notes=s.text(n.notes),
+            tag=s.text(n.tag),
+            owner=s.text(n.owner),
+            link=s.url(n.link),
+            links=[{"label": s.text(x["label"]), "url": s.url(x["url"])} for x in n.links],
+            asks=[],
+            sources=[src for src in n.sources if "ask" not in src],
+        )
+    lanes = [
+        {**ln, **{k: s.text(ln[k]) for k in ("title", "sub") if ln.get(k)}} for ln in g.lanes
+    ]
+    done = [
+        {**d, "label": s.text(d.get("label", "")), **({"link": s.url(d["link"])} if d.get("link") else {})}
+        for d in g.done
+    ]
+    return dataclasses.replace(
+        g, title=s.text(g.title), summary=s.text(g.summary), lanes=lanes, nodes=nodes,
+        done=done, refresh=0,
+    )
+
+
+def public_leaks(page: str) -> list[str]:
+    """The private text that the self-check finds in a page. An empty list
+    means that the check passed."""
+    leaks = []
+    home = str(Path.home()).rstrip("/")
+    if len(home) > 1 and home in page:
+        leaks.append(f"the home directory path {home}")
+    if "~/" in page:
+        leaks.append("a ~/ path")
+    if "[[" in page:
+        leaks.append("a wiki link ([[)")
+    return leaks
+
+
+def cmd_public(g: Graph, src: Sources, output: Path | None, patterns: list[re.Pattern]) -> int:
+    """Write the public page. Never writes the state file or opens the page."""
+    out = output or g.path.with_name(f"{g.goal}.public.dag.html")
+    if out.suffix not in (".html", ".htm"):
+        print(f"action-dag: --output must end in .html or .htm: {out}", file=sys.stderr)
+        return 2
+    s = Scrub(patterns)
+    own = resolve_sources(g, src)
+    pg = public_graph(g, s)
+    derived = derive(pg, {nid: public_result(r, s) for nid, r in own.items()})
+    when = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    page = render(pg, derived, {}, when, TEMPLATE.read_text(encoding="utf-8"), public=True)
+    leaks = public_leaks(page)
+    if leaks:
+        print(
+            f"action-dag: the public page still contains {'; '.join(leaks)}. "
+            "Nothing was written.",
+            file=sys.stderr,
+        )
+        return 1
+    out.parent.mkdir(parents=True, exist_ok=True)
+    write_atomic(out, page)
+    print(s.line())
+    print(f"Page: {out}")
+    return 0
 
 
 # --------------------------------------------------------------------------
@@ -2032,7 +2225,13 @@ Each editing command keeps the comments and the layout of the YAML file. It
 refuses to write a graph with errors. Then it writes the page again, as
 --no-open does. --no-render stops this step. --dry-run prints a diff only.
 The names set, add, edge, done and rm are reserved as the first argument.
-To render a goal with one of these names, put `--` first: action-dag --no-open -- set""",
+To render a goal with one of these names, put `--` first: action-dag --no-open -- set
+
+share the page:
+  action-dag <goal> --public [--output FILE] [--redact-pattern REGEX ...]
+
+Use --public for each page that leaves this machine (an Asana attachment,
+Slack, email). The normal page contains the ask notes and local paths.""",
     )
     ap.add_argument(
         "goal", nargs="?",
@@ -2051,7 +2250,31 @@ To render a goal with one of these names, put `--` first: action-dag --no-open -
         "--watch", nargs="?", type=float, const=5.0, metavar="MINUTES",
         help="write the page again every MINUTES minutes (default 5) until Ctrl-C",
     )
+    ap.add_argument(
+        "--public", action="store_true",
+        help="write a page that is safe to share outside this machine: no ask data, no local "
+        "paths, wiki links as their labels, no browser reload. Never reads or writes the state file",
+    )
+    ap.add_argument(
+        "--output", metavar="FILE",
+        help="with --public: the page to write (default <goal>.public.dag.html next to the YAML file)",
+    )
+    ap.add_argument(
+        "--redact-pattern", action="append", default=[], metavar="REGEX",
+        help="with --public: remove each match of REGEX from the text of the page "
+        "(not from URLs). Give it more than once for more patterns",
+    )
     args = ap.parse_args(argv)
+    if not args.public and (args.output or args.redact_pattern):
+        ap.error("--output and --redact-pattern need --public")
+    if args.public and (args.watch is not None or args.json or args.check):
+        ap.error("--public cannot go with --watch, --json or --check")
+    patterns = []
+    for rx in args.redact_pattern:
+        try:
+            patterns.append(re.compile(rx))
+        except re.error as e:
+            ap.error(f"--redact-pattern {rx!r} is not a valid regular expression: {e}")
 
     if args.list:
         return cmd_list()
@@ -2073,6 +2296,9 @@ To render a goal with one of these names, put `--` first: action-dag --no-open -
         return 2
 
     src = sources or Sources()
+    if args.public:
+        output = Path(args.output).expanduser() if args.output else None
+        return cmd_public(g, src, output, patterns)
     derived, changed, first_run, when, page_is_new = cycle_once(g, src)
     if args.json:
         print(json.dumps(
