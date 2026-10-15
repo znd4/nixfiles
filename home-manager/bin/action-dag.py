@@ -148,7 +148,7 @@ def redact(text: str) -> str:
 class Node:
     id: str
     title: str
-    lane: str | None = None
+    lane: str | None = None  # optional label. The panel shows it. It does not set the column
     sub: str = ""
     link: str = ""
     links: list[dict] = field(default_factory=list)  # [{label, url}], panel buttons
@@ -368,9 +368,9 @@ def check_graph(g: Graph) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
     ids = set(g.nodes)
+    # `lanes:` is optional and does not change the layout (see board_columns()).
+    # If the file has `lanes:`, each `lane:` must be one of its ids.
     lane_ids = [ln.get("id") for ln in g.lanes]
-    if not g.lanes:
-        errors.append("no lanes: add a `lanes:` list")
     if len(set(lane_ids)) != len(lane_ids):
         errors.append("a lane id is used twice")
     if g.output.resolve() == g.path.resolve() or g.output.suffix != ".html":
@@ -385,7 +385,7 @@ def check_graph(g: Graph) -> tuple[list[str], list[str]]:
     if cycle:
         errors.append("cycle: " + " -> ".join(cycle))
     for n in g.nodes.values():
-        if not n.side and n.lane not in lane_ids:
+        if g.lanes and n.lane is not None and n.lane not in lane_ids:
             errors.append(f"node {n.id}: lane {n.lane!r} is not in `lanes`")
         if not n.link and not n.links:
             warnings.append(f"node {n.id}: no link")
@@ -797,6 +797,66 @@ def derive(g: Graph, own: dict[str, Result]) -> dict[str, Derived]:
     return out
 
 
+@dataclass
+class Column:
+    """One column of the board."""
+
+    key: str  # "done", "ready" or "after-<n>"
+    title: str
+    sub: str
+    ids: list[str]
+
+
+def open_depth(g: Graph, derived: dict[str, Derived]) -> dict[str, int]:
+    """Return the depth of each open node. An open node is a node that is not
+    done. The depth is the number of open nodes on the longest path of open
+    predecessors. 0 means that no open node comes before it. The count stops
+    at a done node."""
+    preds = predecessors(g)
+    depth: dict[str, int] = {}
+
+    def visit(nid: str) -> int:
+        if nid not in depth:
+            depth[nid] = 0  # a guard only: check_graph() refuses a cycle
+            depth[nid] = max(
+                (visit(p) + 1 for p in preds[nid] if derived[p].state != "done"), default=0
+            )
+        return depth[nid]
+
+    for nid in g.nodes:
+        if derived[nid].state != "done":
+            visit(nid)
+    return depth
+
+
+def board_columns(g: Graph, derived: dict[str, Derived]) -> list[Column]:
+    """Return the board columns, from left to right. The node states of this
+    run set the columns. The YAML `lanes:` have no effect here.
+
+    * Done: the nodes in the state `done`.
+    * Ready now: the open nodes with depth 0 (see open_depth()).
+    * After N steps: the open nodes with depth N.
+
+    A column with no cards is not shown. Side tracks are not on the board.
+    In a column, the cards stay in YAML order."""
+    main = [n.id for n in g.nodes.values() if not n.side]
+    depth = open_depth(g, derived)
+    cols: list[Column] = []
+    done = [i for i in main if derived[i].state == "done"]
+    if done:
+        cols.append(Column("done", "Done", "Finished steps", done))
+    for k in range(max((depth[i] for i in main if i in depth), default=-1) + 1):
+        ids = [i for i in main if depth.get(i) == k]
+        if not ids:  # possible when only side tracks have depth k
+            continue
+        if k == 0:
+            cols.append(Column("ready", "Ready now", "No open step before it", ids))
+        else:
+            title = f"After {k} step" + ("s" if k > 1 else "")
+            cols.append(Column(f"after-{k}", title, "Waits for open steps", ids))
+    return cols
+
+
 # --------------------------------------------------------------------------
 # files
 
@@ -1019,6 +1079,11 @@ def panel(node: Node, d: Derived, g: Graph, derived, preds, succs, prev: str | N
     changed = f'<p class="chgline">Changed since the last run: was {esc(prev)}</p>' if prev else ""
     notes = f'<section><h4>Notes</h4><div class="md">{md_to_html(node.notes)}</div></section>' if node.notes else ""
     owner = f" · owner {esc(node.owner)}" if node.owner else ""
+    # The YAML lane does not set the column. The panel shows it only as a label.
+    lane = ""
+    if node.lane is not None:
+        titles = {ln.get("id"): ln.get("title") or ln.get("id") for ln in g.lanes}
+        lane = f'<p class="laneline">Lane: {esc(titles.get(node.lane, node.lane))}</p>'
     return (
         f'<template id="p-{esc(node.id)}">'
         f'<p class="id">{esc(id_row(node))}{owner}</p>'
@@ -1026,6 +1091,7 @@ def panel(node: Node, d: Derived, g: Graph, derived, preds, succs, prev: str | N
         f'<p class="state s-{d.state}"><span class="pill">{esc(d.pill)}</span> {esc(d.detail)}</p>'
         f"{changed}{warn}"
         + (f'<p class="sub">{esc(node.sub)}</p>' if node.sub else "")
+        + lane
         + (f'<div class="btns">{btns}</div>' if btns else "")
         + '<div class="rel"><span>Waits on</span>'
         + f"<div>{chips(preds[node.id], derived, g)}</div>"
@@ -1041,19 +1107,13 @@ def render(
     g: Graph, derived: dict[str, Derived], changed: dict[str, str], when: str, template: str,
     public: bool = False,
 ) -> str:
-    lanes_html = []
-    for ln in g.lanes:
-        cards = [
-            card(n, derived[n.id], changed.get(n.id))
-            for n in g.nodes.values()
-            if not n.side and n.lane == ln["id"]
-        ]
-        sub = f"<small>{esc(ln['sub'])}</small>" if ln.get("sub") else ""
-        center = ln.get("align") == "center"
-        spacer = '<div class="spacer"></div>' if center else ""
-        lanes_html.append(
-            f'<section class="lane"><h2>{esc(ln.get("title", ln["id"]))}{sub}</h2>'
-            f"{spacer}{''.join(cards)}{spacer}</section>"
+    cols = board_columns(g, derived)
+    cols_html = []
+    for col in cols:
+        cards = "".join(card(g.nodes[i], derived[i], changed.get(i)) for i in col.ids)
+        cols_html.append(
+            f'<section class="col col-{col.key.split("-")[0]}" data-col="{esc(col.key)}">'
+            f"<h2>{esc(col.title)}<small>{esc(col.sub)}</small></h2>{cards}</section>"
         )
     done_html = ""
     if g.done:
@@ -1095,10 +1155,12 @@ def render(
         "{{GENERATED}}": esc(when),
         "{{META}}": esc(
             f"from {g.path.name}{reload_txt} · {count_txt} · "
-            'arrows mean "must finish before" · select a card for its details'
+            'arrows mean "must finish before" · '
+            "the column of a card counts the open steps on the longest path before it · "
+            "select a card for its details"
         ),
-        "{{COLUMNS}}": str(max(1, len(g.lanes))),
-        "{{LANES}}": "\n".join(lanes_html),
+        "{{COLUMNS}}": str(max(1, len(cols))),
+        "{{BOARD}}": "\n".join(cols_html),
         "{{DONE}}": done_html,
         "{{SIDE}}": side_html,
         "{{PANELS}}": panels,
@@ -1870,8 +1932,6 @@ def edit_add(doc: Doc, args, src) -> list[str]:
         raise EditError(f"node {args.node!r} is already in the graph (use set)")
     if args.side and args.lane:
         raise EditError("a side node has no lane: give --side or --lane, not both")
-    if not args.side and not args.lane:
-        raise EditError("give --lane <lane>, or --side for a side track")
     if not args.title:
         raise EditError("give --title")
     cm = CommentedMap()
@@ -1886,7 +1946,7 @@ def edit_add(doc: Doc, args, src) -> list[str]:
         seq = CommentedSeq()
         top_insert(doc.data, key, seq, after=("done", "edges", "nodes", "lanes") if key == "side" else ("lanes",))
     pos = len(seq)
-    if not args.side:
+    if args.lane:
         # After the last node of the same lane, so the YAML stays in lane order.
         same = [i for i, n in enumerate(seq) if isinstance(n, dict) and n.get("lane") == args.lane]
         if same:
@@ -1897,8 +1957,8 @@ def edit_add(doc: Doc, args, src) -> list[str]:
         added.append(add_edge(doc.data, pred, args.node))
     for succ in args.before or []:
         added.append(add_edge(doc.data, args.node, succ))
-    where = "side" if args.side else f"lane {args.lane}"
-    line = f"add {args.node} ({where})"
+    where = " (side)" if args.side else f" (lane {args.lane})" if args.lane else ""
+    line = f"add {args.node}{where}"
     if added:
         line += ", edges " + ", ".join(f"[{a}, {b}]" for a, b in added)
     return [line]
@@ -2052,7 +2112,10 @@ def edit_parser() -> argparse.ArgumentParser:
     g.add_argument("--sub")
     g.add_argument("--link", help="a full https:// URL")
     g.add_argument("--owner", help="me, a name, or empty")
-    g.add_argument("--lane", help="a lane id from `lanes:`")
+    g.add_argument(
+        "--lane",
+        help="optional label: a lane id from `lanes:`. The panel shows it. It does not set the column",
+    )
     g.add_argument("--hold-until", metavar="NODE", help="warn if the MR merges before NODE is done")
     g.add_argument("--tag", help="extra text in the card's id row")
     s = fields.add_argument_group("status")
@@ -2216,7 +2279,7 @@ def main(argv: list[str] | None = None, sources: Sources | None = None) -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""editing commands (`action-dag COMMAND --help` for the options):
   set  <goal> <node> [options]          change a node
-  add  <goal> <node> --lane L --title T add a node
+  add  <goal> <node> --title T          add a node
   edge <goal> <A> <B> [--remove]        add or remove the edge [A, B]
   done <goal> <node> --label TEXT       move a finished node to the done row
   rm   <goal> <node> [--force]          remove a node

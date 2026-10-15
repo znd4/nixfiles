@@ -17,7 +17,14 @@ the file, gets the live status of each step, and writes one HTML page.
 - **Node**: one step. It shows as a card on the page.
 - **Edge**: `[A, B]` means "A must finish before B". A is a **predecessor**
   of B.
-- **Lane**: a column of cards. Lanes go from left to right.
+- **Board**: the main part of the page. It shows the cards in columns.
+- **Column**: a vertical group of cards on the board. On each run, the CLI
+  calculates the columns from the state of each node (see
+  [The page](#the-page)).
+- **Open step**: a node that is not in the `done` state.
+- **Lane**: an optional label in the YAML file. `lanes:` lists the labels, and
+  `lane:` gives one to a node. The [detail panel](#the-page) shows it. It does
+  not set the column of a card.
 - **State**: one of six values for each node:
 
   | State | Meaning |
@@ -46,7 +53,7 @@ the file, gets the live status of each step, and writes one HTML page.
 - **Cutover**: the step that moves a service from the old system to the new
   system.
 - **Side track**: a node that is not on the path to the goal. It has no lane
-  and no edges.
+  and no edges. It is not in a column.
 - **Done row**: a row of links to finished work, under the board.
 - **Artifact**: a web page on claude.ai that the Artifact tool publishes.
 
@@ -57,7 +64,7 @@ notebook is `$ACTION_DAG_NOTEBOOK`. The default is the ask-zk notebook.
 
 | File | Written by | Contents |
 |---|---|---|
-| `<goal>.dag.yaml` | you, with the [editing commands](#edit-the-graph) | the graph: lanes, nodes, edges, status sources |
+| `<goal>.dag.yaml` | you, with the [editing commands](#edit-the-graph) | the graph: nodes, edges, status sources |
 | `<goal>.dag.html`, or the `output:` path | `action-dag` | the page. Each run writes it again. Do not edit it. |
 | `<goal>.dag.state.json` | `action-dag` | the state of each node at the last run. It is always next to the YAML file. |
 | `<goal>.public.dag.html`, or the `--output` path | `action-dag --public` | the page to share (see [Share the page](#share-the-page)). |
@@ -120,7 +127,7 @@ Give the user the summary. Copy the URLs exactly as the CLI prints them.
 
 ```bash
 action-dag set  <goal> <node> [options]                  # change a node
-action-dag add  <goal> <node> --lane <lane> --title <t>  # add a node
+action-dag add  <goal> <node> --title <t>                # add a node
 action-dag edge <goal> <A> <B> [--remove]                # add or remove the edge [A, B]
 action-dag done <goal> <node> --label <text> [--link <url>]  # move a finished node to the done row
 action-dag rm   <goal> <node> [--force]                  # remove a node
@@ -155,8 +162,10 @@ The values of `--status`:
 Options for `add`: `--side` adds a side track, with no lane. `--after <A>`
 also adds the edge `[A, new node]`. `--before <B>` also adds the edge
 `[new node, B]`. A new node gets `status: {manual: next}` if you do not give
-a status. The command puts the new node after the last node of its lane in
-the YAML file.
+a status. `--lane` is optional. With `--lane`, the command puts the new node
+after the last node of that lane in the YAML file. Without `--lane`, it puts
+the new node at the end of `nodes:`. The edges set the column of the node,
+not the lane.
 
 **`done`** moves a finished node to the `done:` row:
 
@@ -179,9 +188,9 @@ Each editing command:
 - keeps the comments, the key order, the quotes and the blank lines of the
   file. Only the lines of the change are different.
 - checks the result as `--check` does. If the result has an error (for
-  example a cycle or an unknown lane), the command writes nothing and exits
-  with code 1. It prints the new warnings, for example a probe that possibly
-  writes.
+  example a cycle, or a lane that is not in `lanes:`), the command writes
+  nothing and exits with code 1. It prints the new warnings, for example a
+  probe that possibly writes.
 - writes the YAML file atomically (a temporary file, then a rename), and
   prints a one-line summary of the change.
 - then writes the page and the state file again, and prints the summary, as
@@ -199,7 +208,7 @@ Examples, for the graph in [YAML schema](#yaml-schema):
 action-dag set  example-cutover B --add-ask ef56
 action-dag set  example-cutover D --state done --append-note "Decided: keep the old cluster for 7 days."
 action-dag set  example-cutover A --status mr:42 --no-render
-action-dag add  example-cutover E --lane cutover --title "Delete the old cluster" --after D --link https://gitlab.example.com/group/repo/-/issues/9
+action-dag add  example-cutover E --title "Delete the old cluster" --after D --link https://gitlab.example.com/group/repo/-/issues/9
 action-dag edge example-cutover B D
 action-dag done example-cutover B --label "!41 migration"
 action-dag rm   example-cutover S1 --dry-run
@@ -207,6 +216,30 @@ action-dag rm   example-cutover S1 --dry-run
 
 ## The page
 
+- **On each run, the CLI calculates the columns from the state of each
+  node.** From left to right:
+
+  | Column | Cards |
+  |---|---|
+  | **Done** | the nodes in the `done` state. These cards are small and dim. |
+  | **Ready now** | the open steps with all predecessors done (or no predecessors) |
+  | **After 1 step**, **After 2 steps**, ... | the open steps with open steps before them |
+
+  N in "After N steps" is the number of open steps on the longest path of
+  open predecessors. The count stops at a done step. Example: for the open
+  steps A → B → C, A is in Ready now, B is in After 1 step, and C is in After
+  2 steps.
+- A card in Ready now can still wait for a review or a decision (the `wait`
+  or `decide` state).
+- When a step becomes done, the steps after it move to the left on the next
+  run. You do not move them.
+- The page does not show a column that has no cards. In a column, the cards
+  are in the order of the YAML file.
+- The YAML `lanes:` and `lane:` do not change the columns. The detail panel
+  shows the lane of a node as a small "Lane: ..." line.
+- Most arrows go from left to right. An arrow between two Done cards goes up
+  or down in the Done column. An arrow goes to the left only to a Done card
+  whose predecessor is not done.
 - Each card is a button. Click it, or press Enter or Space on it, to open the
   **detail panel**. On a wide screen, the panel is on the right side. On a
   narrow screen, it is below the board. Escape or the Close button closes it.
@@ -321,12 +354,12 @@ refresh_seconds: 60                   # optional. 0 turns off the browser reload
 defaults:                             # used by each `mr:` that has only an iid
   mr_host: gitlab.example.com
   mr_project: group/repo
-lanes:                                # columns, from left to right
-  - {id: now, title: "Now, in parallel", sub: "Prerequisites"}
-  - {id: cutover, title: "Cutover", align: center}   # center: center the cards vertically
+lanes:                                # optional labels. They do not change the columns
+  - {id: now, title: "Now, in parallel"}
+  - {id: cutover, title: "Cutover"}
 nodes:
   - id: A
-    lane: now
+    lane: now                         # optional. The panel shows "Lane: <title>"
     title: Apply the database unit
     sub: "Expect 3 to add, 0 to destroy"
     link: https://gitlab.example.com/group/repo/-/tree/main/db
@@ -336,7 +369,6 @@ nodes:
       - probe: "gcloud sql instances describe db-1 >/dev/null 2>&1"
         pending: wait                 # state while the probe fails (default next)
   - id: B
-    lane: now
     title: Merge the migration MR
     status: {mr: 41}                  # the MR link becomes the "Open MR" button
     asks: [cd34]
@@ -388,26 +420,31 @@ Use `links:` to set the label yourself.
    who decides.
 5. Put a full `https://` link on each node. A node with an `mr:` source gets
    the MR link automatically.
-6. Run `action-dag <goal> --check` until it shows `0 errors`.
-7. Run `action-dag <goal> --no-open` and give the user the summary.
-8. Link the hub note to the files. zk does not index YAML or HTML, so use
+6. Write an edge for each "must finish before" relation. The edges and the
+   node states set the columns, so you do not need `lanes:`. Use `lane:` only
+   as a label for the detail panel.
+7. Run `action-dag <goal> --check` until it shows `0 errors`.
+8. Run `action-dag <goal> --no-open` and give the user the summary.
+9. Link the hub note to the files. zk does not index YAML or HTML, so use
    plain markdown links, not wiki links:
    `[Action graph](<goal>.dag.html) ([source](<goal>.dag.yaml))`.
 
 ## Update a graph when the facts change
 
-The live sources update by themselves. Change the graph only when the
-structure or a manual fact changes. Use the
-[editing commands](#edit-the-graph):
+The live sources update by themselves. When a step becomes done, the next
+run moves its card to the Done column and moves the steps after it to the
+left. Do not move nodes by hand. Change the graph only when the structure or
+a manual fact changes. Use the [editing commands](#edit-the-graph):
 
 - **A decision is made**:
   `action-dag set <goal> <node> --state done --append-note "<the result>"`.
-- **A new step**: `action-dag add <goal> <node> --lane <lane> --title <t>
-  --after <A>`, then `action-dag edge` for each other edge.
+- **A new step**: `action-dag add <goal> <node> --title <t> --after <A>`,
+  then `action-dag edge` for each other edge.
 - **A manual step now has an MR or an ask**:
   `action-dag set <goal> <node> --status mr:<iid>` (or `ask:<id>`).
-- **A step is finished and old**:
-  `action-dag done <goal> <node> --label "<text>"`.
+- **A step is finished and old** (optional cleanup): `action-dag done
+  <goal> <node> --label "<text>"`. This removes the card from the Done
+  column and adds a link to the done row.
 - **An ask was dropped or an MR was closed**: the CLI shows a warning. Give
   the node a new source with `set --status`, or remove the node with `rm`.
 - **The goal is complete or stopped**: run the CLI one last time, so the page

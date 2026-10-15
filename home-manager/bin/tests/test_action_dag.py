@@ -36,12 +36,13 @@ def graph(nodes, edges, side=(), lanes=("l1", "l2"), done=()):
         "goal": "t",
         "title": "Test",
         "defaults": DEFAULTS,
-        "lanes": [{"id": x, "title": x} for x in lanes],
         "nodes": list(nodes),
         "side": list(side),
         "edges": [list(e) for e in edges],
         "done": list(done),
     }
+    if lanes is not None:  # None: a graph with no `lanes:` key
+        data["lanes"] = [{"id": x, "title": x} for x in lanes]
     return ad.graph_from_dict(data, Path("/tmp/t.dag.yaml"))
 
 
@@ -320,6 +321,128 @@ def test_hold_until_quiet_once_hold_node_done():
 def test_owner_name_on_manual_wait_pill():
     g = graph([node("F", "wait", owner="Alex")], [])
     assert run_derive(g, FakeSources())["F"].pill == "Alex"
+
+
+# ---------------------------------------------------------------- board columns
+
+
+def cols(g, src=None):
+    """[(title, [ids])] of the board, from left to right."""
+    return [(c.title, c.ids) for c in ad.board_columns(g, run_derive(g, src or FakeSources()))]
+
+
+def page_cols(page):
+    """[(data-col, [card ids])] from a rendered page."""
+    import re
+
+    out = []
+    for key, body in re.findall(r'<section class="col [^"]*" data-col="([^"]+)">(.*?)</section>', page, re.S):
+        out.append((key, re.findall(r'data-node="([^"]+)"', body)))
+    return out
+
+
+def test_finished_predecessor_moves_its_successor_to_ready_now():
+    # The reported bug: S0 is done, so S1 is ready, whatever their YAML lanes say.
+    g = graph([node("S0", "done"), node("S1", "next", lane="l2"), node("S2", "next", lane="l2")],
+              [("S0", "S1"), ("S1", "S2")])
+    assert cols(g) == [("Done", ["S0"]), ("Ready now", ["S1"]), ("After 1 step", ["S2"])]
+
+
+def test_open_chain_gives_one_column_per_step():
+    g = graph([node("A"), node("B"), node("C")], [("A", "B"), ("B", "C")])
+    assert cols(g) == [("Ready now", ["A"]), ("After 1 step", ["B"]), ("After 2 steps", ["C"])]
+    assert [c.sub for c in ad.board_columns(g, run_derive(g, FakeSources()))] == [
+        "No open step before it", "Waits for open steps", "Waits for open steps",
+    ]
+
+
+def test_column_follows_the_longest_open_chain_and_ignores_done_predecessors():
+    # D has a done predecessor (A) and an open one (C, after B): it goes by C.
+    # E comes after a done node only: it is ready.
+    g = graph(
+        [node("A", "done"), node("B"), node("C"), node("D"), node("E")],
+        [("A", "D"), ("B", "C"), ("C", "D"), ("A", "E")],
+    )
+    assert cols(g) == [
+        ("Done", ["A"]), ("Ready now", ["B", "E"]), ("After 1 step", ["C"]), ("After 2 steps", ["D"]),
+    ]
+    # An open node behind a done node behind an open node: the done node stops the chain.
+    g = graph([node("X"), node("Y", "done"), node("Z")], [("X", "Y"), ("Y", "Z")])
+    assert cols(g) == [("Done", ["Y"]), ("Ready now", ["X", "Z"])]
+
+
+def test_empty_columns_are_not_shown():
+    g = graph([node("A"), node("B", "wait")], [])
+    assert cols(g) == [("Ready now", ["A", "B"])]
+    g = graph([node("A", "done")], [])
+    assert cols(g) == [("Done", ["A"])]
+    # Only a side track is between A and B, so "After 1 step" has no card.
+    g = graph([node("A"), node("B")], [("A", "S"), ("S", "B")], side=[node("S")])
+    assert cols(g) == [("Ready now", ["A"]), ("After 2 steps", ["B"])]
+    page = ad.render(g, run_derive(g, FakeSources()), {}, "T", ad.TEMPLATE.read_text())
+    assert "repeat(2, minmax" in page
+    assert page_cols(page) == [("ready", ["A"]), ("after-2", ["B"])]
+
+
+def test_graph_without_lanes_checks_renders_and_edits(tmp_path, capsys):
+    yml = tmp_path / "nl.dag.yaml"
+    yml.write_text(json.dumps({
+        "goal": "nl", "defaults": DEFAULTS,
+        "nodes": [
+            {"id": "A", "title": "A", "link": "https://example.com/a", "status": "done"},
+            {"id": "B", "title": "B", "link": "https://example.com/b"},
+        ],
+        "edges": [["A", "B"]],
+    }))
+    assert ad.main([str(yml), "--check"]) == 0
+    assert "0 errors, 0 warnings" in capsys.readouterr().out
+    assert ad.main([str(yml), "--no-open"], sources=FakeSources()) == 0
+    page = (tmp_path / "nl.dag.html").read_text()
+    assert page_cols(page) == [("done", ["A"]), ("ready", ["B"])]
+    assert "repeat(2, minmax" in page and "Lane:" not in page
+    assert ad.main(["add", str(yml), "C", "--title", "C", "--after", "B", "--no-render"]) == 0
+    assert ad.load_graph(yml).nodes["C"].lane is None
+    assert ad.main([str(yml), "--no-open"], sources=FakeSources()) == 0
+    assert page_cols((tmp_path / "nl.dag.html").read_text())[-1] == ("after-1", ["C"])
+
+
+def test_old_graph_with_lanes_renders_and_shows_the_lane_in_the_panel():
+    g = graph(
+        [node("A", "done", lane="l2"), node("B", lane="l1"), node("C", lane="l1")],
+        [("A", "B"), ("B", "C")],
+        lanes=("l1", "l2"),
+    )
+    g.lanes[1]["title"] = "Lane <two>"
+    assert ad.check_graph(g) == ([], [])
+    page = ad.render(g, run_derive(g, FakeSources()), {}, "T", ad.TEMPLATE.read_text())
+    assert page_cols(page) == [("done", ["A"]), ("ready", ["B"]), ("after-1", ["C"])]
+    assert '<p class="laneline">Lane: Lane &lt;two&gt;</p>' in page
+    assert '<p class="laneline">Lane: l1</p>' in page
+    assert '<h2>Done<small>Finished steps</small></h2>' in page
+    # The id row of a card does not change.
+    assert '<span class="id">A</span>' in page
+
+
+def test_lane_is_optional_but_must_be_known_when_lanes_are_given():
+    g = graph([{"id": "A", "title": "A", "link": "https://example.com/a"}], [])
+    assert ad.check_graph(g) == ([], [])
+    g = graph([node("A", lane="free text")], [], lanes=None)
+    assert ad.check_graph(g) == ([], [])
+    g = graph([node("A", lane="nope")], [])
+    assert any("lane 'nope' is not in `lanes`" in e for e in ad.check_graph(g)[0])
+
+
+def test_done_card_with_an_open_predecessor_stays_in_done():
+    g = graph([node("A"), node("B", "done")], [("A", "B")])
+    assert cols(g) == [("Done", ["B"]), ("Ready now", ["A"])]
+
+
+def test_same_input_gives_the_same_page():
+    g = graph([node("A", "done"), node("B"), node("C"), node("D")], [("A", "C"), ("B", "C"), ("C", "D")])
+    first = ad.render(g, run_derive(g, FakeSources()), {}, "T", ad.TEMPLATE.read_text())
+    second = ad.render(g, run_derive(g, FakeSources()), {}, "T", ad.TEMPLATE.read_text())
+    assert first == second
+    assert page_cols(first) == [("done", ["A"]), ("ready", ["B"]), ("after-1", ["C"]), ("after-2", ["D"])]
 
 
 # ---------------------------------------------------------------- state file and output
@@ -762,13 +885,26 @@ def test_add_puts_the_node_after_its_lane_and_adds_edges(fx):
 def test_add_side_node_and_refusals(fx, capsys):
     path, _ = fx
     assert edit(path, "add", "B", "--lane", "l1", "--title", "dup") == 1
-    assert edit(path, "add", "Y", "--title", "no lane") == 1
-    assert edit(path, "add", "Y", "--lane", "l1") == 1
+    assert edit(path, "add", "Y", "--lane", "l1") == 1  # no title
+    assert edit(path, "add", "Y", "--side", "--lane", "l1", "--title", "Y") == 1
+    assert edit(path, "add", "Y", "--lane", "nope", "--title", "Y") == 1
     assert path.read_text() == FX
     assert edit(path, "add", "S1", "--side", "--title", "Side", "--status", "ask:ab99") == 0
     text = path.read_text()
     assert text.endswith("side:\n  - id: S1\n    title: Side\n    status: {ask: ab99}\n")
     assert ad.load_graph(path).nodes["S1"].side
+
+
+def test_add_and_set_without_a_lane(fx, capsys):
+    path, _ = fx
+    assert edit(path, "add", "Y", "--title", "No lane", "--link", "https://example.com/y", "--after", "C") == 0
+    assert "add Y, edges [C, Y]" in capsys.readouterr().out
+    text = path.read_text()
+    assert "    hold_until: A\n  - id: Y\n    title: No lane\n" in text
+    assert edit(path, "set", "B", "--lane", "") == 0
+    g = ad.load_graph(path)
+    assert g.nodes["Y"].lane is None and g.nodes["B"].lane is None
+    assert ad.cmd_check(path) == 0
 
 
 def test_edge_add_remove_and_cycle_refused(fx, capsys):
