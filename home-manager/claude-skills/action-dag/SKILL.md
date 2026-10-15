@@ -210,6 +210,14 @@ action-dag rm   example-cutover S1 --dry-run
   other edges are dim.
 - When you select a card, each card that has an arrow to it or from it gets
   a thin outline in the accent colour.
+- The panel shows the **chain** of the selected card: all the steps before
+  it and all the steps after it, directly or through other steps. It shows
+  them as small cards with arrows. The steps before it are in rows above it,
+  and the steps after it are in rows below it. The row of a step is the
+  number of arrows on the longest path from the selected card, so each arrow
+  points down. Click a small card to select that step. The board then
+  scrolls to show its card. A card with no arrows (for example, a side track)
+  has no chain.
 - The panel shows:
   - **Every node**: the state, the warnings, the `notes:` text, and one
     button for each link. "Waits on" and "Unblocks" show the predecessors and

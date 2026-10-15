@@ -529,6 +529,10 @@ def test_panel_shows_ask_note_mr_facts_probe_and_chips(tmp_path):
     assert '<button type="button" class="node' in page and '<a class="node' not in page
     assert '<noscript><meta http-equiv="refresh" content="60"></noscript>' in page
     assert "const RELOAD = 60;" in page and "location.reload()" in page
+    # The page has the chain view. The outline class is not .rel, because .rel
+    # is the panel's "Waits on" / "Unblocks" grid.
+    assert "function chain(" in page and "drawChain()" in page
+    assert "button.node.linked" in page and 'classList.add("rel")' not in page
     assert "Generated <b>2026-10-12 12:00:00 UTC</b>" in page
 
 

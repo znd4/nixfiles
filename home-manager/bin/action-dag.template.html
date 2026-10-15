@@ -64,7 +64,7 @@ svg.edges path.hot { stroke: var(--accent); stroke-width: 3; }
 button.node:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgb(0 0 0 / 0.12); }
 button.node:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 button.node.sel { box-shadow: 0 0 0 2px var(--accent), 0 6px 18px rgb(0 0 0 / 0.16); }
-button.node.rel { box-shadow: 0 0 0 1px var(--accent); }
+button.node.linked { box-shadow: 0 0 0 1px var(--accent); }
 .node .top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .node .id { font: 500 0.72rem var(--f-mono); color: var(--muted); }
 .node .title { font: 700 0.95rem/1.25 var(--f-display); }
@@ -72,6 +72,19 @@ button.node.rel { box-shadow: 0 0 0 1px var(--accent); }
 .pills { display: inline-flex; gap: 4px; align-items: baseline; }
 .pill { font: 600 0.68rem var(--f-body); text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
 .chg { font: 600 0.62rem var(--f-mono); color: var(--accent); border: 1px solid var(--accent); padding: 1px 5px; border-radius: 999px; white-space: nowrap; }
+/* The chain in the panel: the selected node, all the nodes before it (rows
+   above) and all the nodes after it (rows below). */
+.chain { position: relative; margin: 10px 0 2px; }
+.chain .crow { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 24px; position: relative; z-index: 1; }
+.chain .crow:last-child { margin-bottom: 0; }
+.mini { all: unset; box-sizing: border-box; flex: 0 1 136px; min-width: 0; background: var(--bg); border: 1px solid var(--rule); border-left: 3px solid var(--idle); border-radius: 5px; padding: 4px 7px; cursor: pointer; font-size: 0.74rem; line-height: 1.25; color: var(--ink); }
+.mini b { display: block; font: 600 0.68rem var(--f-mono); color: var(--muted); }
+.mini span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.mini.cur { box-shadow: 0 0 0 2px var(--accent); }
+.mini:hover { box-shadow: 0 0 0 1px var(--accent); }
+.mini.cur:hover { box-shadow: 0 0 0 2px var(--accent); }
+.mini:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+svg.chain-edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
 .s-next { border-left-color: var(--next); } .s-next .pill { color: var(--next); background: var(--next-bg); }
 .s-wait { border-left-color: var(--wait); } .s-wait .pill { color: var(--wait); background: var(--wait-bg); }
 .s-decide { border-left-color: var(--decide); } .s-decide .pill { color: var(--decide); background: var(--decide-bg); }
@@ -199,7 +212,7 @@ button.node.rel { box-shadow: 0 0 0 1px var(--accent); }
 
   function draw() {
     svg.querySelectorAll("path.e").forEach(p => p.remove());
-    board.querySelectorAll("button.node.rel").forEach(n => n.classList.remove("rel"));
+    board.querySelectorAll("button.node.linked").forEach(n => n.classList.remove("linked"));
     const b = board.getBoundingClientRect();
     for (const [f, t] of edges) {
       const a = document.getElementById(f), z = document.getElementById(t);
@@ -221,7 +234,7 @@ button.node.rel { box-shadow: 0 0 0 1px var(--accent); }
         d = `M${x1},${y1} L${x2},${y2}`;
       }
       const sel = selected && (f === "n-" + selected || t === "n-" + selected);
-      if (sel) (f === "n-" + selected ? z : a).classList.add("rel");
+      if (sel) (f === "n-" + selected ? z : a).classList.add("linked");
       const done = a.classList.contains("s-done");
       const p = document.createElementNS(NS, "path");
       p.setAttribute("d", d);
@@ -231,6 +244,109 @@ button.node.rel { box-shadow: 0 0 0 1px var(--accent); }
       p.setAttribute("stroke-width", "2");
       p.setAttribute("marker-end", sel ? "url(#arrow-hot)" : done ? "url(#arrow-done)" : "url(#arrow)");
       svg.appendChild(p);
+    }
+    drawChain();
+  }
+
+  // The chain of the selected node: all the nodes before it and all the nodes
+  // after it, directly or through other nodes. The row of a node is the number
+  // of edges on the longest path from the selected node, so each arrow in the
+  // chain points down.
+  const preds = {}, succs = {};
+  for (const [f, t] of edges) {
+    const a = f.slice(2), b = t.slice(2);
+    (succs[a] = succs[a] || []).push(b);
+    (preds[b] = preds[b] || []).push(a);
+  }
+  function distances(id, next) {
+    const d = { [id]: 0 };
+    let grew = true, rounds = 0;
+    while (grew && rounds++ <= edges.length) {  // if the graph has a cycle, this limit stops the loop
+      grew = false;
+      for (const x of Object.keys(d)) {
+        for (const y of next[x] || []) {
+          if (!(y in d) || d[y] < d[x] + 1) { d[y] = d[x] + 1; grew = true; }
+        }
+      }
+    }
+    return d;
+  }
+  const order = {};
+  document.querySelectorAll("button.node").forEach((n, i) => { order[n.dataset.node] = i; });
+
+  function chain(id) {
+    const up = distances(id, preds), down = distances(id, succs);
+    const before = Object.keys(up).length - 1, after = Object.keys(down).length - 1;
+    if (!before && !after) return null;
+    const rows = new Map();
+    const put = (row, x) => { if (!rows.has(row)) rows.set(row, []); rows.get(row).push(x); };
+    for (const [x, k] of Object.entries(up)) put(-k, x);
+    for (const [x, k] of Object.entries(down)) if (k) put(k, x);
+    const sec = document.createElement("section");
+    sec.className = "chainsec";
+    const h = document.createElement("h4");
+    h.textContent = "Chain";
+    const count = document.createElement("span");
+    count.className = "sub";
+    count.textContent = ` · ${before} before, ${after} after`;
+    const box = document.createElement("div");
+    box.className = "chain";
+    const csvg = document.createElementNS(NS, "svg");
+    csvg.setAttribute("class", "chain-edges");
+    csvg.setAttribute("aria-hidden", "true");
+    box.append(csvg);
+    for (const row of [...rows.keys()].sort((p, q) => p - q)) {
+      const r = document.createElement("div");
+      r.className = "crow";
+      for (const x of rows.get(row).sort((p, q) => (order[p] ?? 0) - (order[q] ?? 0))) {
+        const card = document.getElementById("n-" + x);
+        const m = document.createElement("button");
+        m.type = "button";
+        m.className = "mini" + (x === id ? " cur" : "");
+        const st = card && [...card.classList].find(c => c.startsWith("s-"));
+        if (st) m.classList.add(st);
+        m.dataset.node = x;
+        const b = document.createElement("b");
+        b.textContent = x;
+        const t = document.createElement("span");
+        t.textContent = card ? (card.querySelector(".title") || card).textContent.trim() : x;
+        m.append(b, t);
+        m.title = t.textContent;
+        if (x !== id) m.addEventListener("click", () => {
+          select(x, { focus: true });
+          const target = document.getElementById("n-" + x);
+          if (target) target.scrollIntoView({ block: "nearest", inline: "nearest" });
+        });
+        r.append(m);
+      }
+      box.append(r);
+    }
+    sec.append(h, count, box);
+    return sec;
+  }
+
+  function drawChain() {
+    const box = body.querySelector(".chain");
+    if (!box) return;
+    const csvg = box.querySelector("svg.chain-edges");
+    csvg.querySelectorAll("path").forEach(p => p.remove());
+    const b = box.getBoundingClientRect();
+    for (const [f, t] of edges) {
+      const a = box.querySelector(`.mini[data-node="${CSS.escape(f.slice(2))}"]`);
+      const z = box.querySelector(`.mini[data-node="${CSS.escape(t.slice(2))}"]`);
+      if (!a || !z) continue;
+      const r1 = a.getBoundingClientRect(), r2 = z.getBoundingClientRect();
+      const x1 = r1.left + r1.width / 2 - b.left, y1 = r1.bottom - b.top;
+      const x2 = r2.left + r2.width / 2 - b.left, y2 = r2.top - b.top - 2;
+      const my = (y1 + y2) / 2;
+      const hot = a.classList.contains("cur") || z.classList.contains("cur");
+      const p = document.createElementNS(NS, "path");
+      p.setAttribute("d", `M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`);
+      p.setAttribute("fill", "none");
+      p.setAttribute("stroke", hot ? "var(--accent)" : "var(--edge)");
+      p.setAttribute("stroke-width", hot ? "2.5" : "1.75");
+      p.setAttribute("marker-end", hot ? "url(#arrow-hot)" : "url(#arrow)");
+      csvg.appendChild(p);
     }
   }
 
@@ -269,6 +385,11 @@ button.node.rel { box-shadow: 0 0 0 1px var(--accent); }
     body.replaceChildren(tpl.content.cloneNode(true));
     addCopyButtons(body);
     body.querySelectorAll("[data-goto]").forEach(c => c.addEventListener("click", () => select(c.dataset.goto, { focus: true })));
+    const ch = chain(id);
+    if (ch) {
+      const waits = body.querySelector(".rel");
+      if (waits) waits.before(ch); else body.append(ch);
+    }
     panel.hidden = false;
     document.body.classList.add("open", "has-sel");
     if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
