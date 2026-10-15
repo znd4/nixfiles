@@ -767,7 +767,8 @@ def build_app_class():
         def on_mount(self) -> None:
             table = self.query_one("#items", DataTable)
             table.add_column(" ", key="sel", width=1)
-            table.add_column("id", key="id", width=5)
+            # The column is ID_LEN characters wide. A narrower column cuts off the end of a new id.
+            table.add_column("id", key="id", width=ID_LEN)
             table.add_column("age", key="age", width=5)
             table.add_column("?", key="probe", width=1)
             # Without a width, the column grows to the longest item and the
@@ -786,7 +787,7 @@ def build_app_class():
             layout is not complete, so the table still reports its old size;
             that truncates every row to the 20-column floor.
             """
-            fixed = 1 + 5 + 5 + 1  # sel, id, age, probe
+            fixed = 1 + ID_LEN + 5 + 1  # sel, id, age, probe
             padding = 2 * 5  # DataTable puts one space each side of every cell
             scrollbar = 2
             return max(20, self.size.width - fixed - padding - scrollbar - 1)
