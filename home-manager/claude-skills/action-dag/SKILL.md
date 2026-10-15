@@ -57,7 +57,7 @@ notebook is `$ACTION_DAG_NOTEBOOK`. The default is the ask-zk notebook.
 
 | File | Written by | Contents |
 |---|---|---|
-| `<goal>.dag.yaml` | you, by hand | the graph: lanes, nodes, edges, status sources |
+| `<goal>.dag.yaml` | you, with the [editing commands](#edit-the-graph) | the graph: lanes, nodes, edges, status sources |
 | `<goal>.dag.html`, or the `output:` path | `action-dag` | the page. Each run writes it again. Do not edit it. |
 | `<goal>.dag.state.json` | `action-dag` | the state of each node at the last run. It is always next to the YAML file. |
 
@@ -79,6 +79,11 @@ action-dag path/to/x.dag.yaml  # use a graph file in a different directory
 ```
 
 `<goal>` is the file name without `.dag.yaml`.
+
+The names `set`, `add`, `edge`, `done` and `rm` are reserved as the first
+argument (see [Edit the graph](#edit-the-graph)). To render a goal that has
+one of these names, put an option or `--` first:
+`action-dag --no-open -- set`.
 
 **The page opens only when it is new.** Without `--no-open`, the CLI opens
 the page only if the file did not exist before the run. If the user already
@@ -104,6 +109,97 @@ The summary has four parts:
 - **Waiting on others**: the nodes in the `wait` state.
 
 Give the user the summary. Copy the URLs exactly as the CLI prints them.
+
+## Edit the graph
+
+**Use the editing commands. Do not edit the YAML file with the Edit tool.**
+
+```bash
+action-dag set  <goal> <node> [options]                  # change a node
+action-dag add  <goal> <node> --lane <lane> --title <t>  # add a node
+action-dag edge <goal> <A> <B> [--remove]                # add or remove the edge [A, B]
+action-dag done <goal> <node> --label <text> [--link <url>]  # move a finished node to the done row
+action-dag rm   <goal> <node> [--force]                  # remove a node
+```
+
+Node options for `set` and `add`:
+
+| Option | Effect |
+|---|---|
+| `--state next\|wait\|decide\|blocked\|done` | sets `status: {manual: <state>}` |
+| `--status <source>` | replaces the status source. Give it more than once for a list of sources. Give `--status` or `--state`, not both. |
+| `--pending <state>` | the state while a `--status probe:` fails (default `next`) |
+| `--add-ask <id>` | adds an ask to `asks:` (you can give it more than once) |
+| `--remove-ask <id>` | removes an ask from `asks:` (`set` only) |
+| `--note <markdown>` | replaces `notes:` |
+| `--append-note <text>` | adds the text on a new line at the end of `notes:` |
+| `--title`, `--sub`, `--link`, `--owner`, `--lane`, `--hold-until <node>`, `--tag` | set that key |
+
+An empty value removes the key: `--hold-until ''` or `--note ''`.
+
+The values of `--status`:
+
+| Value | YAML that it writes |
+|---|---|
+| `ask:<id>` | `{ask: <id>}` |
+| `mr:<iid>` | `{mr: <iid>}`, with the project in `defaults` |
+| `mr:<project>!<iid>` | `{mr: {project: <project>, iid: <iid>}}` |
+| `mr:https://<host>/<project>/-/merge_requests/<iid>` | the short form if the host and the project are the same as in `defaults` |
+| `probe:'<command>'` | `{probe: <command>}`. The command must be read-only. |
+| `manual:<state>` | `{manual: <state>}` |
+
+Options for `add`: `--side` adds a side track, with no lane. `--after <A>`
+also adds the edge `[A, new node]`. `--before <B>` also adds the edge
+`[new node, B]`. A new node gets `status: {manual: next}` if you do not give
+a status. The command puts the new node after the last node of its lane in
+the YAML file.
+
+**`done`** moves a finished node to the `done:` row:
+
+1. It reads the state of the node from its own sources (MR, ask, probe or
+   manual). If the node is not done, the command stops. `--force` moves the
+   node anyway.
+2. It removes each edge to or from the node. Then it adds an edge from each
+   predecessor of the node to each successor of the node. This keeps the
+   order of the other steps.
+3. It removes `hold_until: <node>` from the other nodes.
+4. It adds `{label: <text>, link: <url>}` to the `done:` row. The default
+   `<url>` is the link of the node.
+
+**`rm`** removes a node. If an edge or a `hold_until` uses the node, the
+command stops. `--force` also removes these edges and `hold_until` keys. It
+does not add edges between the predecessors and the successors (`done` does).
+
+Each editing command:
+
+- keeps the comments, the key order, the quotes and the blank lines of the
+  file. Only the lines of the change are different.
+- checks the result as `--check` does. If the result has an error (for
+  example a cycle or an unknown lane), the command writes nothing and exits
+  with code 1. It prints the new warnings, for example a probe that possibly
+  writes.
+- writes the YAML file atomically (a temporary file, then a rename), and
+  prints a one-line summary of the change.
+- then writes the page and the state file again, and prints the summary, as
+  `action-dag <goal> --no-open` does. It never opens a browser tab.
+
+Two options for each editing command:
+
+- `--dry-run`: print the change as a unified diff. Write nothing.
+- `--no-render`: write the YAML file, but not the page. Use it for a series
+  of edits. Then run `action-dag <goal> --no-open` one time at the end.
+
+Examples, for the graph in [YAML schema](#yaml-schema):
+
+```bash
+action-dag set  example-cutover B --add-ask ef56
+action-dag set  example-cutover D --state done --append-note "Decided: keep the old cluster for 7 days."
+action-dag set  example-cutover A --status mr:42 --no-render
+action-dag add  example-cutover E --lane cutover --title "Delete the old cluster" --after D --link https://gitlab.example.com/group/repo/-/issues/9
+action-dag edge example-cutover B D
+action-dag done example-cutover B --label "!41 migration"
+action-dag rm   example-cutover S1 --dry-run
+```
 
 ## The page
 
@@ -269,9 +365,10 @@ Use `links:` to set the label yourself.
 
 1. Find the hub note of the goal (load the `zk` skill). If there is no hub
    note, make one first.
-2. Write `<notebook>/<goal>.dag.yaml`. Use the spoke notes of the hub note,
-   the open MRs and the open asks
-   (`ask-zk --plain --no-verify list --tag <topic>`).
+2. Write the first version of `<notebook>/<goal>.dag.yaml`. Use the spoke
+   notes of the hub note, the open MRs and the open asks
+   (`ask-zk --plain --no-verify list --tag <topic>`). After the first version,
+   use the [editing commands](#edit-the-graph).
 3. Give each node the best source that a machine can read: an MR, then an
    ask, then a read-only probe. Use `manual:` only for a decision or for a
    step that nothing can observe.
@@ -287,24 +384,27 @@ Use `links:` to set the label yourself.
 
 ## Update a graph when the facts change
 
-The live sources update by themselves. Edit the YAML only when the structure
-or a manual fact changes:
+The live sources update by themselves. Change the graph only when the
+structure or a manual fact changes. Use the
+[editing commands](#edit-the-graph):
 
-- **A decision is made**: change `manual: decide` to `manual: done`, and write
-  the result in `notes:`.
-- **A new step**: add a node and its edges. Run `--check`.
-- **A manual step now has an MR or an ask**: change its `status:` to the
-  `mr:` or `ask:` source.
-- **A step is finished and old**: move it from `nodes` to the `done` row, and
-  move its edges to the next node.
+- **A decision is made**:
+  `action-dag set <goal> <node> --state done --append-note "<the result>"`.
+- **A new step**: `action-dag add <goal> <node> --lane <lane> --title <t>
+  --after <A>`, then `action-dag edge` for each other edge.
+- **A manual step now has an MR or an ask**:
+  `action-dag set <goal> <node> --status mr:<iid>` (or `ask:<id>`).
+- **A step is finished and old**:
+  `action-dag done <goal> <node> --label "<text>"`.
 - **An ask was dropped or an MR was closed**: the CLI shows a warning. Give
-  the node a new source, or remove the node.
+  the node a new source with `set --status`, or remove the node with `rm`.
 - **The goal is complete or stopped**: run the CLI one last time, so the page
   shows the final state. Then write a line in the hub note. Keep the files as
   a record.
 
-After each edit, run `action-dag <goal> --no-open` and give the user the
-summary.
+Each editing command writes the page again and prints the summary. Give the
+user the summary. After a series of `--no-render` edits, run
+`action-dag <goal> --no-open` one time.
 
 ## Share the page
 
@@ -317,5 +417,7 @@ each run, from the same file path, so the URL stays the same.
 - The CLI calls ask-zk with `--no-verify` only. Never run `ask-zk done` or
   `ask-zk drop` because of what the graph shows. Only the user ticks an ask.
 - The CLI calls glab with GET requests only. It never prints a token.
+- Do not edit `<goal>.dag.yaml` with the Edit tool. Use the editing commands.
+  They keep the layout of the file and refuse to write a graph with errors.
 - Tests: `uv run --script home-manager/bin/tests/test_action_dag.py` in the
   nixfiles repo.

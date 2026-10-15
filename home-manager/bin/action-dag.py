@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["pyyaml>=6", "markdown-it-py>=3"]
+# dependencies = ["pyyaml>=6", "markdown-it-py>=3", "ruamel.yaml>=0.19,<0.20"]
 # ///
 """Draw the action graph (DAG) of a multi-step goal, with live status.
 
@@ -44,6 +44,9 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures as cf
+import dataclasses
+import difflib
+import io
 import html
 import json
 import os
@@ -60,6 +63,17 @@ from pathlib import Path
 
 import yaml
 from markdown_it import MarkdownIt
+from ruamel.yaml import YAML
+from ruamel.yaml.comments import CommentedMap, CommentedSeq
+from ruamel.yaml.error import YAMLError as RuamelYAMLError
+from ruamel.yaml.scalarstring import (
+    DoubleQuotedScalarString,
+    FoldedScalarString,
+    LiteralScalarString,
+    PlainScalarString,
+    ScalarString,
+    SingleQuotedScalarString,
+)
 
 # The Nix wrapper sets ACTION_DAG_NOTEBOOK. ASK_NOTEBOOK points to the same
 # notebook (ask-zk keeps its queue there), so the script uses it second.
@@ -782,14 +796,14 @@ def derive(g: Graph, own: dict[str, Result]) -> dict[str, Derived]:
 # files
 
 
-def write_atomic(path: Path, text: str) -> None:
+def write_atomic(path: Path, text: str, mode: int = 0o644) -> None:
     """Write to a temporary file in the same directory, then rename it. Thus a
     browser that reloads the page never reads a half-written file."""
     fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(text)
-        os.chmod(tmp, 0o644)
+        os.chmod(tmp, mode)
         os.replace(tmp, path)
     except BaseException:
         Path(tmp).unlink(missing_ok=True)
@@ -1205,11 +1219,820 @@ def open_page(path: Path) -> None:
         subprocess.run(["xdg-open", str(path)], check=False)
 
 
+# --------------------------------------------------------------------------
+# editing (set, add, edge, done, rm)
+#
+# The editing commands change the YAML file with ruamel.yaml in round-trip
+# mode, so the comments, the key order, the quotes and the blank lines outside
+# the edited node stay the same. Each command checks the result with
+# check_graph() before it writes, writes atomically, and then writes the page
+# again (as `action-dag <goal> --no-open` does) unless --no-render is given.
+
+
+EDIT_COMMANDS = ("set", "add", "edge", "done", "rm")
+# The order of the keys in a node. A new key goes after the nearest key that
+# comes before it in this order.
+KEY_ORDER = (
+    "id", "lane", "title", "sub", "link", "owner", "status", "asks",
+    "hold_until", "tag", "links", "notes",
+)
+# Plain string fields: (option dest, YAML key).
+FIELD_OPTS = (
+    ("title", "title"), ("sub", "sub"), ("link", "link"), ("owner", "owner"),
+    ("lane", "lane"), ("hold_until", "hold_until"), ("tag", "tag"),
+)
+# (mapping, sequence, offset) indents to try. load_doc() uses the first one
+# that gives the file back byte for byte.
+INDENTS = ((2, 4, 2), (2, 2, 0), (4, 4, 2), (4, 6, 4), (4, 4, 0))
+BLOCK_SCALARS = (LiteralScalarString, FoldedScalarString)
+
+
+class EditError(Exception):
+    """The edit is refused. Nothing was written."""
+
+
+def rt_yaml(indent: tuple[int, int, int]) -> YAML:
+    y = YAML()  # round-trip mode
+    y.preserve_quotes = True
+    y.width = 4096  # never fold a long line (probe commands are long)
+    y.indent(mapping=indent[0], sequence=indent[1], offset=indent[2])
+    return y
+
+
+def rt_dump(y: YAML, data) -> str:
+    buf = io.StringIO()
+    y.dump(data, buf)
+    return buf.getvalue()
+
+
+@dataclass
+class Doc:
+    """A graph file loaded in round-trip mode."""
+
+    path: Path
+    text: str
+    data: CommentedMap
+    yaml: YAML
+    exact: bool  # True if a dump without edits gives the same bytes
+
+    def dump(self) -> str:
+        return rt_dump(self.yaml, self.data)
+
+
+def load_doc(path: Path) -> Doc:
+    text = path.read_text(encoding="utf-8")
+    first: tuple[YAML, CommentedMap] | None = None
+    for indent in INDENTS:
+        y = rt_yaml(indent)
+        try:
+            data = y.load(text)
+        except RuamelYAMLError as e:
+            raise GraphError(f"{path}: not valid YAML: {e}") from e
+        if not isinstance(data, CommentedMap):
+            raise GraphError(f"{path}: the top level must be a mapping")
+        if rt_dump(y, data) == text:
+            return Doc(path, text, data, y, True)
+        if first is None:
+            first = (y, data)
+    assert first is not None
+    return Doc(path, text, first[1], first[0], False)
+
+
+def ystr(value: str):
+    """A new string value. Quote it when PyYAML (which reads the graph) would
+    read the plain form as something else: `yes` is a bool, `0123` an int."""
+    try:
+        plain_ok = yaml.safe_load(value) == value
+    except yaml.YAMLError:
+        plain_ok = False
+    # The characters ,[]{} end a plain value in a flow collection (`[a, b]`).
+    if plain_ok and value == value.strip() and not re.search(r"[\n,\[\]{}]", value):
+        return value
+    return DoubleQuotedScalarString(value)
+
+
+def like(old, value: str):
+    """A new value for a key. Keep the quote style of the old value."""
+    if "\n" in value:
+        return LiteralScalarString(value if value.endswith("\n") else value + "\n")
+    if isinstance(old, DoubleQuotedScalarString):
+        return DoubleQuotedScalarString(value)
+    if isinstance(old, SingleQuotedScalarString) and "\n" not in value:
+        return SingleQuotedScalarString(value)
+    return ystr(value)
+
+
+def flow_map(**kw) -> CommentedMap:
+    m = CommentedMap()
+    for k, v in kw.items():
+        m[k] = v
+    m.fa.set_flow_style()
+    return m
+
+
+def flow_seq(items) -> CommentedSeq:
+    s = CommentedSeq(items)
+    s.fa.set_flow_style()
+    return s
+
+
+# ---- comment bookkeeping
+#
+# ruamel.yaml keeps the blank lines and comments after the last key of a
+# mapping on that key (ca.items[key][2]). When a key is added after it, or the
+# last key is removed, these lines must move to the new last key, or the blank
+# line between two nodes moves or goes away. After a plain value the token
+# starts with the end of the value's own line ("# comment\n" or "\n"); after a
+# block scalar (`|`) it does not.
+
+
+def _tail(cm: CommentedMap, key):
+    item = cm.ca.items.get(key)
+    return item[2] if item and len(item) > 2 else None
+
+
+def _split_tail(cm: CommentedMap, key) -> tuple[str, str]:
+    """(own, rest) of the comment after key: own is the comment on the value's
+    own line, rest is the lines after it."""
+    tok = _tail(cm, key)
+    if tok is None:
+        return "", ""
+    value = tok.value
+    if isinstance(cm.get(key), BLOCK_SCALARS):
+        return "", value
+    head, nl, rest = value.partition("\n")
+    return head + nl, rest
+
+
+def _put_tail(cm: CommentedMap, key, own: str, rest: str) -> None:
+    """Set the comment after key from its parts. own is ignored after a block
+    scalar."""
+    from ruamel.yaml.tokens import CommentToken
+    from ruamel.yaml.error import CommentMark
+
+    if isinstance(cm.get(key), BLOCK_SCALARS):
+        value = rest
+    else:
+        value = (own or "\n") + rest if rest else (own if own.strip() else "")
+    item = cm.ca.items.setdefault(key, [None, None, None, None])
+    while len(item) < 4:
+        item.append(None)
+    item[2] = CommentToken(value, CommentMark(0), None) if value else None
+
+
+def _last_key(cm: CommentedMap):
+    return next(reversed(cm)) if len(cm) else None
+
+
+def set_key(cm: CommentedMap, key: str, value) -> None:
+    """Set key. A new key goes to its place in KEY_ORDER. The lines after the
+    old last key move to the new last key."""
+    if key in cm:
+        last = _last_key(cm) == key
+        own, rest = _split_tail(cm, key) if last else ("", "")
+        if type(value) is str and isinstance(cm[key], ScalarString):
+            # ruamel.yaml gives a plain str the style of the old value (a `|`
+            # block, quotes). PlainScalarString keeps the new value plain.
+            value = PlainScalarString(value)
+        cm[key] = value
+        if last:  # the value can change from plain to block, or back
+            _put_tail(cm, key, own, rest)
+        return
+    rank = KEY_ORDER.index(key) if key in KEY_ORDER else len(KEY_ORDER)
+    pos = 0
+    for i, k in enumerate(cm):
+        if (KEY_ORDER.index(k) if k in KEY_ORDER else len(KEY_ORDER)) <= rank:
+            pos = i + 1
+    old_last = _last_key(cm)
+    cm.insert(pos, key, value)
+    if old_last is not None and _last_key(cm) == key:
+        own, rest = _split_tail(cm, old_last)
+        _put_tail(cm, old_last, own, "")
+        _put_tail(cm, key, "", rest)
+
+
+def del_key(cm: CommentedMap, key: str) -> None:
+    if key not in cm:
+        return
+    keys = list(cm)
+    if keys[-1] == key and len(keys) > 1:
+        _, rest = _split_tail(cm, key)
+        prev = keys[-2]
+        own, _ = _split_tail(cm, prev)
+        del cm[key]
+        cm.ca.items.pop(key, None)
+        _put_tail(cm, prev, own, rest)
+    else:
+        del cm[key]
+        cm.ca.items.pop(key, None)
+
+
+def del_item(seq: CommentedSeq, i: int) -> None:
+    """Remove seq[i]. The comment lines before the item (for example a lane
+    heading) move to the next item, if that item has none."""
+    item = seq.ca.items.get(i)
+    pre = item[1] if item and len(item) > 1 else None
+    del seq[i]  # ruamel.yaml moves the comments of the later items
+    if i >= len(seq):
+        return
+    item = seq.ca.items.setdefault(i, [None, None, None, None])
+    if pre and not item[1]:
+        item[1] = pre
+    elif item[1] and i > 0 and _ends_blank(seq[i - 1]) and item[1][0].value == "\n":
+        # The item before and the item after both have a blank line between
+        # them and the removed item. Keep one blank line, not two.
+        item[1] = item[1][1:] or None
+
+
+def _ends_blank(obj) -> bool:
+    """True if a blank line follows obj (in the comment on its last key)."""
+    while isinstance(obj, CommentedMap) and len(obj):
+        key = _last_key(obj)
+        if _split_tail(obj, key)[1].startswith("\n"):
+            return True
+        obj = obj[key]
+    return False
+
+
+# ---- finding things
+
+
+def node_lists(data: CommentedMap):
+    for key in ("nodes", "side"):
+        seq = data.get(key)
+        if isinstance(seq, list):
+            yield key, seq
+
+
+def find_node(data: CommentedMap, nid: str) -> tuple[str, int, CommentedMap]:
+    for key, seq in node_lists(data):
+        for i, raw in enumerate(seq):
+            if isinstance(raw, dict) and str(raw.get("id")) == nid:
+                return key, i, raw
+    raise EditError(f"no node {nid!r} in the graph")
+
+
+def edge_list(data: CommentedMap, create: bool = False) -> CommentedSeq | None:
+    seq = data.get("edges")
+    if seq is None and create:
+        seq = CommentedSeq()
+        top_insert(data, "edges", seq, after=("side", "nodes"))
+    return seq
+
+
+def top_insert(data: CommentedMap, key: str, value, after: tuple[str, ...]) -> None:
+    """Add a top-level key after the first key in `after` that exists."""
+    for a in after:
+        if a in data:
+            pos = list(data).index(a) + 1
+            old_last = _last_key(data)
+            data.insert(pos, key, value)
+            if _last_key(data) == key and old_last is not None:
+                own, rest = _split_tail(data, old_last)
+                _put_tail(data, old_last, own, "")
+                _put_tail(data, key, "", rest)
+            return
+    data[key] = value
+
+
+def edges_of(data: CommentedMap) -> list[tuple[str, str]]:
+    return [(str(e[0]), str(e[1])) for e in (data.get("edges") or []) if isinstance(e, list) and len(e) == 2]
+
+
+# ---- status arguments
+
+
+def parse_status_arg(text: str, defaults: dict, pending: str | None):
+    """One --status value as a source mapping:
+    ask:<id>, mr:<iid>, mr:<project>!<iid>, mr:<MR URL>, probe:<cmd> or
+    manual:<state>."""
+    kind, sep, value = text.partition(":")
+    kind = kind.strip()
+    if not sep or kind not in SOURCE_KEYS or not value.strip():
+        raise EditError(
+            f"--status {text!r}: use ask:<id>, mr:<iid>, mr:<project>!<iid>, "
+            "probe:<cmd> or manual:<state>"
+        )
+    value = value.strip()
+    if kind == "ask":
+        return flow_map(ask=ystr(value))
+    if kind == "manual":
+        return flow_map(manual=value)
+    if kind == "probe":
+        m = flow_map(probe=ystr(value))
+        if pending:
+            m["pending"] = pending
+        return m
+    # mr
+    host = project = None
+    url = re.fullmatch(r"https://([^/]+)/(.+?)/-/merge_requests/(\d+)/?", value)
+    if url:
+        host, project, iid = url.group(1), url.group(2), url.group(3)
+    elif "!" in value:
+        project, _, iid = value.rpartition("!")
+    else:
+        iid = value
+    if not iid.isdigit():
+        raise EditError(f"--status {text!r}: the MR iid must be a number")
+    if host == defaults.get("mr_host", "gitlab.com"):
+        host = None
+    if project == defaults.get("mr_project"):
+        project = None
+    if not host and not project:
+        if not defaults.get("mr_project"):
+            raise EditError(f"--status {text!r}: no defaults.mr_project, so give mr:<project>!<iid>")
+        return flow_map(mr=int(iid))
+    mr = flow_map(project=ystr(project or defaults.get("mr_project", "")), iid=int(iid))
+    if host:
+        mr["host"] = host
+    return flow_map(mr=mr)
+
+
+def status_value(sources: list):
+    """One source: a flow mapping, `{ask: ab12}`. Several: a block list."""
+    if len(sources) == 1:
+        return sources[0]
+    seq = CommentedSeq()
+    for s in sources:
+        s.fa.set_block_style()
+        seq.append(s)
+    return seq
+
+
+def source_text(sources: list) -> str:
+    """A short text for the new status sources, for the summary line."""
+    out = []
+    for s in sources:
+        kind = next(iter(s))
+        value = s[kind]
+        if kind == "mr" and isinstance(value, dict):
+            value = f"{value.get('host', '') + '/' if value.get('host') else ''}{value['project']}!{value['iid']}"
+        elif kind == "probe":
+            value = short(str(value), 30)
+        out.append(f"{kind}:{value}")
+    return " + ".join(out)
+
+
+# ---- applying the node options
+
+
+def apply_node_opts(cm: CommentedMap, args, defaults: dict, changes: list[str]) -> None:
+    """Apply the options that set, add and done share. Append a short text
+    to `changes` for each change."""
+    for dest, key in FIELD_OPTS:
+        value = getattr(args, dest, None)
+        if value is None:
+            continue
+        old = cm.get(key)
+        if value == "":
+            if key in cm:
+                del_key(cm, key)
+                changes.append(f"{key} removed")
+            continue
+        if old is not None and str(old) == value:
+            continue
+        set_key(cm, key, like(old, value))
+        changes.append(f"{key} {short(value)!r}")
+
+    if args.state and args.status:
+        raise EditError("give --state or --status, not both")
+    if args.pending and not any(s.startswith("probe:") for s in args.status or []):
+        raise EditError("--pending needs a --status probe:<cmd>")
+    if args.state:
+        old = cm.get("status")
+        value = flow_map(manual=args.state)
+        if not (isinstance(old, dict) and dict(old) == {"manual": args.state}) and old != args.state:
+            set_key(cm, "status", value)
+            changes.append(f"state {args.state}")
+    elif args.status:
+        sources = [parse_status_arg(s, defaults, args.pending) for s in args.status]
+        set_key(cm, "status", status_value(sources))
+        changes.append(f"status {source_text(sources)}")
+
+    add = [a for a in (getattr(args, "add_ask", None) or [])]
+    remove = [a for a in (getattr(args, "remove_ask", None) or [])]
+    if add or remove:
+        asks = cm.get("asks")
+        if isinstance(asks, str):
+            asks = flow_seq([asks])
+        elif asks is None:
+            asks = flow_seq([])
+        current = [str(a) for a in asks]
+        for a in remove:
+            if a not in current:
+                raise EditError(f"node {cm.get('id')}: ask {a} is not in asks {current}")
+            idx = current.index(a)
+            del asks[idx]
+            current.pop(idx)
+            changes.append(f"asks -{a}")
+        for a in add:
+            if a in current:
+                continue
+            asks.append(ystr(a))
+            current.append(a)
+            changes.append(f"asks +{a}")
+        if current:
+            set_key(cm, "asks", asks)
+        else:
+            del_key(cm, "asks")
+
+    if args.note is not None and args.append_note is not None:
+        raise EditError("give --note or --append-note, not both")
+    if args.note is not None:
+        if args.note == "":
+            if "notes" in cm:
+                del_key(cm, "notes")
+                changes.append("notes removed")
+        else:
+            set_key(cm, "notes", like(cm.get("notes"), args.note))
+            changes.append("notes replaced")
+    elif args.append_note:
+        old = str(cm.get("notes") or "")
+        text = (old.rstrip("\n") + "\n" + args.append_note) if old.strip() else args.append_note
+        set_key(cm, "notes", like(cm.get("notes"), text))
+        changes.append("notes appended")
+
+
+def short(text: str, n: int = 40) -> str:
+    text = " ".join(text.split())
+    return text if len(text) <= n else text[: n - 1] + "…"
+
+
+# ---- the commands
+
+
+def edit_set(doc: Doc, args, src) -> list[str]:
+    _, _, cm = find_node(doc.data, args.node)
+    changes: list[str] = []
+    apply_node_opts(cm, args, doc.data.get("defaults") or {}, changes)
+    return [f"set {args.node}: " + ", ".join(changes)] if changes else []
+
+
+def edit_add(doc: Doc, args, src) -> list[str]:
+    try:
+        find_node(doc.data, args.node)
+    except EditError:
+        pass
+    else:
+        raise EditError(f"node {args.node!r} is already in the graph (use set)")
+    if args.side and args.lane:
+        raise EditError("a side node has no lane: give --side or --lane, not both")
+    if not args.side and not args.lane:
+        raise EditError("give --lane <lane>, or --side for a side track")
+    if not args.title:
+        raise EditError("give --title")
+    cm = CommentedMap()
+    cm["id"] = ystr(args.node)
+    changes: list[str] = []
+    apply_node_opts(cm, args, doc.data.get("defaults") or {}, changes)
+    if "status" not in cm:
+        set_key(cm, "status", flow_map(manual="next"))
+    key = "side" if args.side else "nodes"
+    seq = doc.data.get(key)
+    if seq is None:
+        seq = CommentedSeq()
+        top_insert(doc.data, key, seq, after=("done", "edges", "nodes", "lanes") if key == "side" else ("lanes",))
+    pos = len(seq)
+    if not args.side:
+        # After the last node of the same lane, so the YAML stays in lane order.
+        same = [i for i, n in enumerate(seq) if isinstance(n, dict) and n.get("lane") == args.lane]
+        if same:
+            pos = same[-1] + 1
+    seq.insert(pos, cm)
+    added = []
+    for pred in args.after or []:
+        added.append(add_edge(doc.data, pred, args.node))
+    for succ in args.before or []:
+        added.append(add_edge(doc.data, args.node, succ))
+    where = "side" if args.side else f"lane {args.lane}"
+    line = f"add {args.node} ({where})"
+    if added:
+        line += ", edges " + ", ".join(f"[{a}, {b}]" for a, b in added)
+    return [line]
+
+
+def add_edge(data: CommentedMap, a: str, b: str, pos: int | None = None) -> tuple[str, str]:
+    if (a, b) in edges_of(data):
+        raise EditError(f"edge [{a}, {b}] is already in the graph")
+    seq = edge_list(data, create=True)
+    item = flow_seq([ystr(a), ystr(b)])
+    if pos is None:
+        seq.append(item)
+    else:
+        seq.insert(pos, item)
+    return a, b
+
+
+def edit_edge(doc: Doc, args, src) -> list[str]:
+    a, b = args.a, args.b
+    if args.remove:
+        seq = doc.data.get("edges") or []
+        for i, e in enumerate(seq):
+            if isinstance(e, list) and len(e) == 2 and (str(e[0]), str(e[1])) == (a, b):
+                del_item(seq, i)
+                return [f"edge [{a}, {b}] removed"]
+        raise EditError(f"no edge [{a}, {b}] in the graph")
+    add_edge(doc.data, a, b)
+    return [f"edge [{a}, {b}] added"]
+
+
+def drop_edges_of(data: CommentedMap, nid: str) -> tuple[list[tuple[str, str]], int | None]:
+    """Remove each edge to or from nid. Returns (removed, index of the first)."""
+    seq = data.get("edges") or []
+    removed, first = [], None
+    for i in reversed(range(len(seq))):
+        e = seq[i]
+        if isinstance(e, list) and len(e) == 2 and nid in (str(e[0]), str(e[1])):
+            removed.insert(0, (str(e[0]), str(e[1])))
+            first = i
+            del_item(seq, i)
+    return removed, first
+
+
+def node_state(doc: Doc, nid: str, src) -> Result:
+    """The state that the node's own sources give now (live lookup)."""
+    g = graph_from_dict(doc.data, doc.path)
+    one = dataclasses.replace(g, nodes={nid: g.nodes[nid]}, edges=[])
+    return resolve_sources(one, src)[nid]
+
+
+def edit_done(doc: Doc, args, src) -> list[str]:
+    key, idx, cm = find_node(doc.data, args.node)
+    if not args.force:
+        r = node_state(doc, args.node, src)
+        if r.state != "done":
+            raise EditError(
+                f"node {args.node} is {r.state} ({r.detail}), not done. "
+                "Give --force to move it to the done row anyway"
+            )
+    g = graph_from_dict(doc.data, doc.path)
+    link = args.link if args.link is not None else g.nodes[args.node].link
+    holders = [n.id for n in g.nodes.values() if n.hold_until == args.node]
+    for h in holders:
+        _, _, hcm = find_node(doc.data, h)
+        del_key(hcm, "hold_until")
+    removed, first = drop_edges_of(doc.data, args.node)
+    preds = [a for a, b in removed if b == args.node]
+    succs = [b for a, b in removed if a == args.node]
+    # Keep the order: each predecessor of the node goes before each successor.
+    bridged = []
+    pos = first
+    for p in preds:
+        for s in succs:
+            if p != s and (p, s) not in edges_of(doc.data):
+                add_edge(doc.data, p, s, pos)
+                bridged.append((p, s))
+                pos = (pos + 1) if pos is not None else None
+    del_item(doc.data[key], idx)
+    entry = flow_map(label=DoubleQuotedScalarString(args.label))
+    if link:
+        entry["link"] = DoubleQuotedScalarString(link)
+    done = doc.data.get("done")
+    if done is None:
+        done = CommentedSeq()
+        top_insert(doc.data, "done", done, after=("edges", "nodes"))
+    done.append(entry)
+    line = f"done {args.node}: moved to the done row as {short(args.label)!r}"
+    if removed:
+        line += ", edges removed " + ", ".join(f"[{a}, {b}]" for a, b in removed)
+    if bridged:
+        line += ", edges added " + ", ".join(f"[{a}, {b}]" for a, b in bridged)
+    if holders:
+        line += ", hold_until removed from " + ", ".join(holders)
+    return [line]
+
+
+def edit_rm(doc: Doc, args, src) -> list[str]:
+    key, idx, _ = find_node(doc.data, args.node)
+    refs = [e for e in edges_of(doc.data) if args.node in e]
+    g = graph_from_dict(doc.data, doc.path)
+    holders = [n.id for n in g.nodes.values() if n.hold_until == args.node]
+    if (refs or holders) and not args.force:
+        what = [f"edges {', '.join(f'[{a}, {b}]' for a, b in refs)}"] if refs else []
+        what += [f"hold_until of {', '.join(holders)}"] if holders else []
+        raise EditError(
+            f"{' and '.join(what)} use node {args.node}. "
+            "Give --force to remove them too"
+        )
+    removed, _ = drop_edges_of(doc.data, args.node)
+    for h in holders:
+        _, _, hcm = find_node(doc.data, h)
+        del_key(hcm, "hold_until")
+    del_item(doc.data[key], idx)
+    line = f"rm {args.node}"
+    if removed:
+        line += ", edges removed " + ", ".join(f"[{a}, {b}]" for a, b in removed)
+    if holders:
+        line += ", hold_until removed from " + ", ".join(holders)
+    return [line]
+
+
+EDITORS = {"set": edit_set, "add": edit_add, "edge": edit_edge, "done": edit_done, "rm": edit_rm}
+
+
+def render_page(path: Path, src) -> None:
+    """Write the page and the state file again, as `action-dag <goal>
+    --no-open` does, and print the summary. Never opens a browser tab."""
+    g = load_graph(path)
+    derived, changed, first_run, _, _ = cycle_once(g, src)
+    print("")
+    print(summary(g, derived, changed, first_run=first_run))
+    print("")
+    print(f"Page: {g.output}")
+
+
+def edit_parser() -> argparse.ArgumentParser:
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument(
+        "--dry-run", action="store_true",
+        help="print the change as a unified diff. Write nothing",
+    )
+    common.add_argument(
+        "--no-render", action="store_true",
+        help="write the YAML file, but not the page. Use it for a series of edits, "
+        "then run `action-dag <goal> --no-open` once",
+    )
+
+    fields = argparse.ArgumentParser(add_help=False)
+    g = fields.add_argument_group("node fields (an empty value removes the key)")
+    g.add_argument("--title")
+    g.add_argument("--sub")
+    g.add_argument("--link", help="a full https:// URL")
+    g.add_argument("--owner", help="me, a name, or empty")
+    g.add_argument("--lane", help="a lane id from `lanes:`")
+    g.add_argument("--hold-until", metavar="NODE", help="warn if the MR merges before NODE is done")
+    g.add_argument("--tag", help="extra text in the card's id row")
+    s = fields.add_argument_group("status")
+    s.add_argument(
+        "--state", choices=MANUAL_STATES,
+        help="set `status: {manual: STATE}`",
+    )
+    s.add_argument(
+        "--status", action="append", metavar="SOURCE",
+        help="replace the status source: ask:<id>, mr:<iid>, mr:<project>!<iid>, "
+        "mr:<MR URL>, probe:<read-only command> or manual:<state>. "
+        "Give it more than once for a list of sources",
+    )
+    s.add_argument(
+        "--pending", choices=MANUAL_STATES,
+        help="the state while a --status probe fails (default next)",
+    )
+    s.add_argument("--add-ask", action="append", metavar="ID", help="add a related ask to `asks:`")
+    n = fields.add_argument_group("notes (markdown)")
+    n.add_argument("--note", help="replace `notes:`. An empty value removes it")
+    n.add_argument("--append-note", metavar="TEXT", help="add TEXT on a new line at the end of `notes:`")
+
+    ap = argparse.ArgumentParser(
+        prog="action-dag",
+        description="Edit a graph file. Each command checks the result (as --check does) "
+        "and refuses to write a graph with errors. Then it writes the page again, "
+        "as `action-dag <goal> --no-open` does, unless you give --no-render.",
+    )
+    sub = ap.add_subparsers(dest="cmd", required=True, metavar="COMMAND")
+    goal_help = "the goal name, or the path to a .dag.yaml file"
+
+    p = sub.add_parser("set", parents=[common, fields], help="change a node")
+    p.add_argument("goal", help=goal_help)
+    p.add_argument("node")
+    p.add_argument("--remove-ask", action="append", metavar="ID", help="remove an ask from `asks:`")
+
+    p = sub.add_parser(
+        "add", parents=[common, fields],
+        help="add a node (default status: {manual: next})",
+    )
+    p.add_argument("goal", help=goal_help)
+    p.add_argument("node")
+    p.add_argument("--side", action="store_true", help="add a side track (no lane, no edges)")
+    p.add_argument("--after", action="append", metavar="NODE", help="also add the edge [NODE, new node]")
+    p.add_argument("--before", action="append", metavar="NODE", help="also add the edge [new node, NODE]")
+
+    p = sub.add_parser("edge", parents=[common], help="add or remove the edge [A, B] (A must finish before B)")
+    p.add_argument("goal", help=goal_help)
+    p.add_argument("a", metavar="A")
+    p.add_argument("b", metavar="B")
+    p.add_argument("--remove", action="store_true", help="remove the edge")
+
+    p = sub.add_parser(
+        "done", parents=[common],
+        help="move a finished node to the done row",
+        description="Move a finished node to the `done:` row. The command removes each edge "
+        "to or from the node, and adds an edge from each predecessor to each successor, "
+        "so the order stays. It refuses if the node's own sources do not say done now.",
+    )
+    p.add_argument("goal", help=goal_help)
+    p.add_argument("node")
+    p.add_argument("--label", required=True, help="the text of the link in the done row")
+    p.add_argument("--link", help="the URL of the link (default: the node's link)")
+    p.add_argument("--force", action="store_true", help="move the node even if it is not done")
+
+    p = sub.add_parser("rm", parents=[common], help="remove a node")
+    p.add_argument("goal", help=goal_help)
+    p.add_argument("node")
+    p.add_argument(
+        "--force", action="store_true",
+        help="also remove the edges and hold_until keys that use the node",
+    )
+    return ap
+
+
+def edit_main(argv: list[str], sources: Sources | None = None) -> int:
+    args = edit_parser().parse_args(argv)
+    for name in ("state", "status", "pending", "add_ask", "note", "append_note", "remove_ask"):
+        if not hasattr(args, name):
+            setattr(args, name, None)
+    src = sources or Sources()
+    try:
+        path = find_graph(args.goal)
+        doc = load_doc(path)
+        try:
+            _, before_warn = check_graph(graph_from_dict(yaml.safe_load(doc.text) or {}, path))
+        except GraphError:
+            before_warn = []  # an edit can repair a graph that does not load
+        changes = EDITORS[args.cmd](doc, args, src)
+        new_text = doc.dump()
+        try:
+            after_g = graph_from_dict(yaml.safe_load(new_text) or {}, path)
+        except (GraphError, yaml.YAMLError) as e:
+            raise EditError(f"the result is not a valid graph: {e}") from e
+        errors, warnings = check_graph(after_g)
+    except GraphError as e:
+        print(f"action-dag: {e}", file=sys.stderr)
+        return 2
+    except EditError as e:
+        print(f"action-dag: {e}. Nothing was written.", file=sys.stderr)
+        return 1
+    if errors:
+        for e in errors:
+            print(f"error: {e}", file=sys.stderr)
+        print(
+            f"action-dag: the result has {len(errors)} error(s), so {path.name} did not change",
+            file=sys.stderr,
+        )
+        return 1
+    for w in warnings:
+        if w not in before_warn:
+            print(f"warning: {w}", file=sys.stderr)
+    if new_text == doc.text:
+        print(f"action-dag: no change to {path.name}")
+        return 0
+    old_lines, new_lines = doc.text.splitlines(keepends=True), new_text.splitlines(keepends=True)
+    diff = list(difflib.unified_diff(old_lines, new_lines, fromfile=str(path), tofile=str(path)))
+    plus = sum(1 for d in diff if d.startswith("+") and not d.startswith("+++"))
+    minus = sum(1 for d in diff if d.startswith("-") and not d.startswith("---"))
+    line = f"{path.name}: {'; '.join(changes)} (+{plus} -{minus} lines)"
+    if not doc.exact:
+        print(
+            "warning: ruamel.yaml does not give this file back byte for byte, so the diff "
+            "can show changes outside the edit. Check it with --dry-run",
+            file=sys.stderr,
+        )
+    if args.dry_run:
+        sys.stdout.writelines(diff)
+        print(f"dry run, nothing written: {line}")
+        return 0
+    target = path.resolve()  # write through a symlink, do not replace it
+    if target.read_text(encoding="utf-8") != doc.text:
+        print(
+            f"action-dag: {path.name} changed while this command ran. Nothing was written. "
+            "Run the command again",
+            file=sys.stderr,
+        )
+        return 1
+    write_atomic(target, new_text, mode=target.stat().st_mode & 0o777)
+    print(line)
+    if args.no_render:
+        return 0
+    try:
+        render_page(path, src)
+    except (GraphError, OSError) as e:
+        print(f"action-dag: {path.name} was written, but the page was not written: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
 def main(argv: list[str] | None = None, sources: Sources | None = None) -> int:
+    argv = sys.argv[1:] if argv is None else list(argv)
+    # The first argument selects an editing command. To render a goal that has
+    # the name of a command, put an option or `--` first: `action-dag -- set`.
+    if argv and argv[0] in EDIT_COMMANDS:
+        return edit_main(argv, sources)
     ap = argparse.ArgumentParser(
         prog="action-dag",
         description="Draw the action graph of a goal, with live status from GitLab MRs, "
         "ask-zk items and read-only probes.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""editing commands (`action-dag COMMAND --help` for the options):
+  set  <goal> <node> [options]          change a node
+  add  <goal> <node> --lane L --title T add a node
+  edge <goal> <A> <B> [--remove]        add or remove the edge [A, B]
+  done <goal> <node> --label TEXT       move a finished node to the done row
+  rm   <goal> <node> [--force]          remove a node
+
+Each editing command keeps the comments and the layout of the YAML file. It
+refuses to write a graph with errors. Then it writes the page again, as
+--no-open does. --no-render stops this step. --dry-run prints a diff only.
+The names set, add, edge, done and rm are reserved as the first argument.
+To render a goal with one of these names, put `--` first: action-dag --no-open -- set""",
     )
     ap.add_argument(
         "goal", nargs="?",

@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["markdown-it-py>=3", "pytest>=8", "pyyaml>=6"]
+# dependencies = ["markdown-it-py>=3", "pytest>=8", "pyyaml>=6", "ruamel.yaml>=0.19,<0.20"]
 # ///
 """Tests for ../action-dag.py.
 
@@ -562,6 +562,348 @@ def test_one_line_summary():
     d = run_derive(g, FakeSources())
     line = ad.one_line(g, d, {"A": "wait"}, "T")
     assert line == "T  t: next=1 done=1 warnings=0 changed=1"
+
+
+# ---------------------------------------------------------------- editing commands
+
+FX = """\
+# Top comment: the fixture graph.
+goal: fx
+title: "Fixture: quoted title"
+defaults:
+  mr_host: gitlab.example.com
+  mr_project: group/repo
+
+lanes:
+  - {id: l1, title: "Lane one"}   # first lane
+  - {id: l2, title: 'Lane two'}
+
+nodes:
+  # --- lane one ---
+  - id: A
+    lane: l1
+    title: "First step"
+    link: https://example.com/a
+    status: {manual: done}
+    notes: |
+      Line one.
+      Line two.
+
+  - id: B
+    lane: l1
+    title: 'Second: step'  # trailing comment
+    link: https://example.com/b
+    status:
+      - ask: ab12
+      - probe: "test -e /tmp/x"
+        pending: wait
+    asks: [cd34]
+
+  # --- lane two ---
+  - id: C
+    lane: l2
+    title: Third step
+    link: https://example.com/c
+    status: {mr: 7}
+    hold_until: A
+edges:
+  - [A, B]   # A before B
+  - [B, C]
+
+done:
+  - {label: "old", link: "https://example.com/old"}
+"""
+B_BLOCK = FX[FX.index("  - id: B\n"):FX.index("\n  # --- lane two ---")]
+
+
+@pytest.fixture
+def fx(tmp_path, monkeypatch):
+    """The fixture graph, and a counter of page renders (the real render is
+    replaced, so no test calls glab or ask-zk by accident)."""
+    path = tmp_path / "fx.dag.yaml"
+    path.write_text(FX)
+    renders = []
+    monkeypatch.setattr(ad, "render_page", lambda p, src: renders.append(p))
+    monkeypatch.setattr(ad, "open_page", lambda p: pytest.fail("an edit opened a browser tab"))
+    return path, renders
+
+
+def edit(path, *args, src=None):
+    cmd, rest = args[0], list(args[1:])
+    return ad.main([cmd, str(path), *rest], sources=src or FakeSources())
+
+
+def test_round_trip_without_an_edit_gives_the_same_bytes(fx):
+    doc = ad.load_doc(fx[0])
+    assert doc.exact and doc.dump() == FX
+
+
+def test_set_changes_only_the_node(fx):
+    path, renders = fx
+    assert edit(path, "set", "B", "--title", "New title", "--sub", "a sub", "--add-ask", "ef56") == 0
+    text = path.read_text()
+    head, tail = FX.split(B_BLOCK)
+    assert text.startswith(head) and text.endswith(tail)
+    block = text[len(head):len(text) - len(tail)]
+    assert block == (
+        "  - id: B\n"
+        "    lane: l1\n"
+        "    title: 'New title'     # trailing comment\n"
+        "    sub: a sub\n"
+        "    link: https://example.com/b\n"
+        "    status:\n"
+        "      - ask: ab12\n"
+        '      - probe: "test -e /tmp/x"\n'
+        "        pending: wait\n"
+        "    asks: [cd34, ef56]\n"
+    )
+    assert renders == [path]
+
+
+def test_set_state_status_list_and_safe_quoting(fx):
+    path, _ = fx
+    assert edit(
+        path, "set", "C", "--title", "yes", "--add-ask", "0123",
+        "--status", "ask:ff00", "--status", "probe:test -e /tmp/y", "--pending", "wait",
+    ) == 0
+    g = ad.load_graph(path)  # PyYAML reads it, as the render does
+    c = g.nodes["C"]
+    assert c.title == "yes" and c.asks == ["0123"]
+    assert c.sources == [{"ask": "ff00"}, {"probe": "test -e /tmp/y", "pending": "wait"}]
+    assert edit(path, "set", "C", "--state", "decide") == 0
+    assert "    status: {manual: decide}\n" in path.read_text()
+    assert edit(path, "set", "C", "--status", "mr:group/other!12") == 0
+    assert "    status: {mr: {project: group/other, iid: 12}}\n" in path.read_text()
+    assert edit(path, "set", "C", "--status", "mr:https://gitlab.example.com/group/repo/-/merge_requests/9") == 0
+    assert "    status: {mr: 9}\n" in path.read_text()
+
+
+def test_set_state_and_status_together_is_refused(fx, capsys):
+    path, renders = fx
+    assert edit(path, "set", "C", "--state", "done", "--status", "ask:x") == 1
+    assert path.read_text() == FX and not renders
+    assert "not both" in capsys.readouterr().err
+
+
+def test_notes_append_replace_and_remove_keep_the_blank_line(fx):
+    path, _ = fx
+    assert edit(path, "set", "A", "--append-note", "Line three.") == 0
+    text = path.read_text()
+    assert "    notes: |\n      Line one.\n      Line two.\n      Line three.\n\n  - id: B\n" in text
+    assert edit(path, "set", "A", "--note", "One line") == 0
+    assert "    notes: One line\n\n  - id: B\n" in path.read_text()
+    assert edit(path, "set", "A", "--note", "") == 0
+    assert "    status: {manual: done}\n\n  - id: B\n" in path.read_text()
+    # A new key after the last key also takes the blank line.
+    assert edit(path, "set", "A", "--tag", "runbook 1") == 0
+    assert "    tag: runbook 1\n\n  - id: B\n" in path.read_text()
+    assert edit(path, "set", "C", "--append-note", "First note.") == 0
+    assert "    hold_until: A\n    notes: First note.\nedges:\n" in path.read_text()
+
+
+def test_remove_ask_and_empty_value_removes_the_key(fx, capsys):
+    path, _ = fx
+    assert edit(path, "set", "B", "--remove-ask", "zz") == 1
+    assert "ask zz is not in asks" in capsys.readouterr().err
+    assert path.read_text() == FX
+    assert edit(path, "set", "B", "--remove-ask", "cd34") == 0
+    assert "asks:" not in path.read_text()
+    assert edit(path, "set", "C", "--hold-until", "") == 0
+    assert "hold_until" not in path.read_text()
+
+
+def test_set_unknown_node_and_unknown_lane_are_refused(fx, capsys):
+    path, renders = fx
+    assert edit(path, "set", "Q", "--title", "x") == 1
+    assert edit(path, "set", "B", "--lane", "nope") == 1
+    assert "lane 'nope' is not in `lanes`" in capsys.readouterr().err
+    assert path.read_text() == FX and not renders
+
+
+def test_set_probe_that_writes_gives_the_warning(fx, capsys):
+    path, _ = fx
+    assert edit(path, "set", "C", "--status", "probe:kubectl apply -f x.yaml") == 0
+    assert "possibly writes" in capsys.readouterr().err
+
+
+def test_no_change_writes_nothing(fx, capsys):
+    path, renders = fx
+    before = path.stat().st_mtime_ns
+    assert edit(path, "set", "B", "--title", "Second: step") == 0
+    assert "no change" in capsys.readouterr().out
+    assert path.stat().st_mtime_ns == before and not renders
+
+
+def test_add_puts_the_node_after_its_lane_and_adds_edges(fx):
+    path, _ = fx
+    assert edit(
+        path, "add", "X", "--lane", "l1", "--title", "New step",
+        "--link", "https://example.com/x", "--after", "A", "--before", "C",
+    ) == 0
+    text = path.read_text()
+    assert (
+        "    asks: [cd34]\n"
+        "  - id: X\n"
+        "    lane: l1\n"
+        "    title: New step\n"
+        "    link: https://example.com/x\n"
+        "    status: {manual: next}\n"
+        "\n"
+        "  # --- lane two ---\n"
+    ) in text
+    assert "  - [B, C]\n  - [A, X]\n  - [X, C]\n\ndone:\n" in text
+    assert ad.cmd_check(path) == 0
+
+
+def test_add_side_node_and_refusals(fx, capsys):
+    path, _ = fx
+    assert edit(path, "add", "B", "--lane", "l1", "--title", "dup") == 1
+    assert edit(path, "add", "Y", "--title", "no lane") == 1
+    assert edit(path, "add", "Y", "--lane", "l1") == 1
+    assert path.read_text() == FX
+    assert edit(path, "add", "S1", "--side", "--title", "Side", "--status", "ask:ab99") == 0
+    text = path.read_text()
+    assert text.endswith("side:\n  - id: S1\n    title: Side\n    status: {ask: ab99}\n")
+    assert ad.load_graph(path).nodes["S1"].side
+
+
+def test_edge_add_remove_and_cycle_refused(fx, capsys):
+    path, renders = fx
+    assert edit(path, "edge", "C", "A") == 1
+    assert "cycle" in capsys.readouterr().err
+    assert path.read_text() == FX and not renders
+    assert edit(path, "edge", "A", "B") == 1  # already there
+    assert edit(path, "edge", "A", "C") == 0
+    assert "  - [B, C]\n  - [A, C]\n\ndone:\n" in path.read_text()
+    assert edit(path, "edge", "A", "B", "--remove") == 0
+    text = path.read_text()
+    assert "[A, B]" not in text and "# A before B" not in text
+    assert edit(path, "edge", "Q", "R", "--remove") == 1
+
+
+def test_done_moves_the_node_and_bridges_its_edges(fx):
+    path, _ = fx
+    src = FakeSources(asks={"ab12": {"state": "done", "age_days": 0, "what": ""}}, probes={"test -e /tmp/x": 1})
+    assert edit(path, "done", "B", "--label", "B finished", src=src) == 0
+    text = path.read_text()
+    assert "id: B" not in text
+    # One blank line between A and the lane heading, not two.
+    assert "      Line two.\n\n  # --- lane two ---\n  - id: C\n" in text
+    assert "edges:\n  - [A, C]\n\ndone:\n" in text
+    assert text.endswith(
+        '  - {label: "old", link: "https://example.com/old"}\n'
+        '  - {label: "B finished", link: "https://example.com/b"}\n'
+    )
+    assert ad.cmd_check(path) == 0
+
+
+def test_done_refuses_a_node_that_is_not_done(fx, capsys):
+    path, renders = fx
+    src = FakeSources(asks={"ab12": {"state": "open", "age_days": 0, "what": ""}}, probes={"test -e /tmp/x": 1})
+    assert edit(path, "done", "B", "--label", "B", src=src) == 1
+    assert "is next" in capsys.readouterr().err
+    assert path.read_text() == FX and not renders
+    assert edit(path, "done", "B", "--label", "B", "--force", "--link", "https://example.com/z", src=src) == 0
+    assert '{label: "B", link: "https://example.com/z"}' in path.read_text()
+
+
+def test_done_removes_hold_until_on_the_node(fx):
+    path, _ = fx
+    assert edit(path, "done", "A", "--label", "A finished") == 0  # manual: done
+    text = path.read_text()
+    assert "hold_until" not in text and "[A, B]" not in text
+    assert "nodes:\n  # --- lane one ---\n  - id: B\n" in text
+    assert ad.cmd_check(path) == 0
+
+
+def test_rm_refuses_while_used_then_force_removes_the_references(fx, capsys):
+    path, renders = fx
+    assert edit(path, "rm", "A") == 1
+    err = capsys.readouterr().err
+    assert "edges [A, B]" in err and "hold_until of C" in err
+    assert path.read_text() == FX and not renders
+    assert edit(path, "rm", "A", "--force") == 0
+    text = path.read_text()
+    assert "id: A" not in text and "[A, B]" not in text and "hold_until" not in text
+    assert ad.cmd_check(path) == 0
+
+
+def test_dry_run_prints_a_diff_and_writes_nothing(fx, capsys):
+    path, renders = fx
+    assert edit(path, "set", "B", "--sub", "planned", "--dry-run") == 0
+    out = capsys.readouterr().out
+    assert f"--- {path}" in out and "+    sub: planned\n" in out
+    assert "dry run, nothing written: fx.dag.yaml: set B: sub 'planned' (+1 -0 lines)" in out
+    assert path.read_text() == FX and not renders
+
+
+def test_render_once_after_an_edit_but_not_with_no_render(fx):
+    path, renders = fx
+    assert edit(path, "set", "B", "--sub", "one") == 0
+    assert renders == [path]
+    assert edit(path, "set", "B", "--sub", "two", "--no-render") == 0
+    assert edit(path, "edge", "A", "C", "--no-render") == 0
+    assert renders == [path]
+
+
+def test_an_edit_writes_the_page_and_the_state_file(tmp_path, monkeypatch, capsys):
+    path = tmp_path / "fx.dag.yaml"
+    path.write_text(FX)
+    monkeypatch.setattr(ad, "open_page", lambda p: pytest.fail("an edit opened a browser tab"))
+    src = FakeSources(
+        asks={"ab12": {"state": "open", "age_days": 0, "what": ""}, "cd34": {"state": "open", "age_days": 0, "what": ""}},
+        probes={"test -e /tmp/x": 1},
+        mrs={7: mr()},
+    )
+    assert ad.main(["set", str(path), "B", "--title", "Renamed step"], sources=src) == 0
+    out = capsys.readouterr().out
+    assert out.startswith("fx.dag.yaml: set B: title 'Renamed step'")
+    assert f"Page: {tmp_path / 'fx.dag.html'}" in out and "Next for you:" in out
+    assert "Renamed step" in (tmp_path / "fx.dag.html").read_text()
+    assert json.loads((tmp_path / "fx.dag.state.json").read_text())["nodes"]["B"]["state"] == "next"
+
+
+def test_refuses_when_the_file_changes_during_the_edit(fx, monkeypatch, capsys):
+    path, renders = fx
+    real = ad.EDITORS["set"]
+
+    def racing(doc, args, src):
+        path.write_text(FX + "# someone else\n")
+        return real(doc, args, src)
+
+    monkeypatch.setitem(ad.EDITORS, "set", racing)
+    assert edit(path, "set", "B", "--sub", "x") == 1
+    assert "changed while this command ran" in capsys.readouterr().err
+    assert path.read_text().endswith("# someone else\n") and not renders
+
+
+def test_edit_through_a_symlink_keeps_the_link_and_the_mode(tmp_path, fx):
+    path, _ = fx
+    path.chmod(0o600)
+    link = tmp_path / "link.dag.yaml"
+    link.symlink_to(path)
+    assert ad.main(["set", str(link), "B", "--sub", "x", "--no-render"], sources=FakeSources()) == 0
+    assert link.is_symlink() and "sub: x" in path.read_text()
+    assert stat.S_IMODE(path.stat().st_mode) == 0o600
+    assert not list(tmp_path.glob(".*.tmp"))
+
+
+def test_goal_with_a_command_name_is_still_rendered(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(ad, "NOTEBOOK", tmp_path)
+    (tmp_path / "set.dag.yaml").write_text(json.dumps({"goal": "set", "lanes": ["l1"], "nodes": [node("A", "next")]}))
+    assert ad.main(["--no-open", "--", "set"], sources=FakeSources()) == 0
+    assert (tmp_path / "set.dag.html").exists()
+    with pytest.raises(SystemExit):  # `set` alone is the editing command
+        ad.main(["set"], sources=FakeSources())
+
+
+def test_editing_the_json_style_seed_still_validates(tmp_path, monkeypatch):
+    # Graphs that other tests write are JSON (a YAML subset). ruamel.yaml keeps
+    # them valid, but not byte for byte; the command says so.
+    path = tmp_path / "j.dag.yaml"
+    path.write_text(json.dumps({"goal": "j", "lanes": ["l1"], "nodes": [node("A", "next")]}))
+    assert ad.main(["set", str(path), "A", "--state", "done", "--no-render"], sources=FakeSources()) == 0
+    assert ad.load_graph(path).nodes["A"].sources == [{"manual": "done"}]
 
 
 if __name__ == "__main__":
