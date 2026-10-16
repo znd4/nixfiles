@@ -33,7 +33,7 @@ in
     # The prefix is C-a. Upstream recommends C-s for the dashboard and L for
     # last-done. tmux-resurrect uses prefix C-s (save) and pain-control uses
     # prefix L (resize), so the dashboard moves to C-d and last-done to C-l.
-    # mkDefault lets a downstream flake (panw-nixfiles) change or null a key.
+    # mkDefault lets a downstream flake change or null a key.
     tmuxIntegration.bindings = lib.mapAttrs (_: lib.mkDefault) {
       "C-d" = ''display-popup -h 30 -w 100 -E "workmux dashboard"'';
       "C-w" = ''display-popup -h 30 -w 100 -E "workmux dashboard --tab worktrees"'';

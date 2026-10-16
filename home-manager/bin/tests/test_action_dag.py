@@ -668,7 +668,7 @@ by: someone
 
 # Apply the unit <b>now</b>
 
-- [ ] Apply the unit  #ask #frmod
+- [ ] Apply the unit  #ask #infra
 
 ## Why
 
@@ -701,7 +701,7 @@ def test_redact_known_token_shapes():
 
 
 def test_redact_upper_case_variable_but_not_a_secret_name_flag():
-    flag = "gcloud secrets versions access latest --secret=chronosphere-api-token-frmod --project=p"
+    flag = "gcloud secrets versions access latest --secret=metrics-api-token-prod --project=p"
     assert ad.redact(flag) == flag
     assert ad.redact("--secret=foo") == "--secret=foo"
     assert ad.redact("GITLAB_TOKEN=abc123def456ghi789jkl") == "GITLAB_TOKEN=[REDACTED]"

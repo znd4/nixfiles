@@ -70,7 +70,7 @@
     # workmux — pairs git worktrees with tmux windows. Its flake ships a
     # package only; our module is home-manager/modules/workmux.nix. Pinned to
     # a release tag; bump deliberately. It follows nixpkgs-unstable, not
-    # nixpkgs: panw-nixfiles points our nixpkgs at 25.05 (rustc 1.86), and
+    # nixpkgs: a downstream flake points our nixpkgs at 25.05 (rustc 1.86), and
     # v0.1.268 needs rustc 1.88 or later. Downstream flakes do not override
     # nixpkgs-unstable, so the build is the same everywhere.
     workmux = {
@@ -186,8 +186,8 @@
     # and jail.nix. Bump it deliberately, after reading the diff.
     #
     # It follows nixpkgs-unstable, not nixpkgs: the package needs
-    # `typescript-go`, which stable does not carry. Downstream flakes such as
-    # panw-nixfiles repoint our `nixpkgs` at a stable channel, so following
+    # `typescript-go`, which stable does not carry. Some downstream flakes
+    # repoint our `nixpkgs` at a stable channel, so following
     # that one breaks the build for them and not for us.
     pi-coding-agent = {
       url = "github:lukasl-dev/pi.nix/92c057264e847c4676a80a5d57e968b5d25828a6";
