@@ -56,6 +56,8 @@ the file, gets the live status of each step, and writes one HTML page.
   and no edges. It is not in a column.
 - **Done row**: a row of links to finished work, under the board.
 - **Artifact**: a web page on claude.ai that the Artifact tool publishes.
+- **gid**: the ID of an Asana object, for example a project, a section or a
+  task (see the [Asana API reference](https://developers.asana.com/reference/rest-api-reference)).
 
 ## Files
 
@@ -68,6 +70,7 @@ notebook is `$ACTION_DAG_NOTEBOOK`. The default is the ask-zk notebook.
 | `<goal>.dag.html`, or the `output:` path | `action-dag` | the page. Each run writes it again. Do not edit it. |
 | `<goal>.dag.state.json` | `action-dag` | the state of each node at the last run. It is always next to the YAML file. |
 | `<goal>.public.dag.html`, or the `--output` path | `action-dag --public` | the page to share (see [Share the page](#share-the-page)). |
+| `<goal>.dag.asana.json` | `action-dag asana-sync` | the [gids](#terms) of the Asana project, sections and tasks (see [Sync to Asana](#sync-to-asana)). |
 
 The CLI writes the page to a temporary file in the same directory, then
 renames it. Thus a browser that reloads the page never reads a half-written
@@ -87,13 +90,14 @@ action-dag path/to/x.dag.yaml  # use a graph file in a different directory
 action-dag <goal> --public     # write the page to share: <goal>.public.dag.html
 action-dag <goal> --public --output <file> --redact-pattern '<regex>'
                                # the same, to <file>, and remove each match of <regex>
+action-dag asana-sync <goal> [--dry-run] # copy the graph to its Asana project (see Sync to Asana)
 ```
 
 `<goal>` is the file name without `.dag.yaml`.
 
-The names `set`, `add`, `edge`, `done` and `rm` are reserved as the first
-argument (see [Edit the graph](#edit-the-graph)). To render a goal that has
-one of these names, put an option or `--` first:
+The names `set`, `add`, `edge`, `done`, `rm` and `asana-sync` are reserved
+as the first argument (see [Edit the graph](#edit-the-graph)). To render a
+goal that has one of these names, put an option or `--` first:
 `action-dag --no-open -- set`.
 
 **The page opens only when it is new.** Without `--no-open`, the CLI opens
@@ -526,6 +530,58 @@ share it.
 In a session with a claude.ai login, you can publish the public page with the
 Artifact tool. Publish it again after each run, from the same file path, so
 the URL stays the same.
+
+## Sync to Asana
+
+`action-dag asana-sync` copies a graph into one Asana project, so that a
+teammate can follow the steps in Asana. Use it only for a goal that has its
+own Asana project. It never makes a subtask.
+
+```bash
+action-dag asana-sync <goal> --dry-run                                  # print the writes only
+action-dag asana-sync <goal> --create-project "<name>" --team <gid>     # first run: make the project
+action-dag asana-sync <goal>                                            # each later run
+```
+
+- **Sections**: one for each lane, then "Side tracks", then "Done".
+- **Tasks**: one top-level task for each node, each side track and each
+  done-row entry. The task name is the node title. The description has the
+  `sub:` text, the `notes:` text, the links and the MR URL.
+- **Private text**: the sync removes the same text as
+  [`--public`](#share-the-page). It also removes ask ids, zk note ids and
+  `@panwil2.com` addresses. If private text stays after that, the sync
+  writes nothing.
+- **Completed**: the task is complete when the node is `done`. A done-row
+  task is complete. When the node is `unknown`, the sync does not change
+  the completed state.
+- **Dependencies**: one
+  [Asana dependency](https://developers.asana.com/reference/adddependenciesfortask)
+  for each edge. The sync adds and removes only the difference. It does not
+  change a dependency on a task outside the graph.
+- **A node leaves the graph**: the sync completes its task and adds the
+  comment "Removed from the graph". It never deletes a task.
+- **A second run with no change makes no write.** The summary shows
+  `Writes: 0.`
+
+The gids are in `<goal>.dag.asana.json`, next to the YAML file. Do not put
+gids in the YAML file. To use an existing task for a node, put this entry
+in the JSON file before the run:
+
+```json
+{"nodes": {"KW": {"asana_task": "1219559980748107"}}}
+```
+
+The sync adds that task to the project and to the section of its lane. It
+sets the completed state and the dependencies of the task. It does not:
+
+- change the name or the description of the task.
+- complete the task when the node leaves the graph.
+- remove the task from its other projects.
+
+The sync uses `xh`, and it reads the token with `~/.claude/bin/asana-token`.
+Before you make a project, read the
+[asana-workflow](../asana-workflow/SKILL.md) skill. An Asana task assigned
+to the user must be in a project of the Platform Infrastructure portfolio.
 
 ## Rules
 

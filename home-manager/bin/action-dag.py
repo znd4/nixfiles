@@ -51,6 +51,7 @@ import argparse
 import concurrent.futures as cf
 import dataclasses
 import difflib
+import hashlib
 import io
 import html
 import json
@@ -2414,12 +2415,576 @@ def edit_main(argv: list[str], sources: Sources | None = None) -> int:
     return 0
 
 
+# --------------------------------------------------------------------------
+# Asana sync (asana-sync)
+#
+# `action-dag asana-sync <goal>` copies the graph into one Asana project. The
+# "Sync to Asana" section of the action-dag SKILL.md is the user guide.
+#
+#   * sections: one for each lane, then "Side tracks", then "Done".
+#   * tasks: one top-level task for each node, each side track and each
+#     done-row entry. Never a subtask.
+#   * task name: the node title. Description: sub, notes, links and the MR
+#     URL. The sync removes the --public private text, the ask ids, the zk
+#     note ids and the @panwil2.com addresses.
+#   * completed: the derived state is done. A done-row task is complete. The
+#     sync does not change the completed state when the state is `unknown`.
+#   * dependencies: the graph edges. The sync adds or removes only the
+#     difference, and only between the tasks that it manages.
+#
+# The gids are in `<goal>.dag.asana.json`, next to the YAML file. A second run
+# with no graph change makes no write. The sync never deletes a task. When a
+# node leaves the graph, the sync completes its task and adds one comment.
+#
+# The mapping entry `"nodes": {"<id>": {"asana_task": "<gid>"}}` adopts an
+# existing task for that node. The sync adds the task to the project and the
+# lane section, and sets its completed state and dependencies. It does not
+# change the name or description. It does not complete the task when the node
+# leaves the graph.
+
+ASANA_API = "https://app.asana.com/api/1.0"
+ASANA_TOKEN_HELPER = Path(
+    os.environ.get("ACTION_DAG_ASANA_TOKEN_HELPER") or Path.home() / ".claude/bin/asana-token"
+)
+ASANA_TASK_FIELDS = (
+    "name,completed,memberships.project.gid,memberships.section.gid,dependencies.gid"
+)
+SIDE_SECTION = ("side", "Side tracks")
+DONE_SECTION = ("done", "Done")
+OTHER_SECTION = ("other", "Other steps")
+ASANA_MAX_DEPS = 30  # dependencies and dependents together, on one task
+REMOVED_COMMENT = "🤖:\n\nRemoved from the graph."
+PRIVATE_NOTE = "a private note"
+# An address in the FedRAMP identity domain. A bare "@panwil2.com" (the
+# domain, with no name) is not an address, so it stays.
+ASANA_EMAIL = re.compile(r"[\w.+-]+@panwil2\.com", re.I)
+# A zk note id: 4 to 8 lower-case letters and digits (`3bda54e`, `01gx`).
+NOTE_ID = re.compile(r"[0-9a-z]{4,8}")
+# The words before a note id or an ask id in a sentence: "note f1db478",
+# "hub note: 3bda54e", "ask d2bc1b3".
+ID_CONTEXT = r"(?:(?:zk|hub|spoke|private)\s+)?(?:notes?|asks?)\s*:?\s+"
+
+
+class AsanaError(Exception):
+    """An Asana call failed, or the sync cannot run."""
+
+
+class AsanaAPI:
+    """Calls the Asana REST API with xh. Tests replace request().
+
+    The token comes from ASANA_TOKEN_HELPER (default
+    ~/.claude/bin/asana-token). It stays in this process
+    and in the argument list of each xh call. The script never prints it."""
+
+    def __init__(self) -> None:
+        self._token: str | None = None
+
+    def token(self) -> str:
+        if self._token is None:
+            p = run([str(ASANA_TOKEN_HELPER)])
+            if p.returncode != 0 or not p.stdout.strip():
+                raise AsanaError(f"{ASANA_TOKEN_HELPER} gave no token: {short_err(p.stderr)}")
+            self._token = p.stdout.strip()
+        return self._token
+
+    def request(self, method: str, path: str, body: dict | None = None) -> dict:
+        cmd = [
+            "xh", "-I", "-b", "--check-status", method, f"{ASANA_API}{path}",
+            f"Authorization:Bearer {self.token()}", "Accept:application/json",
+        ]
+        if body is not None:
+            cmd += ["Content-Type:application/json", "--raw", json.dumps({"data": body})]
+        for attempt in range(4):
+            p = run(cmd, timeout=60)
+            if p.returncode == 0:
+                return json.loads(p.stdout or "{}")
+            if "too many requests" in (p.stdout or "").lower() and attempt < 3:
+                time.sleep(20 * (attempt + 1))  # Asana rate limit: wait, then try again
+                continue
+            break
+        raise AsanaError(f"{method} {path}: {short_err(p.stdout or p.stderr)}")
+
+    def get_all(self, path: str) -> list[dict]:
+        """GET a list, and follow the pages."""
+        sep = "&" if "?" in path else "?"
+        out: list[dict] = []
+        url = f"{path}{sep}limit=100"
+        while True:
+            r = self.request("GET", url)
+            out += r.get("data") or []
+            offset = (r.get("next_page") or {}).get("offset")
+            if not offset:
+                return out
+            url = f"{path}{sep}limit=100&offset={urllib.parse.quote(offset)}"
+
+
+@dataclass
+class AsanaItem:
+    """One task that the graph wants in the project."""
+
+    key: str  # "node:<id>" or "done:<label>"
+    name: str
+    html: str
+    section: str  # a section key: "lane:<id>", "side", "done" or "other"
+    completed: bool | None  # None: leave the task as it is (state unknown)
+    deps: list[str] = field(default_factory=list)  # keys of the predecessor items
+    adopt: str = ""  # the gid of an adopted card (asana_task in the mapping)
+
+    @property
+    def digest(self) -> str:
+        return hashlib.sha256(f"{self.name}\0{self.html}".encode()).hexdigest()[:16]
+
+
+def xml_text(s: str) -> str:
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def xml_attr(s: str) -> str:
+    return xml_text(s).replace('"', "&quot;")
+
+
+def asana_html(md: str) -> str:
+    """Convert markdown to the small HTML subset that Asana accepts in
+    html_notes: no <p>, <br>, <h3>-<h6> or tables, no attributes except
+    <a href>, and no <pre> inside <li>."""
+    h = _MD.render(md)
+    h = re.sub(r"<pre><code[^>]*>", "<pre>", h).replace("</code></pre>", "</pre>")
+    h = re.sub(r"<h[3-6]>", "<strong>", h)
+    h = re.sub(r"</h[3-6]>", "</strong>\n", h)
+    h = h.replace("<p>", "").replace("</p>", "\n")
+    h = re.sub(r"<br\s*/?>", "\n", h)
+    h = re.sub(r"<hr\s*/?>", "<hr/>", h)
+    h = re.sub(r"<(ol|ul)\s[^>]*>", r"<\1>", h)
+    h = re.sub(r'<a href="([^"]*)"[^>]*>', r'<a href="\1">', h)
+    h = re.sub(r'<img [^>]*?alt="([^"]*)"[^>]*>', r"\1", h)
+    h = re.sub(r"<img [^>]*>", "", h)
+    h = re.sub(r"</?(?:table|thead|tbody|tr)[^>]*>", "\n", h)
+    h = re.sub(r"</?(?:th|td)[^>]*>", " ", h)
+    # A <pre> inside a list item becomes inline <code>.
+    out, depth = [], 0
+    for part in re.split(r"(</?li>|</?pre>)", h):
+        if part == "<li>":
+            depth += 1
+        elif part == "</li>":
+            depth = max(0, depth - 1)
+        elif part in ("<pre>", "</pre>") and depth:
+            part = part.replace("pre", "code")
+        out.append(part)
+    return "".join(out).strip()
+
+
+class AsanaScrub:
+    """Removes private text from each Asana text: the --public removals (local
+    paths, wiki links), the ask ids, the zk note ids and the @panwil2.com
+    addresses."""
+
+    def __init__(self, ask_ids: set[str], note_ids: set[str]) -> None:
+        self.base = Scrub()
+        # A mixed id (letters and digits) is removed everywhere. An id of only
+        # letters or only digits can be a word or a number, so it is removed
+        # only after "note" or "ask".
+        mixed = {i for i in note_ids | ask_ids if re.search(r"\d", i) and re.search(r"[a-z]", i)}
+        alts = "|".join(sorted((re.escape(i) for i in mixed), key=len, reverse=True)) or "(?!)"
+        self.mixed = re.compile(rf"(?:\b{ID_CONTEXT})?\b(?:{alts})\b", re.I)
+        self.context = re.compile(rf"\b{ID_CONTEXT}(?P<id>[0-9a-z]{{4,8}})\b", re.I)
+        self.known = {i.lower() for i in note_ids | ask_ids}
+
+    def text(self, s) -> str:
+        s = redact(self.base.text(s))
+        s = ASANA_EMAIL.sub("[address]", s)
+        s = self.mixed.sub(PRIVATE_NOTE, s)
+        s = self.context.sub(
+            lambda m: PRIVATE_NOTE if m.group("id").lower() in self.known else m.group(0), s
+        )
+        return s
+
+    def url(self, u: str) -> str | None:
+        """The URL, or None if it is local or points into the notebook."""
+        if not u.startswith("https://") or self.base.url(u) != u:
+            return None
+        if "/zdufour/notes" in u:
+            return None
+        return u
+
+
+def notebook_ids(directory: Path) -> set[str]:
+    try:
+        return {p.stem for p in directory.glob("*.md") if NOTE_ID.fullmatch(p.stem)}
+    except OSError:
+        return set()
+
+
+def asana_leaks(text: str, ask_ids: set[str]) -> list[str]:
+    leaks = public_leaks(text)
+    if "/Users/" in text or "/home/" in text:
+        leaks.append("a local path")
+    if ASANA_EMAIL.search(text):
+        leaks.append("a @panwil2.com address")
+    for a in ask_ids:
+        if re.search(rf"\b{re.escape(a)}\b", text):
+            leaks.append(f"the ask id {a}")
+    return leaks
+
+
+def node_html(g: Graph, node: Node, s: AsanaScrub) -> str:
+    parts = []
+    if node.sub:
+        parts.append(f"<strong>{xml_text(s.text(node.sub))}</strong>\n\n")
+    if node.notes.strip():
+        parts.append(asana_html(s.text(node.notes)) + "\n\n")
+    links: list[tuple[str, str]] = []
+    for src in node.sources:
+        if "mr" in src:
+            mr = src["mr"]
+            links.append((f"MR {mr['project']}!{mr['iid']}", mr_url(mr)))
+    if node.link:
+        links.append((link_label(node.link), node.link))
+    links += [(x["label"], x["url"]) for x in node.links]
+    seen, items = set(), []
+    for label, url in links:
+        url = s.url(url)
+        if url and url not in seen:
+            seen.add(url)
+            items.append(f'<li><a href="{xml_attr(url)}">{xml_text(s.text(label))}</a></li>')
+    if items:
+        parts.append(f"<strong>Links</strong>\n<ul>{''.join(items)}</ul>\n\n")
+    parts.append(
+        f"<em>From the action graph {xml_text(g.goal)}, node {xml_text(node.id)}. "
+        "action-dag asana-sync replaces this description when the graph changes.</em>"
+    )
+    return "<body>" + "".join(parts).strip() + "</body>"
+
+
+def asana_items(g: Graph, derived: dict[str, Derived], mapping: dict, s: AsanaScrub) -> tuple[list[tuple[str, str]], list[AsanaItem]]:
+    """The sections (key, name) and the tasks that the graph wants."""
+    lane_ids = {ln["id"] for ln in g.lanes}
+    sections = [(f"lane:{ln['id']}", s.text(ln.get("title") or ln["id"])) for ln in g.lanes]
+    preds = predecessors(g)
+    items: list[AsanaItem] = []
+    used_other = False
+    for nid, node in g.nodes.items():
+        if node.side:
+            sec = SIDE_SECTION[0]
+        elif node.lane in lane_ids:
+            sec = f"lane:{node.lane}"
+        else:
+            sec, used_other = OTHER_SECTION[0], True
+        state = derived[nid].state
+        items.append(AsanaItem(
+            key=f"node:{nid}",
+            name=s.text(node.title).strip() or nid,
+            html=node_html(g, node, s),
+            section=sec,
+            completed=None if state == "unknown" else state == "done",
+            deps=[f"node:{p}" for p in preds[nid]],
+            adopt=str((mapping.get("nodes") or {}).get(nid, {}).get("asana_task") or ""),
+        ))
+    for d in g.done:
+        label = str(d.get("label") or d.get("link") or "done")
+        url = s.url(str(d.get("link") or ""))
+        body = f'<a href="{xml_attr(url)}">{xml_text(url)}</a>\n\n' if url else ""
+        items.append(AsanaItem(
+            key=f"done:{label}",
+            name=s.text(label).strip() or "done",
+            html=f"<body>{body}<em>From the done row of the action graph {xml_text(g.goal)}.</em></body>",
+            section=DONE_SECTION[0],
+            completed=True,
+        ))
+    if used_other:
+        sections.append(OTHER_SECTION)
+    sections += [SIDE_SECTION, DONE_SECTION]
+    return sections, items
+
+
+def mapping_path(g: Graph) -> Path:
+    return g.path.with_name(f"{g.goal}.dag.asana.json")
+
+
+def load_mapping(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        raise AsanaError(f"{path}: not valid JSON: {e}") from e
+    if not isinstance(data, dict):
+        raise AsanaError(f"{path}: the top level must be an object")
+    return data
+
+
+def mapping_entry(m: dict, key: str) -> dict:
+    kind, name = key.split(":", 1)
+    return m.setdefault("nodes" if kind == "node" else "done", {}).setdefault(name, {})
+
+
+@dataclass
+class AsanaPlan:
+    """Does each write and counts it. A dry run only prints the write."""
+
+    api: AsanaAPI
+    dry: bool
+    counts: dict[str, int] = field(default_factory=dict)
+    writes: int = 0
+    _n: int = 0
+
+    def write(self, what: str, count: str | None, method: str, path: str, body: dict | None = None) -> dict:
+        self.writes += 1
+        if count:
+            self.counts[count] = self.counts.get(count, 0) + 1
+        print(f"{'would ' if self.dry else ''}{what}", flush=True)
+        if self.dry:
+            self._n += 1
+            return {"data": {"gid": f"new-{self._n}", "permalink_url": "(new project)"}}
+        return self.api.request(method, path, body)
+
+
+SUMMARY_KEYS = (
+    ("project", "project created"), ("sections", "sections created"), ("created", "created"),
+    ("updated", "updated"), ("moved", "moved"), ("completed", "completed"),
+    ("reopened", "reopened"), ("deps_added", "deps added"), ("deps_removed", "deps removed"),
+)
+
+
+def asana_sync(path: Path, args, src: Sources, api: AsanaAPI) -> int:
+    g = load_graph(path)
+    errors, _ = check_graph(g)
+    if errors:
+        raise AsanaError(f"the graph has errors. Fix them first: {errors[0]}")
+    mpath = mapping_path(g)
+    m = load_mapping(mpath)
+    ask_ids = {a for n in g.nodes.values() for a in n.asks}
+    ask_ids |= {str(x["ask"]) for n in g.nodes.values() for x in n.sources if "ask" in x}
+    s = AsanaScrub(ask_ids, notebook_ids(g.path.parent) | notebook_ids(NOTEBOOK))
+    own = resolve_sources(g, src)
+    derived = derive(g, own)
+    sections, items = asana_items(g, derived, m, s)
+    for it in items:
+        leaks = asana_leaks(f"{it.name}\n{it.html}", ask_ids)
+        if leaks:
+            raise AsanaError(f"{it.key} still contains {'; '.join(leaks)}. The sync wrote nothing")
+
+    plan = AsanaPlan(api, args.dry_run)
+    project = m.get("project")
+    if args.create_project:
+        if project:
+            raise AsanaError(f"{mpath.name} already has the project {project}. Remove --create-project")
+        if not args.team:
+            raise AsanaError("--create-project needs --team <gid>")
+    elif not project:
+        raise AsanaError(f"no project in {mpath}. Run with --create-project NAME --team GID")
+
+    def save() -> None:
+        if not args.dry_run:
+            write_atomic(mpath, json.dumps(m, indent=2, ensure_ascii=False) + "\n")
+
+    # ---- read what is in Asana now
+    live_sections: dict[str, str] = {}
+    live: dict[str, dict] = {}
+    if project:
+        for sec in api.get_all(f"/projects/{project}/sections?opt_fields=name"):
+            live_sections[sec["gid"]] = sec["name"]
+        for t in api.get_all(f"/projects/{project}/tasks?opt_fields={ASANA_TASK_FIELDS}"):
+            live[t["gid"]] = t
+    for it in items:  # adopted or mapped tasks that are not in the project
+        gid = it.adopt or mapping_entry(m, it.key).get("gid")
+        if gid and gid not in live and not str(gid).startswith("new-"):
+            try:
+                live[gid] = api.request("GET", f"/tasks/{gid}?opt_fields={ASANA_TASK_FIELDS}")["data"]
+            except AsanaError as e:
+                if it.adopt:
+                    raise AsanaError(f"{it.key}: cannot read the adopted task {gid}: {e}") from e
+                print(f"warning: {it.key}: cannot read task {gid} ({e}). The sync makes a new task")
+
+    # ---- the project
+    if args.create_project:
+        r = plan.write(
+            f"create project {args.create_project!r} in team {args.team}", "project",
+            "POST", "/projects", {"name": args.create_project, "team": args.team, "default_view": "list"},
+        )["data"]
+        project = r["gid"]
+        m.update({"goal": g.goal, "project": project, "project_name": args.create_project,
+                  "project_url": r.get("permalink_url") or f"https://app.asana.com/0/{project}"})
+        m.setdefault("sections", {})
+        save()
+        if not args.dry_run:
+            for sec in api.get_all(f"/projects/{project}/sections?opt_fields=name"):
+                live_sections[sec["gid"]] = sec["name"]
+
+    # ---- sections
+    msec = m.setdefault("sections", {})
+    spare = [gid for gid, name in live_sections.items()
+             if name == "Untitled section" and gid not in msec.values()]
+    for key, name in sections:
+        gid = msec.get(key)
+        if gid in live_sections:
+            if live_sections[gid] != name:
+                plan.write(f"rename section {live_sections[gid]!r} to {name!r}", None,
+                           "PUT", f"/sections/{gid}", {"name": name})
+                live_sections[gid] = name
+            continue
+        if spare:  # a new project comes with one empty "Untitled section"
+            gid = spare.pop(0)
+            plan.write(f"rename section 'Untitled section' to {name!r}", None,
+                       "PUT", f"/sections/{gid}", {"name": name})
+        else:
+            gid = plan.write(f"create section {name!r}", "sections",
+                             "POST", f"/projects/{project}/sections", {"name": name})["data"]["gid"]
+        msec[key] = gid
+        live_sections[gid] = name
+        save()
+
+    # ---- tasks
+    gids: dict[str, str] = {}
+    removed = m.setdefault("removed", {})
+    for it in items:
+        entry = mapping_entry(m, it.key)
+        if not entry.get("gid") and it.key in removed:  # the node is back in the graph
+            entry["gid"] = removed.pop(it.key)
+        section = msec[it.section]
+        gid = it.adopt or entry.get("gid")
+        task = live.get(gid) if gid else None
+        if task is None:
+            body = {"name": it.name, "html_notes": it.html, "projects": [project],
+                    "memberships": [{"project": project, "section": section}]}
+            if it.completed:
+                body["completed"] = True
+            gid = plan.write(f"create task {it.key}: {short(it.name, 60)}", "created",
+                             "POST", "/tasks", body)["data"]["gid"]
+            entry.update({"gid": gid, "digest": it.digest})
+            if it.completed:
+                plan.counts["created_done"] = plan.counts.get("created_done", 0) + 1
+            gids[it.key] = gid
+            save()
+            continue
+        gids[it.key] = gid
+        entry["gid"] = gid
+        mems = {x["project"]["gid"]: (x.get("section") or {}).get("gid")
+                for x in task.get("memberships") or [] if x.get("project")}
+        if project not in mems:
+            plan.write(f"add task {it.key} to the project", "moved",
+                       "POST", f"/tasks/{gid}/addProject", {"project": project, "section": section})
+        elif mems[project] != section:
+            plan.write(f"move task {it.key} to section {live_sections.get(section)!r}", "moved",
+                       "POST", f"/sections/{section}/addTask", {"task": gid})
+        body = {}
+        if not it.adopt and (entry.get("digest") != it.digest or task.get("name") != it.name):
+            body.update({"name": it.name, "html_notes": it.html})
+        if it.completed is not None and bool(task.get("completed")) != it.completed:
+            body["completed"] = it.completed
+        if body:
+            what = ", ".join(
+                (["name and description"] if "name" in body else [])
+                + ([("complete" if it.completed else "reopen")] if "completed" in body else [])
+            )
+            plan.write(f"update task {it.key}: {what}", "updated" if "name" in body else None,
+                       "PUT", f"/tasks/{gid}", body)
+            if "completed" in body:
+                k = "completed" if it.completed else "reopened"
+                plan.counts[k] = plan.counts.get(k, 0) + 1
+        if not it.adopt:
+            entry["digest"] = it.digest
+        save()
+
+    # ---- nodes that left the graph
+    wanted = {it.key for it in items}
+    for kind, group in (("node", m.get("nodes") or {}), ("done", m.get("done") or {})):
+        for name in list(group):
+            key = f"{kind}:{name}"
+            if key in wanted:
+                continue
+            entry = group[name]
+            gid = entry.get("gid")
+            if not gid:
+                continue  # an asana_task entry for a node that is not in the graph yet
+            del group[name]
+            if entry.get("asana_task"):
+                print(f"{key}: left the graph. The sync does not change the adopted task {gid}")
+            else:
+                t = live.get(gid) or {}
+                if not t.get("completed"):
+                    plan.write(f"complete task {key}: removed from the graph", "completed",
+                               "PUT", f"/tasks/{gid}", {"completed": True})
+                plan.write(f"comment on task {key}: removed from the graph", None,
+                           "POST", f"/tasks/{gid}/stories", {"text": REMOVED_COMMENT})
+            removed[key] = gid
+            save()
+
+    # ---- dependencies (graph edges)
+    managed = set(gids.values()) | set(removed.values())
+    for it in items:
+        if not it.key.startswith("node:"):
+            continue
+        gid = gids[it.key]
+        want = {gids[k] for k in it.deps if k in gids}
+        task = live.get(gid) or {}
+        have = {d["gid"] for d in task.get("dependencies") or []} & managed
+        add, drop = sorted(want - have), sorted(have - want)
+        if len(want) > ASANA_MAX_DEPS:
+            print(f"warning: {it.key} has {len(want)} predecessors. Asana allows at most "
+                  f"{ASANA_MAX_DEPS} dependencies and dependents on one task")
+        if add:
+            plan.write(f"add {len(add)} dependencies to task {it.key}", None,
+                       "POST", f"/tasks/{gid}/addDependencies", {"dependencies": add})
+            plan.counts["deps_added"] = plan.counts.get("deps_added", 0) + len(add)
+        if drop:
+            plan.write(f"remove {len(drop)} dependencies from task {it.key}", None,
+                       "POST", f"/tasks/{gid}/removeDependencies", {"dependencies": drop})
+            plan.counts["deps_removed"] = plan.counts.get("deps_removed", 0) + len(drop)
+    save()
+
+    c = plan.counts
+    counts = ", ".join(f"{label} {c.get(k, 0)}" for k, label in SUMMARY_KEYS)
+    counts = counts.replace(
+        f", created {c.get('created', 0)},",
+        f", created {c.get('created', 0)} ({c.get('created_done', 0)} of them done),",
+    )
+    kinds = {"lane": 0, "side": 0, "done": 0, "other": 0}
+    for it in items:
+        kinds[it.section.split(":")[0]] += 1
+    print(
+        f"{'Dry run, nothing written. ' if args.dry_run else ''}Asana sync of {g.goal}: "
+        f"{len(items)} tasks ({kinds['lane'] + kinds['other']} lane, {kinds['side']} side, "
+        f"{kinds['done']} done), {len(sections)} sections."
+    )
+    print(f"{counts}. Writes: {plan.writes}.")
+    print(f"Project: {m.get('project_url') or project}")
+    print(f"Mapping: {mpath}")
+    return 0
+
+
+def asana_main(argv: list[str], sources: Sources | None = None, api: AsanaAPI | None = None) -> int:
+    ap = argparse.ArgumentParser(
+        prog="action-dag asana-sync",
+        description="Copy the graph into one Asana project: one section for each lane, one "
+        "top-level task for each node, side track and done-row entry, and one dependency for "
+        "each edge. The Asana gids are in <goal>.dag.asana.json, next to the YAML file. A "
+        "second run with no graph change makes no write. The sync never deletes a task.",
+    )
+    ap.add_argument("goal", help="the goal name, or the path to a .dag.yaml file")
+    ap.add_argument("--create-project", metavar="NAME", help="first run only: create the project")
+    ap.add_argument("--team", metavar="GID", help="the gid of the Asana team (with --create-project)")
+    ap.add_argument("--dry-run", action="store_true", help="print the writes, but do not write")
+    args = ap.parse_args(argv)
+    if args.team and not args.create_project:
+        ap.error("--team needs --create-project")
+    try:
+        return asana_sync(find_graph(args.goal), args, sources or Sources(), api or AsanaAPI())
+    except GraphError as e:
+        print(f"action-dag: {e}", file=sys.stderr)
+        return 2
+    except AsanaError as e:
+        print(f"action-dag asana-sync: {e}", file=sys.stderr)
+        return 1
+
+
 def main(argv: list[str] | None = None, sources: Sources | None = None) -> int:
     argv = sys.argv[1:] if argv is None else list(argv)
     # The first argument selects an editing command. To render a goal that has
     # the name of a command, put an option or `--` first: `action-dag -- set`.
     if argv and argv[0] in EDIT_COMMANDS:
         return edit_main(argv, sources)
+    if argv and argv[0] == "asana-sync":
+        return asana_main(argv[1:], sources)
     ap = argparse.ArgumentParser(
         prog="action-dag",
         description="Draw the action graph of a goal, with live status from GitLab MRs, "

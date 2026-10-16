@@ -1285,3 +1285,216 @@ def test_public_option_errors(pub):
 
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__, "-q", "-p", "no:cacheprovider"]))
+
+
+# ---------------------------------------------------------------- asana-sync
+
+
+class FakeAsana(ad.AsanaAPI):
+    """An in-memory Asana: projects, sections and tasks. It records each write."""
+
+    def __init__(self):
+        super().__init__()
+        self.n = 1000
+        self.projects, self.sections, self.tasks, self.stories = {}, {}, {}, []
+        self.writes = []
+
+    def gid(self):
+        self.n += 1
+        return str(self.n)
+
+    def task_view(self, t):
+        return {
+            "gid": t["gid"], "name": t["name"], "completed": t["completed"],
+            "memberships": [{"project": {"gid": p}, "section": {"gid": s}} for p, s in t["mem"].items()],
+            "dependencies": [{"gid": d} for d in sorted(t["deps"])],
+        }
+
+    def request(self, method, path, body=None):
+        url = urllib.parse.urlparse(path)
+        parts = url.path.strip("/").split("/")
+        if method != "GET":
+            self.writes.append((method, url.path, body))
+        if method == "GET" and parts[0] == "projects" and parts[2] == "sections":
+            return {"data": [{"gid": g, "name": s["name"]} for g, s in self.sections.items()
+                             if s["project"] == parts[1]]}
+        if method == "GET" and parts[0] == "projects" and parts[2] == "tasks":
+            return {"data": [self.task_view(t) for t in self.tasks.values() if parts[1] in t["mem"]]}
+        if method == "GET" and parts[0] == "tasks":
+            if parts[1] not in self.tasks:
+                raise ad.AsanaError("Not Found")
+            return {"data": self.task_view(self.tasks[parts[1]])}
+        if method == "POST" and path == "/projects":
+            g = self.gid()
+            self.projects[g] = body
+            self.sections[self.gid()] = {"project": g, "name": "Untitled section"}
+            return {"data": {"gid": g, "permalink_url": f"https://asana.example/{g}"}}
+        if method == "POST" and parts[0] == "projects" and parts[2] == "sections":
+            g = self.gid()
+            self.sections[g] = {"project": parts[1], "name": body["name"]}
+            return {"data": {"gid": g}}
+        if method == "PUT" and parts[0] == "sections":
+            self.sections[parts[1]]["name"] = body["name"]
+            return {"data": {}}
+        if method == "POST" and path == "/tasks":
+            g = self.gid()
+            self.tasks[g] = {"gid": g, "name": body["name"], "html": body["html_notes"],
+                             "completed": bool(body.get("completed")), "deps": set(),
+                             "mem": {m["project"]: m["section"] for m in body["memberships"]}}
+            return {"data": {"gid": g}}
+        if method == "PUT" and parts[0] == "tasks":
+            t = self.tasks[parts[1]]
+            t.update({k: v for k, v in body.items() if k in ("name", "completed")})
+            if "html_notes" in body:
+                t["html"] = body["html_notes"]
+            return {"data": {}}
+        if method == "POST" and parts[0] == "sections" and parts[2] == "addTask":
+            t = self.tasks[body["task"]]
+            t["mem"][self.sections[parts[1]]["project"]] = parts[1]
+            return {"data": {}}
+        if method == "POST" and parts[2] == "addProject":
+            self.tasks[parts[1]]["mem"][body["project"]] = body["section"]
+            return {"data": {}}
+        if method == "POST" and parts[2] == "addDependencies":
+            self.tasks[parts[1]]["deps"] |= set(body["dependencies"])
+            return {"data": {}}
+        if method == "POST" and parts[2] == "removeDependencies":
+            self.tasks[parts[1]]["deps"] -= set(body["dependencies"])
+            return {"data": {}}
+        if method == "POST" and parts[2] == "stories":
+            self.stories.append((parts[1], body["text"]))
+            return {"data": {}}
+        raise AssertionError(f"unexpected call {method} {path}")
+
+
+import urllib.parse  # noqa: E402
+
+
+@pytest.fixture
+def asana(tmp_path, monkeypatch):
+    home = tmp_path / "home" / "zed"
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setattr(ad, "NOTEBOOK", tmp_path)
+    (tmp_path / "3bda54e.md").write_text("# hub\n")
+    yml = tmp_path / "g.dag.yaml"
+
+    def write(nodes, edges, side=(), done=()):
+        yml.write_text(json.dumps({
+            "goal": "g", "title": "G", "defaults": DEFAULTS,
+            "lanes": [{"id": "l1", "title": "One"}, {"id": "l2", "title": "Two"}],
+            "nodes": nodes, "side": list(side), "edges": edges, "done": list(done),
+        }))
+
+    write(
+        [
+            node("A", "done", notes=f"See hub note 3bda54e and [[3bda54e|the hub]] in {home}/x.\n"
+                 "Mail bob@panwil2.com. Ask ab12 is open.", asks=["ab12"]),
+            node("B", {"mr": 5}, lane="l2", sub="review"),
+            node("C", "next", lane="l2"),
+        ],
+        [["A", "B"], ["B", "C"]],
+        side=[{"id": "S", "title": "Side", "status": "wait"}],
+        done=[{"label": "old work", "link": "https://example.com/old"}],
+    )
+    src = FakeSources(mrs={5: mr()}, asks={"ab12": {"state": "open", "age_days": 0, "what": ""}})
+    return yml, write, src, FakeAsana(), home
+
+
+def sync(yml, src, api, *extra):
+    return ad.asana_main([str(yml), *extra], sources=src, api=api)
+
+
+def test_asana_sync_creates_the_project_and_a_second_run_writes_nothing(asana, capsys):
+    yml, _, src, api, _ = asana
+    assert sync(yml, src, api, "--create-project", "P", "--team", "9") == 0
+    m = json.loads((yml.parent / "g.dag.asana.json").read_text())
+    names = {s["name"] for s in api.sections.values()}
+    assert names == {"One", "Two", "Side tracks", "Done"}  # the Untitled section was renamed
+    assert len(api.tasks) == 5 and all(t["mem"] == {m["project"]: t["mem"][m["project"]]} for t in api.tasks.values())
+    tid = {k: v["gid"] for k, v in m["nodes"].items()}
+    assert api.tasks[tid["B"]]["deps"] == {tid["A"]} and api.tasks[tid["C"]]["deps"] == {tid["B"]}
+    assert api.tasks[tid["A"]]["completed"] and not api.tasks[tid["B"]]["completed"]
+    assert api.tasks[m["done"]["old work"]["gid"]]["completed"]
+    assert api.tasks[tid["S"]]["mem"][m["project"]] == m["sections"]["side"]
+    assert "created 5 (2 of them done)" in capsys.readouterr().out
+    api.writes.clear()
+    assert sync(yml, src, api) == 0
+    assert api.writes == []
+    assert "Writes: 0." in capsys.readouterr().out
+
+
+def test_asana_sync_scrubs_private_text_and_adds_the_mr_url(asana):
+    yml, _, src, api, home = asana
+    assert sync(yml, src, api, "--create-project", "P", "--team", "9") == 0
+    text = "\n".join(t["name"] + t["html"] for t in api.tasks.values())
+    for leak in ("3bda54e", "ab12", "bob@panwil2.com", str(home), "[["):
+        assert leak not in text, leak
+    assert "https://gitlab.example.com/group/repo/-/merge_requests/5" in text
+    assert "<p>" not in text
+
+
+def test_asana_sync_diffs_edges_lanes_and_state(asana, capsys):
+    yml, write, src, api, _ = asana
+    assert sync(yml, src, api, "--create-project", "P", "--team", "9") == 0
+    m = json.loads((yml.parent / "g.dag.asana.json").read_text())
+    tid = {k: v["gid"] for k, v in m["nodes"].items()}
+    write(
+        [node("A", "done"), node("B", {"mr": 5}, lane="l1"), node("C", "done", lane="l2", title="C2")],
+        [["A", "B"], ["A", "C"]],
+        side=[{"id": "S", "title": "Side", "status": "wait"}],
+        done=[{"label": "old work", "link": "https://example.com/old"}],
+    )
+    api.writes.clear()
+    assert sync(yml, src, api) == 0
+    assert api.tasks[tid["C"]]["deps"] == {tid["A"]}
+    assert api.tasks[tid["C"]]["completed"] and api.tasks[tid["C"]]["name"] == "C2"
+    assert api.tasks[tid["B"]]["mem"][m["project"]] == m["sections"]["lane:l1"]
+    out = capsys.readouterr().out
+    assert "deps added 1, deps removed 1" in out and "moved 1" in out
+
+
+def test_asana_sync_completes_a_removed_node_once_and_never_deletes(asana):
+    yml, write, src, api, _ = asana
+    assert sync(yml, src, api, "--create-project", "P", "--team", "9") == 0
+    m = json.loads((yml.parent / "g.dag.asana.json").read_text())
+    gone = m["nodes"]["C"]["gid"]
+    write([node("A", "done"), node("B", {"mr": 5}, lane="l2")], [["A", "B"]],
+          side=[{"id": "S", "title": "Side", "status": "wait"}],
+          done=[{"label": "old work", "link": "https://example.com/old"}])
+    assert sync(yml, src, api) == 0
+    assert api.tasks[gone]["completed"] and api.stories == [(gone, ad.REMOVED_COMMENT)]
+    assert not any(w[0] == "DELETE" for w in api.writes)
+    api.writes.clear()
+    assert sync(yml, src, api) == 0
+    assert api.writes == []
+
+
+def test_asana_sync_adopts_an_existing_card_without_renaming_it(asana):
+    yml, _, src, api, _ = asana
+    api.tasks["77"] = {"gid": "77", "name": "Old card", "html": "<body>keep</body>", "completed": False,
+                       "deps": {"5555"}, "mem": {"board": "todo"}}
+    (yml.parent / "g.dag.asana.json").write_text(json.dumps({"nodes": {"C": {"asana_task": "77"}}}))
+    assert sync(yml, src, api, "--create-project", "P", "--team", "9") == 0
+    m = json.loads((yml.parent / "g.dag.asana.json").read_text())
+    t = api.tasks["77"]
+    assert t["name"] == "Old card" and t["html"] == "<body>keep</body>"
+    assert t["mem"][m["project"]] == m["sections"]["lane:l2"] and "board" in t["mem"]
+    assert t["deps"] == {"5555", m["nodes"]["B"]["gid"]}  # a dependency it does not manage stays
+    assert len(api.tasks) == 5
+    api.writes.clear()
+    assert sync(yml, src, api) == 0
+    assert api.writes == []
+
+
+def test_asana_sync_dry_run_writes_nothing(asana, capsys):
+    yml, _, src, api, _ = asana
+    assert sync(yml, src, api, "--create-project", "P", "--team", "9", "--dry-run") == 0
+    assert api.writes == [] and not (yml.parent / "g.dag.asana.json").exists()
+    out = capsys.readouterr().out
+    assert "would create task node:A" in out and "Dry run, nothing written" in out
+
+
+def test_asana_sync_needs_a_project(asana, capsys):
+    yml, _, src, api, _ = asana
+    assert sync(yml, src, api) == 1
+    assert "--create-project" in capsys.readouterr().err
