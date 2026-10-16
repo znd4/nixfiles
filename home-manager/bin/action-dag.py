@@ -449,6 +449,85 @@ def tail(text: str, lines: int = 6) -> str:
     return redact("\n".join((text or "").strip().splitlines()[-lines:]))
 
 
+GRAPHQL_PAGE = 100  # GitLab returns at most 100 merge requests per page
+MR_FIELDS = (
+    "iid state draft title webUrl conflicts detailedMergeStatus approved "
+    "approvedBy{nodes{username}} approvalsLeft headPipeline{status path}"
+)
+
+
+def mr_key(mr: dict) -> tuple[str, str, str]:
+    return (mr["host"], mr["project"], str(mr["iid"]))
+
+
+def gql_string(value: str) -> str:
+    """A GraphQL string literal. JSON string syntax is valid GraphQL."""
+    return json.dumps(value)
+
+
+def build_mr_query(mrs: list[dict]) -> tuple[str, dict[str, str]]:
+    """One query with one aliased block per project (and per chunk of 100
+    iids). Returns (query, {alias: project}). The MRs must share one host."""
+    by_project: dict[str, list[str]] = {}
+    for m in mrs:
+        iids = by_project.setdefault(m["project"], [])
+        if str(m["iid"]) not in iids:
+            iids.append(str(m["iid"]))
+    blocks, aliases = [], {}
+    for project, iids in by_project.items():
+        for i in range(0, len(iids), GRAPHQL_PAGE):
+            chunk = iids[i : i + GRAPHQL_PAGE]
+            alias = f"p{len(aliases)}"
+            aliases[alias] = project
+            listed = ", ".join(gql_string(x) for x in chunk)
+            blocks.append(
+                f"{alias}: project(fullPath: {gql_string(project)}) "
+                f"{{ mergeRequests(iids: [{listed}]) {{ nodes {{ {MR_FIELDS} }} }} }}"
+            )
+    return "query { " + " ".join(blocks) + " }", aliases
+
+
+def map_graphql_mr(host: str, node: dict) -> dict:
+    """Build the dict that `mr_result` reads, the same shape as REST."""
+    pipe = node.get("headPipeline")
+    head = (
+        {
+            "status": str(pipe.get("status") or "").lower(),
+            "web_url": f"https://{host}{pipe.get('path') or ''}",
+        }
+        if pipe
+        else {}
+    )
+    return {
+        "state": str(node.get("state") or "").lower(),
+        "draft": node.get("draft"),
+        "title": node.get("title"),
+        "web_url": node.get("webUrl"),
+        "head_pipeline": head,
+        "has_conflicts": node.get("conflicts"),
+        "detailed_merge_status": str(node.get("detailedMergeStatus") or "").lower(),
+        "_approved": bool(node.get("approved")),
+        "_approved_by": [
+            n["username"] for n in ((node.get("approvedBy") or {}).get("nodes") or [])
+        ],
+        "_approvals_left": node.get("approvalsLeft"),
+    }
+
+
+def map_graphql_response(host: str, aliases: dict[str, str], response: dict) -> dict:
+    """{(host, project, iid): REST-shaped dict} for every MR in the response.
+    An MR that the response lacks is absent from the result."""
+    out = {}
+    data = response.get("data") or {}
+    for alias, project in aliases.items():
+        block = data.get(alias) or {}
+        nodes = ((block.get("mergeRequests") or {}).get("nodes")) or []
+        for node in nodes:
+            if node and node.get("iid") is not None:
+                out[(host, project, str(node["iid"]))] = map_graphql_mr(host, node)
+    return out
+
+
 class Sources:
     """The real status sources. Tests replace the five `fetch_*` methods."""
 
@@ -457,6 +536,23 @@ class Sources:
         # --no-verify is mandatory: without it, `list` runs the --verify
         # command of each item and closes items. --plain gives tab-separated rows.
         return [exe, "--plain", "--no-verify"]
+
+    def fetch_mr_batch(self, host: str, mrs: list[dict]) -> dict:
+        """One GraphQL query for MRs on one host (read-only). Returns
+        {(host, project, iid): data}. It never raises: on a failed call or a
+        GraphQL error it returns {}, and the caller falls back to REST for each
+        MR that the result lacks."""
+        try:
+            query, aliases = build_mr_query(mrs)
+            p = run(["glab", "api", "graphql", "--hostname", host, "-f", f"query={query}"])
+            if p.returncode != 0:
+                return {}
+            response = json.loads(p.stdout)
+            if not isinstance(response, dict) or response.get("errors"):
+                return {}
+            return map_graphql_response(host, aliases, response)
+        except Exception:  # noqa: BLE001 -- the REST fallback covers every failure
+            return {}
 
     def fetch_mr(self, mr: dict) -> dict:
         proj = urllib.parse.quote(mr["project"], safe="")
@@ -647,15 +743,42 @@ def resolve_sources(g: Graph, src: Sources) -> dict[str, Result]:
     asks: dict[str, dict] = {}
     asks_err = ""
     jobs: dict[cf.Future, tuple[str, int]] = {}
+    mr_slots: dict[tuple[str, str, str], list[tuple[str, int]]] = {}
+    mr_specs: dict[tuple[str, str, str], dict] = {}
     with cf.ThreadPoolExecutor(max_workers=WORKERS) as pool:
         ask_future = pool.submit(src.fetch_asks) if all_asks else None
         note_futures = {a: pool.submit(src.fetch_ask_note, a) for a in all_asks}
         for n in nodes:
             for i, s in enumerate(n.sources):
                 if "mr" in s:
-                    jobs[pool.submit(src.fetch_mr, s["mr"])] = (n.id, i)
+                    mr_slots.setdefault(mr_key(s["mr"]), []).append((n.id, i))
+                    mr_specs.setdefault(mr_key(s["mr"]), s["mr"])
                 elif "probe" in s:
                     jobs[pool.submit(src.fetch_probe, s["probe"])] = (n.id, i)
+        # One GraphQL call per host (at most GRAPHQL_PAGE MRs per call), in
+        # parallel. An MR that the call does not return falls back to REST.
+        by_host: dict[str, list[dict]] = {}
+        for key, spec in mr_specs.items():
+            by_host.setdefault(key[0], []).append(spec)
+        batch_futures = []
+        for host, specs in by_host.items():
+            for i in range(0, len(specs), GRAPHQL_PAGE):
+                batch_futures.append(pool.submit(src.fetch_mr_batch, host, specs[i : i + GRAPHQL_PAGE]))
+        mr_raw: dict[tuple[str, str, str], object] = {}
+        for fut in batch_futures:
+            try:
+                mr_raw.update(fut.result() or {})
+            except Exception:  # noqa: BLE001
+                pass
+        rest = {k: pool.submit(src.fetch_mr, spec) for k, spec in mr_specs.items() if k not in mr_raw}
+        for k, fut in rest.items():
+            try:
+                mr_raw[k] = fut.result()
+            except Exception as e:  # noqa: BLE001
+                mr_raw[k] = e
+        for k, slots in mr_slots.items():
+            for slot in slots:
+                jobs[pool.submit(lambda v=mr_raw[k]: v)] = slot
         if ask_future:
             try:
                 asks = ask_future.result()

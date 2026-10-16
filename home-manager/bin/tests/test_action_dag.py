@@ -68,6 +68,9 @@ class FakeSources(ad.Sources):
             return f"/notebook/{iid}.md", self.notes[iid]
         return None
 
+    def fetch_mr_batch(self, host, mrs):
+        return {}  # no GraphQL: every MR takes the fetch_mr path
+
     def fetch_mr(self, mr):
         self.calls.append(("mr", mr["iid"]))
         v = self.mrs[mr["iid"]]
@@ -574,6 +577,86 @@ def test_real_sources_with_fake_glab_and_ask_zk(tmp_path, monkeypatch):
     assert src.fetch_probe("exit 0")["rc"] == 0
     failed = src.fetch_probe("echo 'boom glpat-abcdefghij1234567890' >&2; exit 4")
     assert failed["rc"] == 4 and "boom [REDACTED]" in failed["stderr"]
+
+
+# ---------------------------------------------------------------- graphql batch
+
+
+def _spec(project, iid, host="gitlab.example.com"):
+    return {"host": host, "project": project, "iid": iid}
+
+
+def test_build_mr_query_aliases_and_string_iids():
+    q, aliases = ad.build_mr_query([_spec("g/a", 1), _spec("g/b", 2), _spec("g/a", 3), _spec("g/a", 1)])
+    assert aliases == {"p0": "g/a", "p1": "g/b"}
+    assert 'p0: project(fullPath: "g/a")' in q and 'iids: ["1", "3"]' in q
+    assert 'p1: project(fullPath: "g/b")' in q and 'iids: ["2"]' in q
+    assert "headPipeline{status path}" in q
+
+
+def test_build_mr_query_chunks_at_100():
+    q, aliases = ad.build_mr_query([_spec("g/a", i) for i in range(1, 251)])
+    assert aliases == {"p0": "g/a", "p1": "g/a", "p2": "g/a"}
+    assert q.count("mergeRequests(") == 3
+    assert '"100"]' in q and '"101", ' in q and '"250"]' in q
+
+
+def _node(**kw):
+    n = {
+        "iid": "7", "state": "opened", "draft": False, "title": "T",
+        "webUrl": "https://gitlab.example.com/g/a/-/merge_requests/7",
+        "conflicts": False, "detailedMergeStatus": "NOT_APPROVED", "approved": True,
+        "approvedBy": {"nodes": [{"username": "bob"}, {"username": "eve"}]},
+        "approvalsLeft": 0, "headPipeline": {"status": "SUCCESS", "path": "/g/a/-/pipelines/9"},
+    }
+    n.update(kw)
+    return n
+
+
+def test_map_graphql_response_shapes_rest_dict():
+    resp = {"data": {"p0": {"mergeRequests": {"nodes": [_node(), _node(iid="8", headPipeline=None, state="MERGED")]}}}}
+    out = ad.map_graphql_response("gitlab.example.com", {"p0": "g/a"}, resp)
+    d = out[("gitlab.example.com", "g/a", "7")]
+    assert d["state"] == "opened" and d["detailed_merge_status"] == "not_approved"
+    assert d["head_pipeline"] == {"status": "success", "web_url": "https://gitlab.example.com/g/a/-/pipelines/9"}
+    assert d["_approved"] is True and d["_approved_by"] == ["bob", "eve"] and d["_approvals_left"] == 0
+    assert d["web_url"].endswith("/merge_requests/7") and d["has_conflicts"] is False
+    n8 = out[("gitlab.example.com", "g/a", "8")]
+    assert n8["head_pipeline"] == {} and n8["state"] == "merged"
+    assert ad.mr_result(_spec("g/a", 7), d).pill == "Merge"
+
+
+def test_fetch_mr_batch_errors_return_empty(monkeypatch):
+    class P:
+        def __init__(self, rc, out): self.returncode, self.stdout, self.stderr = rc, out, ""
+    src = ad.Sources()
+    specs = [_spec("g/a", 7)]
+    monkeypatch.setattr(ad, "run", lambda cmd, timeout=0: P(1, ""))
+    assert src.fetch_mr_batch("gitlab.example.com", specs) == {}
+    monkeypatch.setattr(ad, "run", lambda cmd, timeout=0: P(0, json.dumps({"errors": [{"message": "x"}], "data": {}})))
+    assert src.fetch_mr_batch("gitlab.example.com", specs) == {}
+    monkeypatch.setattr(ad, "run", lambda cmd, timeout=0: P(0, "not json"))
+    assert src.fetch_mr_batch("gitlab.example.com", specs) == {}
+    seen = []
+    ok = json.dumps({"data": {"p0": {"mergeRequests": {"nodes": [_node()]}}}})
+    monkeypatch.setattr(ad, "run", lambda cmd, timeout=0: (seen.append(cmd), P(0, ok))[1])
+    got = src.fetch_mr_batch("gitlab.example.com", specs)
+    assert list(got) == [("gitlab.example.com", "g/a", "7")]
+    assert seen[0][:5] == ["glab", "api", "graphql", "--hostname", "gitlab.example.com"]
+
+
+def test_resolve_sources_graphql_with_rest_fallback_for_missing_mr():
+    class GqlSources(FakeSources):
+        def fetch_mr_batch(self, host, mrs):
+            self.calls.append(("batch", host, len(mrs)))
+            return {("gitlab.example.com", "group/repo", "1"): ad.map_graphql_mr("gitlab.example.com", _node(iid="1"))}
+
+    g = graph([node("a", {"mr": 1}), node("b", {"mr": 2})], [])
+    src = GqlSources(mrs={2: mr(state="merged")})
+    res = ad.resolve_sources(g, src)
+    assert ("batch", "gitlab.example.com", 2) in src.calls
+    assert ("mr", 2) in src.calls and ("mr", 1) not in src.calls
+    assert res["a"].mr["state"] == "opened" and res["b"].state == "done"
 
 
 # ---------------------------------------------------------------- markdown, redaction, panel

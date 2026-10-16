@@ -317,6 +317,11 @@ Each node has a `status:` source. The CLI reads all the sources in parallel.
 A failed lookup does not stop the run: that node shows `unknown`, and the
 panel shows the error.
 
+The CLI reads the status of all `mr:` sources with one read-only
+[GraphQL](https://docs.gitlab.com/api/graphql/) query for each GitLab host. If
+the query fails, or does not return an MR, the CLI reads that MR with the
+[REST API](https://docs.gitlab.com/api/rest/).
+
 | Source | Done when | Not done |
 |---|---|---|
 | `mr: <iid>` or `mr: {project, iid, host}` | the MR is merged | draft → `wait`; merge conflicts, a needed rebase, failed or canceled CI, open review threads, approved, or mergeable → `next`; all other open MRs (no approval yet) → `wait`; closed → `unknown`. A draft with conflicts or a needed rebase stays `wait` and gets a warning |
@@ -526,7 +531,8 @@ the URL stays the same.
 
 - The CLI calls ask-zk with `--no-verify` only. Never run `ask-zk done` or
   `ask-zk drop` because of what the graph shows. Only the user ticks an ask.
-- The CLI calls glab with GET requests only. It never prints a token.
+- The CLI calls glab with GET requests and read-only GraphQL queries only. It
+  never prints a token.
 - Do not edit `<goal>.dag.yaml` with the Edit tool. Use the editing commands.
   They keep the layout of the file and refuse to write a graph with errors.
 - Tests: `uv run --script home-manager/bin/tests/test_action_dag.py` in the
