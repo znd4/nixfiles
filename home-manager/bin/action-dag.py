@@ -559,10 +559,25 @@ def mr_result(mr: dict, data: dict) -> Result:
         )
     else:
         detail = f"{ref} open, pipeline {pipe}"
+        # GitLab sets has_conflicts and detailed_merge_status on the MR. A
+        # conflict or a needed rebase is work for the owner, so the state is next.
+        # A draft stays wait and gets a warning.
+        conflict = bool(data.get("has_conflicts")) or merge_status == "conflict"
+        rebase = merge_status == "need_rebase"
         if data.get("draft"):
             r = Result("wait", "Draft", f"{detail}, draft")
+            if conflict:
+                r.warn.append(f"{ref} has merge conflicts with its target branch")
+            elif rebase:
+                r.warn.append(f"{ref} needs a rebase onto its target branch")
+        elif conflict:
+            r = Result("next", "Conflicts", f"{detail}: resolve the merge conflicts with the target branch")
+        elif rebase:
+            r = Result("next", "Rebase", f"{detail}: rebase onto the target branch")
         elif pipe in ("failed", "canceled"):
             r = Result("next", "CI " + pipe, f"{detail}: fix CI")
+        elif merge_status == "discussions_not_resolved":
+            r = Result("next", "Threads", f"{detail}: resolve the open review threads")
         elif approved or merge_status == "mergeable":
             by = ", ".join(data.get("_approved_by") or [])
             r = Result("next", "Merge", f"{detail}, approved{' by ' + by if by else ''}")
@@ -1069,12 +1084,22 @@ def dl(rows: list[tuple[str, str]]) -> str:
 
 def panel(node: Node, d: Derived, g: Graph, derived, preds, succs, prev: str | None) -> str:
     """The detail panel of one node, as HTML. The page keeps it in a <template>."""
-    links = list(node.links)
-    known = {x["url"] for x in links}
-    mr_urls = {f.get("url") for f in d.facts if f["kind"] == "mr"}
-    if node.link and node.link not in known and node.link not in mr_urls:
-        links.insert(0, {"label": link_label(node.link), "url": node.link})
-    btns = "".join(button(x["label"], x["url"]) for x in links)
+    # The MR buttons come first: on a card with an MR, the MR is the most used link.
+    links = []
+    for f in d.facts:
+        if f["kind"] == "mr" and f.get("url"):
+            links.append({"label": f"Open MR {f['ref']}", "url": f["url"]})
+            if f.get("pipeline_url"):
+                links.append({"label": "Open pipeline", "url": f["pipeline_url"]})
+    if node.link:
+        links.append({"label": link_label(node.link), "url": node.link})
+    links += node.links
+    seen: set[str] = set()
+    btns = ""
+    for x in links:
+        if x["url"] not in seen:
+            seen.add(x["url"])
+            btns += button(x["label"], x["url"])
     warn = "".join(f'<p class="warn">{esc(w)}</p>' for w in d.warn)
     changed = f'<p class="chgline">Changed since the last run: was {esc(prev)}</p>' if prev else ""
     notes = f'<section><h4>Notes</h4><div class="md">{md_to_html(node.notes)}</div></section>' if node.notes else ""

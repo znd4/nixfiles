@@ -257,8 +257,9 @@ action-dag rm   example-cutover S1 --dry-run
   has no chain.
 - The panel shows:
   - **Every node**: the state, the warnings, the `notes:` text, and one
-    button for each link. "Waits on" and "Unblocks" show the predecessors and
-    the next nodes as small buttons (chips). Click a chip to select that node.
+    button for each link. On a node with an MR, the first buttons are
+    **Open MR** and **Open pipeline**. "Waits on" and "Unblocks" show the
+    predecessors and the next nodes as small buttons (chips). Click a chip to select that node.
   - **Ask**: the ask note as HTML (title, Why, Do this, Done when), its state,
     its age and the note path. Each code block has a **Copy** button.
   - **MR**: the title, state, draft, approvals, head pipeline status, and the
@@ -283,11 +284,32 @@ action-dag rm   example-cutover S1 --dry-run
   After a reload, the page opens the panel of that node again.
 - The page keeps the scroll positions in `sessionStorage`, so a reload does
   not move the view.
-- A reload shows only the data of the last run. To get new data, run
-  `action-dag <goal> --watch` in a terminal. The page cannot get new data by
-  itself, because browsers block fetch requests from `file://` pages.
+- A reload shows only the data of the last run. The page cannot get new data
+  by itself, because browsers block fetch requests from `file://` pages.
+  Something must run the CLI again (see
+  [Start the refresh](#start-the-refresh)).
 - The page shows the time of the last run ("Generated ..."). Use it to see
   how old the data is.
+
+### Start the refresh
+
+After you make or update a graph that the user looks at, start a refresh in
+the background, so that the page follows the MRs, the asks and the probes:
+
+1. Look for a refresh that already runs for this goal:
+   `pgrep -f 'action-dag <goal> .*--watch'`. If it finds a process, do not
+   start a second one.
+2. If it finds no process, run `action-dag <goal> --no-open --watch 2` with
+   the Bash tool's `run_in_background` option. The CLI then gets the status
+   and writes the page every 2 minutes.
+3. Tell the user that the refresh runs. It stops when the session ends.
+
+Use `--watch`, not a loop of the agent (`/loop` or a scheduled wake-up). The
+CLI does the same refresh, and it uses no tokens. Use a loop of the agent
+only when the agent must also do something when a node changes, for example
+edit the YAML file or start an MR. In that loop, give each check to a subagent
+on a small, cheap model (for example Haiku), and keep the main agent for the
+decisions.
 
 ## How the CLI finds the status of a node
 
@@ -297,7 +319,7 @@ panel shows the error.
 
 | Source | Done when | Not done |
 |---|---|---|
-| `mr: <iid>` or `mr: {project, iid, host}` | the MR is merged | draft or not approved → `wait`; approved, or CI failed → `next`; closed → `unknown` |
+| `mr: <iid>` or `mr: {project, iid, host}` | the MR is merged | draft → `wait`; merge conflicts, a needed rebase, failed or canceled CI, open review threads, approved, or mergeable → `next`; all other open MRs (no approval yet) → `wait`; closed → `unknown`. A draft with conflicts or a needed rebase stays `wait` and gets a warning |
 | `ask: <id>` | the ask is ticked | open → `next`, with a stale warning after `ASK_STALE_DAYS` days (default 7); dropped → `unknown` |
 | `probe: <sh command>` | the command exits 0 in 8 s or less | the `pending:` state (default `next`); time-out → `unknown` |
 | `manual: next\|wait\|decide\|blocked\|done` | `done` | as written |
@@ -425,9 +447,10 @@ Use `links:` to set the label yourself.
    as a label for the detail panel.
 7. Run `action-dag <goal> --check` until it shows `0 errors`.
 8. Run `action-dag <goal> --no-open` and give the user the summary.
-9. Link the hub note to the files. zk does not index YAML or HTML, so use
-   plain markdown links, not wiki links:
-   `[Action graph](<goal>.dag.html) ([source](<goal>.dag.yaml))`.
+9. Start the refresh (see [Start the refresh](#start-the-refresh)).
+10. Link the hub note to the files. zk does not index YAML or HTML, so use
+    plain markdown links, not wiki links:
+    `[Action graph](<goal>.dag.html) ([source](<goal>.dag.yaml))`.
 
 ## Update a graph when the facts change
 

@@ -93,13 +93,15 @@ class FakeSources(ad.Sources):
         return v
 
 
-def mr(state="opened", draft=False, approved=False, pipe="success"):
+def mr(state="opened", draft=False, approved=False, pipe="success", conflicts=False, merge_status=""):
     return {
         "state": state,
         "draft": draft,
         "_approved": approved,
         "_approved_by": ["bob"] if approved else [],
         "head_pipeline": {"status": pipe},
+        "has_conflicts": conflicts,
+        "detailed_merge_status": merge_status,
     }
 
 
@@ -291,6 +293,26 @@ def test_lookup_failure_is_unknown_not_a_crash():
     d = run_derive(g, src)
     assert d["A"].state == "unknown" and "401" in d["A"].detail
     assert d["B"].state == "blocked"
+
+
+def test_mr_conflicts_rebase_and_threads():
+    src = FakeSources(mrs={
+        1: mr(conflicts=True, approved=True),
+        2: mr(merge_status="need_rebase"),
+        3: mr(merge_status="discussions_not_resolved"),
+        4: mr(draft=True, conflicts=True),
+        5: mr(merge_status="conflict"),
+        6: mr(approved=True),
+    })
+    g = graph([node(f"M{i}", {"mr": i}) for i in range(1, 7)], [])
+    d = run_derive(g, src)
+    assert (d["M1"].state, d["M1"].pill) == ("next", "Conflicts")
+    assert (d["M2"].state, d["M2"].pill) == ("next", "Rebase")
+    assert (d["M3"].state, d["M3"].pill) == ("next", "Threads")
+    assert (d["M4"].state, d["M4"].pill) == ("wait", "Draft")
+    assert any("merge conflicts" in w for w in d["M4"].warn)
+    assert (d["M5"].state, d["M5"].pill) == ("next", "Conflicts")
+    assert (d["M6"].state, d["M6"].pill) == ("next", "Merge")
 
 
 def test_hold_until_warns_when_mr_out_of_draft_or_approved():
@@ -657,6 +679,17 @@ def test_panel_shows_ask_note_mr_facts_probe_and_chips(tmp_path):
     assert "function chain(" in page and "drawChain()" in page
     assert "button.node.linked" in page and 'classList.add("rel")' not in page
     assert "Generated <b>2026-10-12 12:00:00 UTC</b>" in page
+
+
+def test_panel_mr_buttons_come_first():
+    g = graph([node("A", {"mr": 5}, link="https://example.com/doc", links=[{"label": "Open runbook", "url": "https://example.com/rb"}])], [])
+    pipe = {"state": "opened", "draft": False, "approved": False, "web_url": "https://gitlab.example.com/group/repo/-/merge_requests/5",
+            "head_pipeline": {"status": "success", "web_url": "https://gitlab.example.com/group/repo/-/pipelines/9"}, "title": "A"}
+    page = ad.render(g, run_derive(g, FakeSources(mrs={5: pipe})), {}, "now", ad.TEMPLATE.read_text())
+    tpl = page[page.index('<template id="p-A">'):]
+    btns = tpl[tpl.index('<div class="btns">'):tpl.index("</div>", tpl.index('<div class="btns">'))]
+    order = [btns.index(x) for x in (">Open MR !5<", ">Open pipeline<", "example.com/doc", ">Open runbook<")]
+    assert order == sorted(order)
 
 
 def test_output_path_refresh_and_open_only_when_new(tmp_path, monkeypatch, capsys):
