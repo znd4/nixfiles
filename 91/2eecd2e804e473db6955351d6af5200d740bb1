@@ -1,0 +1,21 @@
+home-manager/bin/action-dag.py
+  s_1d03bc7a4989f7::t_bad766aaf4ba00 2446,2981
+home-manager/claude-skills/action-dag/SKILL.md
+  s_1d03bc7a4989f7::t_104008a658dab1 549-550
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "912eecd2e804e473db6955351d6af5200d740bb1",
+  "prompts": {},
+  "sessions": {
+    "s_1d03bc7a4989f7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a073032f-20f8-4c44-b48c-5586f6455ca4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}
