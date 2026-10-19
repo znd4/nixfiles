@@ -1298,6 +1298,7 @@ class FakeAsana(ad.AsanaAPI):
         self.n = 1000
         self.projects, self.sections, self.tasks, self.stories = {}, {}, {}, []
         self.writes = []
+        self.portfolios = {}
 
     def gid(self):
         self.n += 1
@@ -1329,6 +1330,9 @@ class FakeAsana(ad.AsanaAPI):
             self.projects[g] = body
             self.sections[self.gid()] = {"project": g, "name": "Untitled section"}
             return {"data": {"gid": g, "permalink_url": f"https://asana.example/{g}"}}
+        if method == "POST" and parts[0] == "portfolios" and parts[2] == "addItem":
+            self.portfolios.setdefault(parts[1], []).append(body["data"]["item"])
+            return {"data": {}}
         if method == "POST" and parts[0] == "projects" and parts[2] == "sections":
             g = self.gid()
             self.sections[g] = {"project": parts[1], "name": body["name"]}
@@ -1492,6 +1496,29 @@ def test_asana_sync_dry_run_writes_nothing(asana, capsys):
     assert api.writes == [] and not (yml.parent / "g.dag.asana.json").exists()
     out = capsys.readouterr().out
     assert "would create task node:A" in out and "Dry run, nothing written" in out
+
+
+def test_asana_sync_adds_the_new_project_to_the_portfolio(asana):
+    yml, _, src, api, _ = asana
+    assert sync(yml, src, api, "--create-project", "P", "--team", "9") == 0
+    m = json.loads((yml.parent / "g.dag.asana.json").read_text())
+    assert api.portfolios == {"1213471720923189": [m["project"]]}
+    api.writes.clear()
+    assert sync(yml, src, api) == 0  # a later run does not add it again
+    assert api.portfolios == {"1213471720923189": [m["project"]]}
+
+
+def test_asana_sync_portfolio_option_overrides_the_default(asana):
+    yml, _, src, api, _ = asana
+    assert sync(yml, src, api, "--create-project", "P", "--team", "9", "--portfolio", "55") == 0
+    assert list(api.portfolios) == ["55"]
+
+
+def test_asana_sync_dry_run_does_not_add_to_the_portfolio(asana, capsys):
+    yml, _, src, api, _ = asana
+    assert sync(yml, src, api, "--create-project", "P", "--team", "9", "--dry-run") == 0
+    assert api.portfolios == {}
+    assert "would add project new-1 to portfolio 1213471720923189" in capsys.readouterr().out
 
 
 def test_asana_sync_needs_a_project(asana, capsys):

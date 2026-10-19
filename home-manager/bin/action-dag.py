@@ -2443,6 +2443,8 @@ def edit_main(argv: list[str], sources: Sources | None = None) -> int:
 # leaves the graph.
 
 ASANA_API = "https://app.asana.com/api/1.0"
+# Every new Asana project goes into the Platform Infrastructure portfolio.
+ASANA_PORTFOLIO = "1213471720923189"
 ASANA_TOKEN_HELPER = Path(
     os.environ.get("ACTION_DAG_ASANA_TOKEN_HELPER") or Path.home() / ".claude/bin/asana-token"
 )
@@ -2806,6 +2808,17 @@ def asana_sync(path: Path, args, src: Sources, api: AsanaAPI) -> int:
                   "project_url": r.get("permalink_url") or f"https://app.asana.com/0/{project}"})
         m.setdefault("sections", {})
         save()
+        try:
+            plan.write(
+                f"add project {project} to portfolio {args.portfolio}", None,
+                "POST", f"/portfolios/{args.portfolio}/addItem", {"data": {"item": project}},
+            )
+        except AsanaError as e:
+            raise AsanaError(
+                f"the project {project} exists, but Asana did not add it to portfolio "
+                f"{args.portfolio} ({e}). Add it by hand: POST /portfolios/{args.portfolio}/addItem "
+                f"with {{\"data\": {{\"item\": \"{project}\"}}}}"
+            ) from e
         if not args.dry_run:
             for sec in api.get_all(f"/projects/{project}/sections?opt_fields=name"):
                 live_sections[sec["gid"]] = sec["name"]
@@ -2963,10 +2976,15 @@ def asana_main(argv: list[str], sources: Sources | None = None, api: AsanaAPI | 
     ap.add_argument("goal", help="the goal name, or the path to a .dag.yaml file")
     ap.add_argument("--create-project", metavar="NAME", help="first run only: create the project")
     ap.add_argument("--team", metavar="GID", help="the gid of the Asana team (with --create-project)")
+    ap.add_argument("--portfolio", metavar="GID", default=ASANA_PORTFOLIO,
+                    help="the gid of the portfolio that gets the new project (with --create-project). "
+                    f"Default: {ASANA_PORTFOLIO}, Platform Infrastructure")
     ap.add_argument("--dry-run", action="store_true", help="print the writes, but do not write")
     args = ap.parse_args(argv)
     if args.team and not args.create_project:
         ap.error("--team needs --create-project")
+    if args.portfolio != ASANA_PORTFOLIO and not args.create_project:
+        ap.error("--portfolio needs --create-project")
     try:
         return asana_sync(find_graph(args.goal), args, sources or Sources(), api or AsanaAPI())
     except GraphError as e:
