@@ -16,6 +16,7 @@ import importlib.util
 import json
 import os
 import stat
+import subprocess
 import sys
 from pathlib import Path
 
@@ -1298,7 +1299,21 @@ class FakeAsana(ad.AsanaAPI):
         self.n = 1000
         self.projects, self.sections, self.tasks, self.stories = {}, {}, {}, []
         self.writes = []
-        self.portfolios = {}
+        self.cli_calls = []
+        self.cli_rc = 0
+
+    def cli(self, cmd):
+        """Stand-in for `asana project create`: record the call, make the project."""
+        self.cli_calls.append(cmd)
+        if self.cli_rc:
+            g = self.gid()
+            return subprocess.CompletedProcess(
+                cmd, self.cli_rc, f"Asana made https://app.asana.com/1/77/project/{g}/list\nportfolio add failed\n", "")
+        g = self.gid()
+        self.projects[g] = {"cmd": cmd}
+        self.sections[self.gid()] = {"project": g, "name": "Untitled section"}
+        return subprocess.CompletedProcess(
+            cmd, 0, f'Created project "P"\nhttps://app.asana.com/0/{g}/list\nAdded it to portfolio.\n', "")
 
     def gid(self):
         self.n += 1
@@ -1325,13 +1340,8 @@ class FakeAsana(ad.AsanaAPI):
             if parts[1] not in self.tasks:
                 raise ad.AsanaError("Not Found")
             return {"data": self.task_view(self.tasks[parts[1]])}
-        if method == "POST" and path == "/projects":
-            g = self.gid()
-            self.projects[g] = body
-            self.sections[self.gid()] = {"project": g, "name": "Untitled section"}
-            return {"data": {"gid": g, "permalink_url": f"https://asana.example/{g}"}}
-        if method == "POST" and parts[0] == "portfolios" and parts[2] == "addItem":
-            self.portfolios.setdefault(parts[1], []).append(body["data"]["item"])
+        if method == "PUT" and parts[0] == "projects" and len(parts) == 2:
+            self.projects[parts[1]].update(body)
             return {"data": {}}
         if method == "POST" and parts[0] == "projects" and parts[2] == "sections":
             g = self.gid()
@@ -1401,7 +1411,14 @@ def asana(tmp_path, monkeypatch):
         done=[{"label": "old work", "link": "https://example.com/old"}],
     )
     src = FakeSources(mrs={5: mr()}, asks={"ab12": {"state": "open", "age_days": 0, "what": ""}})
-    return yml, write, src, FakeAsana(), home
+    api = FakeAsana()
+    real_run = ad.run
+    monkeypatch.setattr(
+        ad, "run",
+        lambda cmd, timeout=0: api.cli(cmd) if cmd[:3] == ["asana", "project", "create"]
+        else real_run(cmd, timeout=timeout),
+    )
+    return yml, write, src, api, home
 
 
 def sync(yml, src, api, *extra):
@@ -1498,27 +1515,48 @@ def test_asana_sync_dry_run_writes_nothing(asana, capsys):
     assert "would create task node:A" in out and "Dry run, nothing written" in out
 
 
-def test_asana_sync_adds_the_new_project_to_the_portfolio(asana):
+def test_asana_sync_creates_the_project_with_the_asana_cli(asana):
     yml, _, src, api, _ = asana
     assert sync(yml, src, api, "--create-project", "P", "--team", "9") == 0
     m = json.loads((yml.parent / "g.dag.asana.json").read_text())
-    assert api.portfolios == {"1213471720923189": [m["project"]]}
-    api.writes.clear()
-    assert sync(yml, src, api) == 0  # a later run does not add it again
-    assert api.portfolios == {"1213471720923189": [m["project"]]}
+    assert api.cli_calls == [["asana", "project", "create", "P", "--team", "9",
+                              "--portfolio", "1213471720923189"]]
+    assert m["project"] in api.projects and m["project_url"] == f"https://app.asana.com/0/{m['project']}/list"
+    assert api.projects[m["project"]]["default_view"] == "list"  # the CLI does not set it
+    assert not [w for w in api.writes if w[1] == "/projects"]  # no raw POST /projects
+    api.cli_calls.clear()
+    assert sync(yml, src, api) == 0  # a later run does not call the CLI
+    assert api.cli_calls == []
 
 
-def test_asana_sync_portfolio_option_overrides_the_default(asana):
+def test_asana_sync_portfolio_and_group_pass_through_to_the_cli(asana):
     yml, _, src, api, _ = asana
-    assert sync(yml, src, api, "--create-project", "P", "--team", "9", "--portfolio", "55") == 0
-    assert list(api.portfolios) == ["55"]
+    assert sync(yml, src, api, "--create-project", "P", "--team", "9", "--portfolio", "55",
+                "--group", "Fedramp") == 0
+    assert api.cli_calls[0][-4:] == ["--portfolio", "55", "--group", "Fedramp"]
 
 
-def test_asana_sync_dry_run_does_not_add_to_the_portfolio(asana, capsys):
+def test_asana_sync_dry_run_does_not_call_the_cli(asana, capsys):
     yml, _, src, api, _ = asana
     assert sync(yml, src, api, "--create-project", "P", "--team", "9", "--dry-run") == 0
-    assert api.portfolios == {}
-    assert "would add project new-1 to portfolio 1213471720923189" in capsys.readouterr().out
+    assert api.cli_calls == []
+    assert "would create project 'P' in team 9 with the asana CLI (portfolio 1213471720923189)" in capsys.readouterr().out
+
+
+def test_asana_sync_keeps_the_project_gid_when_the_cli_fails(asana, capsys):
+    yml, _, src, api, _ = asana
+    api.cli_rc = 1
+    assert sync(yml, src, api, "--create-project", "P", "--team", "9") == 1
+    m = json.loads((yml.parent / "g.dag.asana.json").read_text())
+    assert m["project"] == "1001"
+    assert "asana portfolio add 1001" in capsys.readouterr().err
+
+
+def test_asana_sync_group_needs_create_project(asana, capsys):
+    yml, _, src, api, _ = asana
+    with pytest.raises(SystemExit):
+        sync(yml, src, api, "--group", "Fedramp")
+    assert "--group needs --create-project" in capsys.readouterr().err
 
 
 def test_asana_sync_needs_a_project(asana, capsys):

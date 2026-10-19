@@ -2719,6 +2719,33 @@ def mapping_entry(m: dict, key: str) -> dict:
     return m.setdefault("nodes" if kind == "node" else "done", {}).setdefault(name, {})
 
 
+ASANA_PROJECT_GID = re.compile(r"app\.asana\.com/(?:0|1/\d+/project)/(\d+)")
+
+
+def asana_cli_create_project(
+    name: str, team: str, portfolio: str, group: str | None
+) -> tuple[str | None, str | None, str | None]:
+    """Run `asana project create`. The CLI makes the project, adds it to the portfolio and
+    sets Platform Team [AIRS]. It has no JSON flag, so read the gid from the project URL in
+    its output. Return (gid, url, error). The error is None when the CLI exits 0."""
+    cmd = ["asana", "project", "create", name, "--team", team, "--portfolio", portfolio]
+    if group:
+        cmd += ["--group", group]
+    p = run(cmd, timeout=120)
+    out = f"{p.stdout or ''}\n{p.stderr or ''}"
+    found = ASANA_PROJECT_GID.search(out)
+    gid = found.group(1) if found else None
+    url = None
+    if found:
+        url = re.search(r"https://\S*" + re.escape(found.group(0)) + r"\S*", out)
+        url = url.group(0) if url else None
+    if p.returncode != 0:
+        return gid, url, short_err(out)
+    if not gid:
+        return None, None, "no project URL in the output: " + short_err(out)
+    return gid, url, None
+
+
 @dataclass
 class AsanaPlan:
     """Does each write and counts it. A dry run only prints the write."""
@@ -2799,26 +2826,29 @@ def asana_sync(path: Path, args, src: Sources, api: AsanaAPI) -> int:
 
     # ---- the project
     if args.create_project:
-        r = plan.write(
-            f"create project {args.create_project!r} in team {args.team}", "project",
-            "POST", "/projects", {"name": args.create_project, "team": args.team, "default_view": "list"},
-        )["data"]
-        project = r["gid"]
-        m.update({"goal": g.goal, "project": project, "project_name": args.create_project,
-                  "project_url": r.get("permalink_url") or f"https://app.asana.com/0/{project}"})
-        m.setdefault("sections", {})
-        save()
-        try:
-            plan.write(
-                f"add project {project} to portfolio {args.portfolio}", None,
-                "POST", f"/portfolios/{args.portfolio}/addItem", {"data": {"item": project}},
-            )
-        except AsanaError as e:
-            raise AsanaError(
-                f"the project {project} exists, but Asana did not add it to portfolio "
-                f"{args.portfolio} ({e}). Add it by hand: POST /portfolios/{args.portfolio}/addItem "
-                f"with {{\"data\": {{\"item\": \"{project}\"}}}}"
-            ) from e
+        print(f"{'would ' if args.dry_run else ''}create project {args.create_project!r} in team "
+              f"{args.team} with the asana CLI (portfolio {args.portfolio})", flush=True)
+        if args.dry_run:
+            project, url, cli_error = "new-1", "(new project)", None
+        else:
+            project, url, cli_error = asana_cli_create_project(
+                args.create_project, args.team, args.portfolio, args.group)
+        plan.writes += 1
+        plan.counts["project"] = plan.counts.get("project", 0) + 1
+        if project:
+            m.update({"goal": g.goal, "project": project, "project_name": args.create_project,
+                      "project_url": url or f"https://app.asana.com/0/{project}"})
+            m.setdefault("sections", {})
+            save()
+        if cli_error:
+            hint = (f"the project {project} exists. Run: asana portfolio add {project}" if project
+                    else "Asana made no project")
+            raise AsanaError(f"asana project create failed ({cli_error}). {hint}")
+        if not args.dry_run:
+            try:  # the CLI does not set the view
+                api.request("PUT", f"/projects/{project}", {"default_view": "list"})
+            except AsanaError as e:
+                print(f"warning: could not set the project view to list ({e})")
         if not args.dry_run:
             for sec in api.get_all(f"/projects/{project}/sections?opt_fields=name"):
                 live_sections[sec["gid"]] = sec["name"]
@@ -2979,8 +3009,12 @@ def asana_main(argv: list[str], sources: Sources | None = None, api: AsanaAPI | 
     ap.add_argument("--portfolio", metavar="GID", default=ASANA_PORTFOLIO,
                     help="the gid of the portfolio that gets the new project (with --create-project). "
                     f"Default: {ASANA_PORTFOLIO} (Platform Infrastructure)")
+    ap.add_argument("--group", metavar="OPTION", help="the Theme [DevOps] [AIRS] option of the new "
+                    "project, by name or gid (with --create-project). Passed to asana project create")
     ap.add_argument("--dry-run", action="store_true", help="print the writes, but do not write")
     args = ap.parse_args(argv)
+    if args.group and not args.create_project:
+        ap.error("--group needs --create-project")
     if args.team and not args.create_project:
         ap.error("--team needs --create-project")
     if args.portfolio != ASANA_PORTFOLIO and not args.create_project:

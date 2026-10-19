@@ -539,15 +539,19 @@ own Asana project. It never makes a subtask.
 
 ```bash
 action-dag asana-sync <goal> --dry-run                                  # print the writes only
-action-dag asana-sync <goal> --create-project "<name>" --team <gid>     # first run: make the project and add it to the portfolio
+action-dag asana-sync <goal> --create-project "<name>" --team <gid> [--group <theme>]   # first run: make the project with "asana project create"
 action-dag asana-sync <goal>                                            # each later run
 ```
 
-- **Portfolio**: `--create-project` adds the new project to the Platform
-  Infrastructure portfolio (gid `1213471720923189`) right after it makes the
-  project. Use `--portfolio <gid>` to name a different portfolio. If Asana
-  does not add the project, the sync stops and prints the API call to make by
-  hand.
+- **Project**: `--create-project` runs the installed CLI
+  `asana project create <name> --team <gid> --portfolio <gid>`. The CLI makes
+  the project, adds it to the Platform Infrastructure portfolio (gid
+  `1213471720923189`) and sets Platform Team [AIRS] to dev-ops. The sync reads
+  the project gid from the URL in the CLI output, then sets the list view.
+  Use `--portfolio <gid>` to name a different portfolio. Use `--group <option>`
+  to set Theme [DevOps] [AIRS]. If the CLI makes the project but cannot add it
+  to the portfolio, the sync saves the gid, stops and prints
+  `asana portfolio add <gid>`.
 - **Sections**: one for each lane, then "Side tracks", then "Done".
 - **Tasks**: one top-level task for each node, each side track and each
   done-row entry. The task name is the node title. The description has the
