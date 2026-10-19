@@ -2443,7 +2443,7 @@ def edit_main(argv: list[str], sources: Sources | None = None) -> int:
 # leaves the graph.
 
 ASANA_API = "https://app.asana.com/api/1.0"
-# Every new Asana project goes into the Platform Infrastructure portfolio.
+# The default portfolio for each project that --create-project makes: Platform Infrastructure.
 ASANA_PORTFOLIO = "1213471720923189"
 ASANA_TOKEN_HELPER = Path(
     os.environ.get("ACTION_DAG_ASANA_TOKEN_HELPER") or Path.home() / ".claude/bin/asana-token"
@@ -2978,7 +2978,7 @@ def asana_main(argv: list[str], sources: Sources | None = None, api: AsanaAPI | 
     ap.add_argument("--team", metavar="GID", help="the gid of the Asana team (with --create-project)")
     ap.add_argument("--portfolio", metavar="GID", default=ASANA_PORTFOLIO,
                     help="the gid of the portfolio that gets the new project (with --create-project). "
-                    f"Default: {ASANA_PORTFOLIO}, Platform Infrastructure")
+                    f"Default: {ASANA_PORTFOLIO} (Platform Infrastructure)")
     ap.add_argument("--dry-run", action="store_true", help="print the writes, but do not write")
     args = ap.parse_args(argv)
     if args.team and not args.create_project:

@@ -546,7 +546,8 @@ action-dag asana-sync <goal>                                            # each l
 - **Portfolio**: `--create-project` adds the new project to the Platform
   Infrastructure portfolio (gid `1213471720923189`) right after it makes the
   project. Use `--portfolio <gid>` to name a different portfolio. If Asana
-  refuses the add, the sync stops and prints the call to make by hand.
+  does not add the project, the sync stops and prints the API call to make by
+  hand.
 - **Sections**: one for each lane, then "Side tracks", then "Done".
 - **Tasks**: one top-level task for each node, each side track and each
   done-row entry. The task name is the node title. The description has the
