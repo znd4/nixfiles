@@ -38,6 +38,23 @@ let
     tmux swap-pane -s "$new" -t "$orig" \; select-pane -t "$new"
   '';
 
+  # Moves a pane into a new session. new-session needs a first window, so the
+  # script puts the pane after that window and then closes it. The result has
+  # no extra shell. An existing session name gets the pane as a new window.
+  split-to-session = pkgs.writeShellScript "tmux-split-to-session" ''
+    pane=$1
+    name=$(${pkgs.gum}/bin/gum input --placeholder "new session name")
+    [ -z "$name" ] && exit 0
+    if tmux has-session -t "=$name" 2>/dev/null; then
+      tmux break-pane -d -a -s "$pane" -t "=$name:"
+    else
+      first=$(tmux new-session -d -P -F '#{window_id}' -s "$name" -c "$PWD")
+      tmux break-pane -d -a -s "$pane" -t "$first"
+      tmux kill-window -t "$first"
+      tmux move-window -r -t "=$name:"
+    fi
+  '';
+
   # The scripts look up fzf and jq on PATH. The tmux server PATH can lack
   # them, so postInstall adds the Nix store paths to the start of PATH in
   # each script.
@@ -164,6 +181,10 @@ in
 
         # open the current pane's scrollback in $EDITOR, in place of the pane
         bind e run-shell '${edit-scrollback} #{pane_id}'
+
+        # prefix S: ask for a name, then move the current pane into a new
+        # session (the session starts in the pane's directory)
+        bind S display-popup -E -w 50 -h 5 -d "#{pane_current_path}" '${split-to-session} #{pane_id}'
       ''
       + lib.optionalString cfg.enable ''
 
