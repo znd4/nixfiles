@@ -42,8 +42,8 @@ let
   # script puts the pane after that window and then closes it. The result has
   # no extra shell. An existing session name gets the pane as a new window.
   #
-  # The popup closes when the script exits, so errors are lost. The script
-  # writes a log to ~/.local/state/tmux-split-to-session/log (set
+  # The popup closes when the script exits, and that hides errors. So the
+  # script writes a log to ~/.local/state/tmux-split-to-session/log (set
   # TMUX_SPLIT_LOG_DIR to change the directory). Each run adds one block.
   split-to-session = pkgs.writeShellScript "tmux-split-to-session" ''
     PATH=${pkgs.coreutils}/bin:$PATH
@@ -90,14 +90,14 @@ let
       return $rc
     }
 
-    # Shows the error in the popup and waits for Enter, then exits. The popup
-    # has only 3 rows, so keep the text short.
+    # Shows the error in the popup, then exits. If stdin is a terminal, it
+    # waits for Enter first. The popup has only 3 rows, so keep the text short.
     fail() {
       log "FAIL: $*"
       err=$(head -n 1 "$errf")
       printf '%s failed: %s\nLog: %s\n' "$*" "$err" "''${log/#$HOME/\~}" >&3
       if [ -t 0 ]; then
-        printf 'Press Enter.' >&3
+        printf 'Press Enter to close.' >&3
         read -r || true
       fi
       tmux display-message "split-to-session: $* failed: $err" 3>&-
