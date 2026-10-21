@@ -43,7 +43,14 @@ let
   # no extra shell. An existing session name gets the pane as a new window.
   split-to-session = pkgs.writeShellScript "tmux-split-to-session" ''
     pane=$1
-    name=$(${pkgs.gum}/bin/gum input --placeholder "new session name")
+    # Start from the window name when someone set it. An auto-renamed window
+    # has the name of its program, which makes a poor session name. Tmux
+    # changes ":" and "." in a session name, so do that here.
+    default=""
+    if [ "$(tmux display-message -p -t "$pane" '#{automatic-rename}')" = 0 ]; then
+      default=$(tmux display-message -p -t "$pane" '#{window_name}' | tr ':.' '__')
+    fi
+    name=$(${pkgs.gum}/bin/gum input --placeholder "new session name" --value "$default")
     [ -z "$name" ] && exit 0
     if tmux has-session -t "=$name" 2>/dev/null; then
       tmux break-pane -d -a -s "$pane" -t "=$name:"
