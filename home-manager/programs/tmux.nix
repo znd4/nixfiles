@@ -92,25 +92,33 @@ let
 
     # Shows the error in the popup, then exits. If stdin is a terminal, it
     # waits for Enter first. The popup has only 3 rows, so keep the text short.
+    # The error text is the first stderr line of the last command, or
+    # $fail_err when it is set.
     fail() {
       log "FAIL: $*"
-      err=$(head -n 1 "$errf")
-      printf '%s failed: %s\nLog: %s\n' "$*" "$err" "''${log/#$HOME/\~}" >&3
+      err=''${fail_err-$(head -n 1 "$errf")}
+      printf '%s%s\nLog: %s\n' "$*" "''${err:+: $err}" "''${log/#$HOME/\~}" >&3
       if [ -t 0 ]; then
         printf 'Press Enter to close.' >&3
         read -r || true
       fi
-      tmux display-message "split-to-session: $* failed: $err" 3>&-
+      tmux display-message "split-to-session: $*''${err:+: $err}" 3>&-
       exit 1
     }
+
+    # Stop before any change when the pane id is not like %12.
+    if ! [[ $pane =~ ^%[0-9]+$ ]]; then
+      fail_err=""
+      fail "bad pane id '$pane'"
+    fi
 
     # Start from the window name when someone set it. An auto-renamed window
     # has the name of its program, which makes a poor session name. Tmux
     # changes ":" and "." in a session name, so do that here.
     default=""
-    run tmux display-message -p -t "$pane" '#{automatic-rename}' || fail "display-message"
+    run tmux display-message -p -t "$pane" '#{automatic-rename}' || fail "display-message failed"
     if [ "$out" = 0 ]; then
-      run tmux display-message -p -t "$pane" '#{window_name}' || fail "display-message"
+      run tmux display-message -p -t "$pane" '#{window_name}' || fail "display-message failed"
       default=$(printf '%s' "$out" | tr ':.' '__')
     fi
     log "default: $default"
@@ -119,6 +127,10 @@ let
     gum_rc=0
     name=$(${pkgs.gum}/bin/gum input --placeholder "new session name" --value "$default" 2>&3 3>&-) || gum_rc=$?
     log "gum: exit $gum_rc, name: $name"
+    # When the pane is the last one in its session, break-pane removes the
+    # session. Tmux then closes the popup and sends SIGTERM. The pty also
+    # sends SIGHUP. Ignore both, so the script finishes the move.
+    trap "" HUP TERM
     if [ -z "$name" ]; then
       log "empty name, exit 0"
       exit 0
@@ -126,14 +138,20 @@ let
 
     if run tmux has-session -t "=$name"; then
       log "branch: existing session"
-      run tmux break-pane -d -a -s "$pane" -t "=$name:" || fail "break-pane"
+      run tmux break-pane -d -a -s "$pane" -t "=$name:" || fail "break-pane failed"
     else
       log "branch: new session"
-      run tmux new-session -d -P -F '#{window_id}' -s "$name" -c "$PWD" || fail "new-session"
+      run tmux new-session -d -P -F '#{window_id}' -s "$name" -c "$PWD" || fail "new-session failed"
       first=$out
-      run tmux break-pane -d -a -s "$pane" -t "$first" || fail "break-pane"
-      run tmux kill-window -t "$first" || fail "kill-window"
-      run tmux move-window -r -t "=$name:" || fail "move-window"
+      if ! run tmux break-pane -d -a -s "$pane" -t "$first"; then
+        # Kill the new session, so a failed run leaves nothing behind.
+        fail_err=$(head -n 1 "$errf")
+        log "cleanup: kill the new session $name"
+        run tmux kill-session -t "$first"
+        fail "break-pane failed"
+      fi
+      run tmux kill-window -t "$first" || fail "kill-window failed"
+      run tmux move-window -r -t "=$name:" || fail "move-window failed"
     fi
     log "done"
   '';
@@ -266,8 +284,12 @@ in
         bind e run-shell '${edit-scrollback} #{pane_id}'
 
         # prefix S: ask for a name, then move the current pane into a new
-        # session (the session starts in the pane's directory)
-        bind S display-popup -E -w 50 -h 5 -d "#{pane_current_path}" '${split-to-session} #{pane_id}'
+        # session (the session starts in the pane's directory).
+        # display-popup does not expand formats in its shell command, and sh
+        # reads " #{...}" as a comment. So run-shell expands the formats first.
+        # run-shell changes "##" to "#", so display-popup -d expands the path
+        # itself. Thus sh never sees the path.
+        bind S run-shell -b "tmux display-popup -E -c '#{client_name}' -t '#{pane_id}' -d '##{pane_current_path}' -w 50 -h 5 '${split-to-session} #{pane_id}'"
       ''
       + lib.optionalString cfg.enable ''
 
