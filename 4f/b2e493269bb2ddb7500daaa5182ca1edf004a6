@@ -1,0 +1,19 @@
+home-manager/programs/tmux.nix
+  s_5a09b9602dd032::t_8f2ad22dd43258 46-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "4fb2e493269bb2ddb7500daaa5182ca1edf004a6",
+  "prompts": {},
+  "sessions": {
+    "s_5a09b9602dd032": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "91c2d622-1cfb-43a2-8fb2-b32939ef91ca",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}
