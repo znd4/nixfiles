@@ -1,2 +1,2 @@
 --hidden
---glob=!.git/*
+--glob=!**/.git/*
