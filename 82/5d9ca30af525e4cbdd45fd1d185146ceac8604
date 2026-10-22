@@ -1,0 +1,14 @@
+home-manager/default.nix
+  h_00fa85cb5b6575 172
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "825d9ca30af525e4cbdd45fd1d185146ceac8604",
+  "prompts": {},
+  "humans": {
+    "h_00fa85cb5b6575": {
+      "author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}
