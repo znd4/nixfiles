@@ -169,7 +169,7 @@ in
     arguments = [
       "--smart-case"
       "--hidden"
-      "--glob=!**/.git/*"
+      "--glob=!**/.git"
     ];
   };
   # TODO: Enable saved WIFI connection credentials
