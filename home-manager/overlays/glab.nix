@@ -6,23 +6,27 @@
 # reports — the src hash first, then vendorHash:
 #
 #   nix build --impure --no-link --expr 'let f = builtins.getFlake (toString ./.); \
-#     p = f.inputs.nixpkgs.legacyPackages.${builtins.currentSystem}; in \
-#     (p.extend (import ./home-manager/overlays/glab.nix { inherit (f) inputs; \
-#       system = builtins.currentSystem; })).glab'
+#     s = builtins.currentSystem; o = n: import ./home-manager/overlays/${n}.nix \
+#       { inherit (f) inputs; system = s; }; in \
+#     ((f.inputs.nixpkgs.legacyPackages.${s}.extend (o "go")).extend (o "glab")).glab'
+#
+# glab's go.mod tracks the newest Go patch release, usually ahead of what the
+# pin carries, so it builds with one from ./go.nix. If the build fails with
+# "go.mod requires go >= X", add X there and point `buildGoModule` at it.
 { inputs, system, ... }:
 (final: prev: {
   glab =
     let
-      version = "1.115.0";
+      version = "1.125.0";
       pinned = inputs.nixpkgs-glab.legacyPackages.${system};
     in
-    pinned.glab.overrideAttrs (_: {
+    (pinned.glab.override { buildGoModule = final.buildGo1_27_3Module; }).overrideAttrs (_: {
       inherit version;
       src = pinned.fetchFromGitLab {
         owner = "gitlab-org";
         repo = "cli";
         tag = "v${version}";
-        hash = "sha256-LIPT/5YLj+VWytBox0iB7JFaJkWtWwtrhWS1gN4t5qw=";
+        hash = "sha256-/9C44TQhya22OTf/2qfRpBsISCgo15QfOET5c0QIiR8=";
         # The build stamps the short commit into `glab --version`.
         leaveDotGit = true;
         postFetch = ''
@@ -31,7 +35,7 @@
           find "$out" -name .git -print0 | xargs -0 rm -rf
         '';
       };
-      vendorHash = "sha256-7l3iFKVykOUSRbRe/eqwmQUIFakvkK0PEvY//gtV+gI=";
+      vendorHash = "sha256-4YiqHUwLzwBrO7msIO039cTrirE1v443WWq+nYVPp6I=";
       ldflags = [
         "-s"
         "-w"
