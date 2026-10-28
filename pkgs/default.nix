@@ -1,7 +1,13 @@
+# Each entry here is either a package, exported under its directory name, or
+# an attrset of packages (e.g. ./go), merged in as-is.
 { pkgs, inputs, ... }:
 let
   lib = pkgs.lib;
 in
-(lib.attrsets.genAttrs (builtins.filter (f: f != "default.nix") (
-  builtins.attrNames (builtins.readDir ./.)
-)) (name: ((import (./. + "/${name}")) { inherit pkgs inputs; })))
+lib.concatMapAttrs (
+  name: _:
+  let
+    result = (import (./. + "/${name}")) { inherit pkgs inputs; };
+  in
+  if lib.isDerivation result then { ${name} = result; } else result
+) (lib.filterAttrs (name: _: name != "default.nix") (builtins.readDir ./.))
