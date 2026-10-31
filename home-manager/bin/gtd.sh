@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 # gtd — GTD Flow (Obsidian plugin) from the terminal.
 #
-#   gtd                      Fuzzy-pick a perspective or tag (live preview); prints its tasks
-#   gtd ls <name|#tag>       Print a perspective's tasks, or the available tasks with a tag
-#   gtd next                 Print next actions: the inbox, then each active project
-#   gtd add <text...>        Append "- [ ] <text>" to the GTD Flow inbox note
-#   gtd open <name>          Show a saved perspective in Obsidian
+#   gtd                                Fuzzy-pick a perspective or tag (live preview); prints its tasks
+#   gtd capture <text...>              Append "- [ ] <text>" to the GTD Flow inbox note
+#   gtd next                           Print next actions: the inbox, then each active project
+#   gtd project new <name> [options]   Create a project note, like GTD Flow's New project
+#       -s, --sequential                 Steps run in order (default: parallel)
+#       --someday                        Park it (status: someday) instead of active
+#       -t, --task <text>                Add a first task; repeat for more, in order
+#       -o, --open                       Open the new note in Obsidian
+#   gtd project ls [--all]             Active projects with their next action, or why they're stalled
+#   gtd perspective show <name|#tag>   Print a perspective's tasks, or the available tasks with a tag
+#   gtd perspective open <name>        Show a saved perspective in Obsidian
 #
 # In the picker, ctrl-o opens the highlighted perspective in Obsidian.
 #
@@ -125,7 +131,7 @@ if (Q.cmd === "choices") {
   for (const pr of projects) if (pr.status === "active") for (const t of pr.tasks) if (!t.done) for (const x of t.tags) tags.add("#" + x);
   return [...S.perspectives.map(p => p.name), ...[...tags].sort()].join(NL);
 }
-if (Q.cmd === "ls") {
+if (Q.cmd === "show") {
   const p = resolve(Q.name);
   if (!p) return "ERR no perspective named " + Q.name;
   return render(groups(run(p), p.groupBy), p.groupBy);
@@ -139,22 +145,50 @@ if (Q.cmd === "next") {
   }
   return out.length ? out.join(NL + NL) : "Nothing available.";
 }
-if (Q.cmd === "add") {
+if (Q.cmd === "capture") {
   const line = "- [ ] " + Q.text + NL;
   const f = app.vault.getFileByPath(S.inboxNote);
   if (!f) await app.vault.create(S.inboxNote, line);
   else await app.vault.process(f, c => (c && !c.endsWith(NL) ? c + NL : c) + line);
-  return "Added to " + S.inboxNote;
+  return "Captured to " + S.inboxNote;
 }
 if (Q.cmd === "open") {
   const p = resolve(Q.name);
-  if (!p || Q.name.startsWith("#")) return "ERR no saved perspective named " + Q.name + " (tags can only be printed, not opened)";
+  if (!p || Q.name.startsWith("#")) return "ERR no saved perspective named " + Q.name + " (tags can only be shown, not opened)";
   await g.activateView("gtd-perspectives");
   const leaf = app.workspace.getLeavesOfType("gtd-perspectives")[0];
   if (!leaf) return "ERR couldn't open the Perspectives view";
   leaf.view.selected = p.name;
   leaf.view.render();
   return "Opened " + p.name;
+}
+if (Q.cmd === "project-new") {
+  const bad = ["/", ":", "*", "?", '"', "<", ">", "|", String.fromCharCode(92)];
+  const name = [...Q.name.trim()].map(c => bad.includes(c) ? "-" : c).join("");
+  if (!name) return "ERR project name is empty";
+  const folder = S.projectsFolder.replace(/[/]+$/, "");
+  if (!app.vault.getFolderByPath(folder)) await app.vault.createFolder(folder);
+  const path = folder + "/" + name + ".md";
+  if (app.vault.getFileByPath(path)) return "ERR a project named " + name + " already exists";
+  const fm = ["---", "type: project", "status: " + Q.status, "flow: " + Q.flow, "review-interval: " + S.defaultReviewInterval, "last-reviewed: ", "---", ""].join(NL);
+  const file = await app.vault.create(path, fm + Q.tasks.map(t => "- [ ] " + t + NL).join(""));
+  if (Q.open) await app.workspace.getLeaf(false).openFile(file);
+  return "Created " + path;
+}
+if (Q.cmd === "project-ls") {
+  const ps = projects.filter(p => p.path !== S.inboxNote && (Q.all || p.status === "active")).sort((a, b) => label(a).localeCompare(label(b)));
+  if (!ps.length) return "No projects.";
+  const w = Math.max(...ps.map(p => label(p).length));
+  return ps.map(p => {
+    const av = available(p), open = p.tasks.filter(t => !t.done);
+    let s;
+    if (p.status !== "active") s = p.status;
+    else if (av.length) s = "next: " + av[0].text + (av.length > 1 ? "  (+" + (av.length - 1) + " more)" : "");
+    else if (!p.tasks.length) s = "STALLED: no tasks yet";
+    else if (!open.length) s = "STALLED: every task is closed; finish or drop the project?";
+    else s = "STALLED: nothing available now";
+    return label(p).padEnd(w) + "  " + s;
+  }).join(NL);
 }
 return "ERR unknown command";
 })()
@@ -196,12 +230,50 @@ query() {
 
 usage() {
   cat <<'USAGE'
-gtd                      Fuzzy-pick a perspective or tag (live preview); prints its tasks
-gtd ls <name|#tag>       Print a perspective's tasks, or the available tasks with a tag
-gtd next                 Print next actions: the inbox, then each active project
-gtd add <text...>        Append "- [ ] <text>" to the GTD Flow inbox note
-gtd open <name>          Show a saved perspective in Obsidian
+gtd                                Fuzzy-pick a perspective or tag (live preview); prints its tasks
+gtd capture <text...>              Append "- [ ] <text>" to the GTD Flow inbox note
+gtd next                           Print next actions: the inbox, then each active project
+gtd project new <name> [options]   Create a project note, like GTD Flow's New project
+    -s, --sequential                 Steps run in order (default: parallel)
+    --someday                        Park it (status: someday) instead of active
+    -t, --task <text>                Add a first task; repeat for more, in order
+    -o, --open                       Open the new note in Obsidian
+gtd project ls [--all]             Active projects with their next action, or why they're stalled
+gtd perspective show <name|#tag>   Print a perspective's tasks, or the available tasks with a tag
+gtd perspective open <name>        Show a saved perspective in Obsidian
 USAGE
+}
+
+die_usage() {
+  echo "gtd: $1" >&2
+  usage >&2
+  exit 1
+}
+
+project_new() {
+  local name="" flow=parallel status=active open=false
+  local tasks=()
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+    -s | --sequential) flow=sequential ;;
+    --someday) status=someday ;;
+    -o | --open) open=true ;;
+    -t | --task)
+      [[ $# -ge 2 ]] || die_usage "$1 needs a value"
+      tasks+=("$2")
+      shift
+      ;;
+    -*) die_usage "unknown option $1" ;;
+    *)
+      [[ -z $name ]] || die_usage "more than one project name; quote names with spaces"
+      name=$1
+      ;;
+    esac
+    shift
+  done
+  [[ -n $name ]] || die_usage "project new needs a name"
+  query "$(jq -n --arg n "$name" --arg f "$flow" --arg s "$status" --argjson o "$open" \
+    '{cmd:"project-new",name:$n,flow:$f,status:$s,open:$o,tasks:$ARGS.positional}' --args ${tasks[@]+"${tasks[@]}"})"
 }
 
 cmd=${1:-pick}
@@ -210,20 +282,37 @@ case $cmd in
 pick)
   self=$(command -v gtd || echo "$0")
   choice=$(query '{"cmd":"choices"}' | fzf --prompt 'gtd> ' \
-    --preview "$self ls {}" --preview-window 'right,65%,wrap' \
-    --bind "ctrl-o:execute-silent($self open {})") || exit 0
-  query "$(jq -n --arg n "$choice" '{cmd:"ls",name:$n}')"
+    --preview "$self perspective show {}" --preview-window 'right,65%,wrap' \
+    --bind "ctrl-o:execute-silent($self perspective open {})") || exit 0
+  query "$(jq -n --arg n "$choice" '{cmd:"show",name:$n}')"
   ;;
-ls) query "$(jq -n --arg n "${1:?usage: gtd ls <perspective|#tag>}" '{cmd:"ls",name:$n}')" ;;
+capture)
+  [[ $# -gt 0 ]] || die_usage "capture needs text"
+  query "$(jq -n --arg t "$*" '{cmd:"capture",text:$t}')"
+  ;;
 next) query '{"cmd":"next"}' ;;
-add)
-  [[ $# -gt 0 ]] || { echo "usage: gtd add <text...>" >&2; exit 1; }
-  query "$(jq -n --arg t "$*" '{cmd:"add",text:$t}')"
+project)
+  sub=${1:-}
+  [[ $# -gt 0 ]] && shift
+  case $sub in
+  new) project_new "$@" ;;
+  ls)
+    all=false
+    [[ ${1:-} == --all ]] && all=true
+    query "$(jq -n --argjson a "$all" '{cmd:"project-ls",all:$a}')"
+    ;;
+  *) die_usage "project needs new or ls" ;;
+  esac
   ;;
-open) query "$(jq -n --arg n "${1:?usage: gtd open <perspective>}" '{cmd:"open",name:$n}')" ;;
+perspective)
+  sub=${1:-}
+  [[ $# -gt 0 ]] && shift
+  case $sub in
+  show) query "$(jq -n --arg n "${1:?usage: gtd perspective show <name|#tag>}" '{cmd:"show",name:$n}')" ;;
+  open) query "$(jq -n --arg n "${1:?usage: gtd perspective open <name>}" '{cmd:"open",name:$n}')" ;;
+  *) die_usage "perspective needs show or open" ;;
+  esac
+  ;;
 -h | --help | help) usage ;;
-*)
-  usage >&2
-  exit 1
-  ;;
+*) die_usage "unknown command $cmd" ;;
 esac
