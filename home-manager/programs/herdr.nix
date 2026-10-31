@@ -161,7 +161,7 @@ let
     '';
   };
 
-  # seshClConfig (gitlabHosts / githubOrgs / parentDirectories) is the same
+  # seshClConfig (gitlabHosts / githubOrgs) is the same
   # config the tmux clone popup consumes; rendered into nuon list literals for
   # the clone-creator helper below.
   nuonList = xs: "[" + lib.strings.concatStringsSep " " xs + "]";

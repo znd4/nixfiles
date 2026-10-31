@@ -218,14 +218,12 @@ in
 
         bind -n M-m display-popup -E "_sesh-cl-fuzzy \
           --gitlab-hosts '[${lib.strings.concatStringsSep " " seshClConfig.gitlabHosts}]' \
-          --github-orgs '[${lib.strings.concatStringsSep " " seshClConfig.githubOrgs}]' \
-          --parent-directory '[${lib.strings.concatStringsSep " " seshClConfig.parentDirectories}]'
+          --github-orgs '[${lib.strings.concatStringsSep " " seshClConfig.githubOrgs}]'
         "
 
         bind -n M-M display-popup "_sesh-cl-fuzzy \
           --gitlab-hosts '[${lib.strings.concatStringsSep " " seshClConfig.gitlabHosts}]' \
-          --github-orgs '[${lib.strings.concatStringsSep " " seshClConfig.githubOrgs}]' \
-          --parent-directory '[${lib.strings.concatStringsSep " " seshClConfig.parentDirectories}]'
+          --github-orgs '[${lib.strings.concatStringsSep " " seshClConfig.githubOrgs}]'
         "
 
 

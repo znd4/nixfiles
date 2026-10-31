@@ -397,7 +397,6 @@
               seshClConfig = {
                 gitlabHosts = [ ];
                 githubOrgs = [ ];
-                parentDirectories = [ "~" ];
               }
               // seshClConfig;
             }

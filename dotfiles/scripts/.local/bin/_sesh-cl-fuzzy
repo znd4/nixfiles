@@ -162,45 +162,39 @@ def get_remote [gitlab_hosts: list<string>, github_orgs: list<string>]: any -> s
     }
 }
 
-def select_parent_directory [parent_directory_candidates: list<string>] {
-    $parent_directory_candidates
-    | input list --fuzzy "Please select a parent directory in which to run git clone"
+# Map a git remote to its {host} and {path}, e.g.
+#   git@github.com:owner/repo(.git)        -> github.com, owner/repo
+#   https://gitlab.example.com/a/b/c.git   -> gitlab.example.com, a/b/c
+#   ssh://git@host:2222/a/b.git            -> host, a/b
+def parse_remote [remote: string]: nothing -> record<host: string, path: string> {
+    let parsed = (
+        $remote
+        | str trim
+        | parse --regex '^(?:[a-z+]+://)?(?:[^@/]+@)?(?<host>[^:/]+)(?::\d+(?=/))?[:/](?<path>.+?)(?:\.git)?/?$'
+    )
+    if ($parsed | is-empty) {
+        error make { msg: $"Could not parse host/path from remote: ($remote)" }
+    }
+    $parsed | first
 }
 
-
-def main [--gitlab-hosts: string = "[]", --parent-directory: string, --github-orgs: string = "[]"] {
-    if ($parent_directory | is-empty) {
-        error make {
-            msg: $"Must pass non-empty nuon list to `--parent-directory`"
-        }
-
-    }
-    let parent_directory_candidates = ($parent_directory | from nuon)
-    for dir in $parent_directory_candidates {
-        if ($dir | path type) != "dir" {
-            error make {
-                msg: $"Directory does not exist: ($dir)"
-            }
-        }
-    }
-    let remote: string = (get_remote 
+# Clone into <work-dir>/{host}/{path} and open it as a sesh session.
+def main [--gitlab-hosts: string = "[]", --github-orgs: string = "[]", --work-dir: string = "~/Work"] {
+    let remote: string = (get_remote
         ($gitlab_hosts | from nuon)
         ($github_orgs | from nuon)
     )
-
-    let selected_parent_directory = (select_parent_directory $parent_directory_candidates)
-    let clone_name = (input "Repo name (leave empty for default behavior): ")
-    let sesh_clone_options = [
-        # "--cmdDir" $selected_parent_directory
-        ...(
-            if ( $clone_name | str trim) != "" {
-                ["--dir"  $clone_name]
-            } else { [] }
-        )
-    ]
-    # uncomment for debugging
-    log debug $"sesh_clone_options: ($sesh_clone_options)"
+    let parsed = (parse_remote $remote)
+    let repo_dir = ($work_dir | path expand | path join $parsed.host $parsed.path)
     log debug $"remote: ($remote)"
-    cd $selected_parent_directory
-    sesh cl ...$sesh_clone_options $remote
+    log debug $"repo_dir: ($repo_dir)"
+
+    if ($repo_dir | path exists) {
+        sesh connect $repo_dir
+        return
+    }
+    let parent = ($repo_dir | path dirname)
+    mkdir $parent
+    cd $parent
+    sesh cl --dir ($repo_dir | path basename) $remote
 }
