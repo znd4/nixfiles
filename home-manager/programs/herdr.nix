@@ -161,10 +161,27 @@ let
     '';
   };
 
-  # seshClConfig (gitlabHosts / githubOrgs) is the same
-  # config the tmux clone popup consumes; rendered into nuon list literals for
-  # the clone-creator helper below.
-  nuonList = xs: "[" + lib.strings.concatStringsSep " " xs + "]";
+  # Repo picker -> clone into ~/Work/{host}/{path} -> herdr workspace. The same
+  # tool backs the tmux M-m popup (with --open sesh), fed the same seshClConfig.
+  clonePick = import ../../pkgs/clone-pick { inherit pkgs; };
+  herdrClonePick = pkgs.writeShellScript "herdr-clone-pick" "exec ${
+    lib.escapeShellArgs (
+      [
+        "${clonePick}/bin/clone-pick"
+        "--open"
+        "herdr"
+        "--wait-on-error"
+      ]
+      ++ lib.concatMap (h: [
+        "--gitlab-host"
+        h
+      ]) seshClConfig.gitlabHosts
+      ++ lib.concatMap (o: [
+        "--github-org"
+        o
+      ]) seshClConfig.githubOrgs
+    )
+  }";
 
   # PR/MR review workflow, ported from the tmux `tmux-mr-review` popup: prompt
   # for a PR/MR URL, clone the repo if needed, check out the PR/MR as a worktree,
@@ -232,76 +249,6 @@ let
       export HERDR_WORK_DIR="''${HERDR_WORK_DIR:-${workDir}}"
     ''
     + builtins.readFile ../bin/herdr-launcher;
-  };
-
-  # Clone-creator, ported from the tmux `M-m` `_sesh-cl-fuzzy` popup. Same
-  # gum/gh/glab repo picker across GitHub orgs, GitLab hosts, and a raw URL —
-  # but instead of `sesh cl` (which spawns a tmux session) it clones into the
-  # chosen parent dir under the ~/Work/{host}/{org}/{repo} layout and opens a
-  # herdr workspace. Self-contained so no tmux is ever involved.
-  herdrClone = pkgs.writeShellApplication {
-    name = "herdr-clone";
-    runtimeInputs = [
-      pkgs.git
-      pkgs.gum
-      pkgs.gh
-      pkgs.glab
-      pkgs.jq
-      pkgs.fzf
-      pkgs.coreutils
-      herdr
-    ];
-    text = ''
-      gitlab_hosts=(${lib.strings.concatStringsSep " " (map (h: "'${h}'") seshClConfig.gitlabHosts)})
-      github_orgs=(${lib.strings.concatStringsSep " " (map (o: "'${o}'") seshClConfig.githubOrgs)})
-
-      # 1. Choose the source: GitHub, one of the GitLab hosts, or a raw URL.
-      sources=("GitHub" "URL")
-      for gh_host in "''${gitlab_hosts[@]}"; do sources+=("GitLab: $gh_host"); done
-      source=$(printf '%s\n' "''${sources[@]}" | gum filter --header "Clone from where?") || exit 0
-      [ -z "$source" ] && exit 0
-
-      remote=""
-      host="github.com"
-      case "$source" in
-        GitHub)
-          host="github.com"
-          repos=$( { gh repo list --json nameWithOwner --jq '.[].nameWithOwner' --limit 100000 2>/dev/null
-                     for org in "''${github_orgs[@]}"; do
-                       gh repo list "$org" --json nameWithOwner --jq '.[].nameWithOwner' --limit 100000 2>/dev/null
-                     done
-                   } | sort -u )
-          sel=$(printf '%s\n' "$repos" | fzf --prompt 'github repo  ' --border) || exit 0
-          [ -z "$sel" ] && exit 0
-          remote="git@github.com:$sel.git"
-          ;;
-        URL)
-          remote=$(gum input --placeholder "git clone URL (git@… or https://…)") || exit 0
-          [ -z "$remote" ] && exit 0
-          host=$(printf '%s' "$remote" | sed -E 's#^(git@\|https?://)##; s#[:/].*$##')
-          ;;
-        "GitLab: "*)
-          host="''${source#GitLab: }"
-          sel=$(GITLAB_HOST="$host" glab repo list --output json -P 1000 2>/dev/null \
-                | jq -r '.[].path_with_namespace' \
-                | fzf --prompt "gitlab repo ($host)  " --border) || exit 0
-          [ -z "$sel" ] && exit 0
-          remote="git@$host:$sel.git"
-          ;;
-      esac
-      [ -z "$remote" ] && exit 0
-
-      # 2. Derive the org/repo path from the remote and clone into the standard
-      #    ~/Work/{host}/{org}/{repo} layout (matching the repo-directory convention).
-      path=$(printf '%s' "$remote" | sed -E 's#^git@[^:]+:##; s#^https?://[^/]+/##; s#\.git$##')
-      repo_dir="${workDir}/$host/$path"
-      if [ ! -d "$repo_dir" ]; then
-        mkdir -p "$(dirname "$repo_dir")"
-        git clone "$remote" "$repo_dir" || { echo "clone failed" >&2; exit 1; }
-      fi
-
-      herdr workspace create --cwd "$repo_dir" --label "$(basename "$path")" --focus
-    '';
   };
 
   # lazygit at the focused pane's cwd, from anywhere -- preferring a Claude
@@ -467,7 +414,7 @@ let
     [[keys.command]]
     key = "alt+m"
     type = "pane"
-    command = "${herdrClone}/bin/herdr-clone"
+    command = "${herdrClonePick}"
     description = "clone a repo (gh/glab/URL) -> new workspace"
 
     # tmux M-s: new workspace with a prompted name.

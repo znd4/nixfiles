@@ -11,7 +11,8 @@ this file covers configuration.
 | Package pin, keybindings, generated `config.toml` | `home-manager/programs/herdr.nix` |
 | `alt+d` workspace / tab / directory picker | `home-manager/bin/herdr-launcher` |
 | `alt+r` MR review workspace | `home-manager/bin/herdr-mr-review.py` |
-| `alt+m` clone-creator, `alt+s` new workspace | `herdr.nix`, inline |
+| `alt+m` clone-creator | `pkgs/clone-pick` (shared with tmux `M-m`) |
+| `alt+s` new workspace | `herdr.nix`, inline |
 | Live server upgrade | `herdr.nix`, `herdrHandoff` |
 | Config reload after a switch | `herdr.nix`, `herdrReloadConfig` |
 | Session snapshot every 30 minutes (macOS launchd) | `herdr.nix`, `herdrSnapshot`; `home-manager/bin/herdr-snapshot.py` |

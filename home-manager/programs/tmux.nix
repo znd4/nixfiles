@@ -174,6 +174,25 @@ let
       done
     '';
   };
+
+  # Repo picker -> clone into ~/Work/{host}/{path} -> sesh session.
+  clonePick = import ../../pkgs/clone-pick { inherit pkgs; };
+  clonePickCommand = lib.escapeShellArgs (
+    [
+      "${clonePick}/bin/clone-pick"
+      "--open"
+      "sesh"
+      "--wait-on-error"
+    ]
+    ++ lib.concatMap (h: [
+      "--gitlab-host"
+      h
+    ]) seshClConfig.gitlabHosts
+    ++ lib.concatMap (o: [
+      "--github-org"
+      o
+    ]) seshClConfig.githubOrgs
+  );
 in
 {
   options.programs.tmux-new-session = {
@@ -216,16 +235,7 @@ in
           		--bind 'ctrl-d:execute-silent(tmux kill-session -t {})+reload(sesh list -tzs)'
         ); [ -z \"\$s\" ] || sesh connect \"\$s\""
 
-        bind -n M-m display-popup -E "_sesh-cl-fuzzy \
-          --gitlab-hosts '[${lib.strings.concatStringsSep " " seshClConfig.gitlabHosts}]' \
-          --github-orgs '[${lib.strings.concatStringsSep " " seshClConfig.githubOrgs}]'
-        "
-
-        bind -n M-M display-popup "_sesh-cl-fuzzy \
-          --gitlab-hosts '[${lib.strings.concatStringsSep " " seshClConfig.gitlabHosts}]' \
-          --github-orgs '[${lib.strings.concatStringsSep " " seshClConfig.githubOrgs}]'
-        "
-
+        bind -n M-m display-popup -E -w 80% -h 70% "${clonePickCommand}"
 
         # use alt+vim movement between panes
         bind -n M-h select-pane -L

@@ -25,7 +25,7 @@ Under tmux, different files set the same keys. Edit those files, not
 | Key | herdr script | tmux replacement |
 |---|---|---|
 | `alt+d` | `herdr-launcher` | `sesh connect` popup, in `programs/tmux.nix` |
-| `alt+m` | `herdr-clone` | `_sesh-cl-fuzzy` popup, in `programs/tmux.nix` |
+| `alt+m` | `clone-pick --open herdr` | `clone-pick --open sesh` popup, in `programs/tmux.nix` |
 | `alt+s` | `herdr-new-named` | `programs.tmux-new-session`, in `programs/tmux.nix` |
 | `alt+r` | `herdr-mr-review` | `programs/tmux-mr-review.nix` (opens Hunk, not tuicr) |
 | `alt+shift+g` | `herdr-agent-lazygit` | `M-G` popup at `#{pane_current_path}`, in `programs/tmux.nix` |
