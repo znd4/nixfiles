@@ -196,7 +196,7 @@ let
 in
 {
   options.programs.tmux-new-session = {
-    enable = lib.mkEnableOption "tmux new session popup (Alt+s)";
+    enable = lib.mkEnableOption "tmux new session popup with Claude running (Alt+s)";
     keybinding = lib.mkOption {
       type = lib.types.str;
       default = "M-s";
@@ -204,7 +204,7 @@ in
     };
     defaultDirectory = lib.mkOption {
       type = lib.types.str;
-      default = "~";
+      default = "~/Work";
       description = "Default working directory for new tmux sessions.";
     };
   };
@@ -301,13 +301,16 @@ in
       ''
       + lib.optionalString cfg.enable ''
 
-        # new session popup
+        # new session popup: ask for a name, start Claude in the new session.
+        # send-keys types claude into the session's shell, so claude is found
+        # on the shell's PATH and the shell stays open after claude exits.
         bind -n ${cfg.keybinding} display-popup -E '${pkgs.writeShellScript "tmux-new-session" ''
           name=$(${pkgs.gum}/bin/gum input --placeholder "session name")
           [ -z "$name" ] && exit 0
           dir="${cfg.defaultDirectory}"
           dir="''${dir/#\~/$HOME}"
           tmux new-session -d -s "$name" -c "$dir"
+          tmux send-keys -t "$name" claude Enter
           tmux switch-client -t "$name"
         ''}'
       '';

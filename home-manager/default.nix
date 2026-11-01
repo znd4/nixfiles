@@ -205,6 +205,7 @@ in
 
   programs.gh-dash.enable = true;
   programs.cloudlens.enable = true;
+  programs.tmux-new-session.enable = true;
 
   # `nh darwin switch` builds as the user and only elevates to activate, so it
   # works on a flake in $HOME (sudo darwin-rebuild evaluates it as root, which
