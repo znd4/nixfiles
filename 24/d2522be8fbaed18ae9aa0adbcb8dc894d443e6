@@ -1,0 +1,14 @@
+.gitignore
+  h_00fa85cb5b6575 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "24d2522be8fbaed18ae9aa0adbcb8dc894d443e6",
+  "prompts": {},
+  "humans": {
+    "h_00fa85cb5b6575": {
+      "author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}
