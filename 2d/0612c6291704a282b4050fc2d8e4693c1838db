@@ -1,0 +1,12 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "2d0612c6291704a282b4050fc2d8e4693c1838db",
+  "prompts": {},
+  "humans": {
+    "h_00fa85cb5b6575": {
+      "author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}
