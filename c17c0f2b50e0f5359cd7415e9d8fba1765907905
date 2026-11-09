@@ -1,0 +1,19 @@
+home-manager/claude-skills/ask-zk/SKILL.md
+  s_6460c5f7fa6fd5::t_a872a615a250da 32-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "c17c0f2b50e0f5359cd7415e9d8fba1765907905",
+  "prompts": {},
+  "sessions": {
+    "s_6460c5f7fa6fd5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b87162a0-3726-4fef-8026-ed3f79857c9f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+home-manager/programs/tmux.nix
+  s_1cfac74464e1de::t_7dbca8eca7808e 33,35
+  s_1cfac74464e1de::t_407f3806c61714 13-15
+  s_1cfac74464e1de::t_6b5e63a3fc7450 31-32
+  s_1cfac74464e1de::t_bd119fb5b181b3 16-29,34,36-39
+  s_1cfac74464e1de::t_22c4e86403c659 30
+  s_1cfac74464e1de::t_b876f941313f83 163-165
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "9af1080fc9df9cc369e61680df166b5cb9121319",
+  "prompts": {},
+  "sessions": {
+    "s_1cfac74464e1de": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "256f65b9-12d1-4d0c-85fc-4a1ed61c2f47",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": null
+    }
+  }
+}

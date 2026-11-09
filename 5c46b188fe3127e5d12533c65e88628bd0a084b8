@@ -1,0 +1,23 @@
+home-manager/bin/action-dag.template.html
+  s_e84d7afe4c12c1::t_69100e82866b16 67,75-87,215,237,248-350,388-392
+home-manager/bin/tests/test_action_dag.py
+  s_e84d7afe4c12c1::t_0a819837309137 532-535
+home-manager/claude-skills/action-dag/SKILL.md
+  s_e84d7afe4c12c1::t_14a9cf12e57799 213-220
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "5c46b188fe3127e5d12533c65e88628bd0a084b8",
+  "prompts": {},
+  "sessions": {
+    "s_e84d7afe4c12c1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "160cfec7-1655-4898-8ea2-423a1bf91992",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}

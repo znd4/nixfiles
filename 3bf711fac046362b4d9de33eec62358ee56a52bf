@@ -1,0 +1,31 @@
+home-manager/programs/mr-checkbox.nix
+  s_02e8439a1ebae5::t_cf647b5e8fddb3 1-25
+home-manager/bin/mr-checkbox.py
+  s_02e8439a1ebae5::t_fc7a437ed67ca3 1-139
+  s_02e8439a1ebae5::t_a93d97bb00d221 140-144
+home-manager/bin/tests/test_mr_checkbox.py
+  s_02e8439a1ebae5::t_e0b6d6e750ec9a 1-141
+  s_02e8439a1ebae5::t_8f8402b41e0eac 142
+home-manager/bin/action-dag.py
+  s_02e8439a1ebae5::t_14e6d86a9a6fe9 4,47-49,66-76,799,806,1222-2012,2014-2018,2023-2035
+home-manager/bin/tests/test_action_dag.py
+  s_02e8439a1ebae5::t_228e4ee047d642 4,567-908
+home-manager/claude-skills/action-dag/SKILL.md
+  s_02e8439a1ebae5::t_6f9333ff870acb 60,83-87,113-203,368-371,387-398,400,405-407,420-421
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "3bf711fac046362b4d9de33eec62358ee56a52bf",
+  "prompts": {},
+  "sessions": {
+    "s_02e8439a1ebae5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "00a29498-a5f6-4e03-89b0-891a4fb80bb8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}

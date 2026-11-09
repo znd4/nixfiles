@@ -1,0 +1,21 @@
+home-manager/bin/action-dag.py
+  s_6460c5f7fa6fd5::t_b9ac22e7592420 97-103,115-116
+home-manager/bin/tests/test_action_dag.py
+  s_6460c5f7fa6fd5::t_435b5d3737f598 475-483
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "73068c8821f643fc95949ed2ce9ffe5f764382d4",
+  "prompts": {},
+  "sessions": {
+    "s_6460c5f7fa6fd5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b87162a0-3726-4fef-8026-ed3f79857c9f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}

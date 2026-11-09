@@ -1,0 +1,14 @@
+xdg-config/ripgreprc
+  h_00fa85cb5b6575 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "98a3812d07450b53de9e5a90d39def920a0936d5",
+  "prompts": {},
+  "humans": {
+    "h_00fa85cb5b6575": {
+      "author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}

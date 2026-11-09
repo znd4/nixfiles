@@ -1,0 +1,19 @@
+.gitignore
+  s_280aaa77212bef::t_8fb79009c0fd91 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "86c5b4ca90a6549f48bf25da6ac680a37fe07147",
+  "prompts": {},
+  "sessions": {
+    "s_280aaa77212bef": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6bd1be1e-e78f-4d29-b9dc-f222f2323865",
+        "model": "unknown"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}

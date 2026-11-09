@@ -1,0 +1,21 @@
+home-manager/bin/ask-zk.py
+  s_6460c5f7fa6fd5::t_8901ad7dbc51e4 544-547,558
+  s_6460c5f7fa6fd5::t_967ff07086710e 548-551
+  s_6460c5f7fa6fd5::t_ece8d5ffeb5137 260
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "60bfeccb1494ea7d637b2038a9be615cb169f1b3",
+  "prompts": {},
+  "sessions": {
+    "s_6460c5f7fa6fd5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b87162a0-3726-4fef-8026-ed3f79857c9f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": null
+    }
+  }
+}

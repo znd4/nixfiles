@@ -1,0 +1,30 @@
+home-manager/bin/ask-zk.py
+  s_75be3524c35599::t_7b4c9c1d3ef8fa 67-68
+  s_75be3524c35599::t_1a416fca0fbbed 512-515
+  s_75be3524c35599::t_4594348d4001f8 1153
+  s_10d36bc904482b::t_5babf1f09b4a8a 69-70,344-351,632,644,650,731,815-816,1077-1081,1083,1089,1108-1111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "d493cba3109a912416ab77b6f394221535f8a0a7",
+  "prompts": {},
+  "sessions": {
+    "s_10d36bc904482b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d5f8ecdc-c22c-4011-820b-cab521e8daa1",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    },
+    "s_75be3524c35599": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "56cc08a4-4723-48eb-b625-5b9d0cce4574",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}

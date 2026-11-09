@@ -1,0 +1,20 @@
+home-manager/claude-skills/ask-zk/SKILL.md
+  s_6460c5f7fa6fd5::t_27954736896d8f 34-36,38-43
+  s_6460c5f7fa6fd5::t_a872a615a250da 32-33,37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "1eabcbf1fee10584d375d1d3c3e32d09e87060e2",
+  "prompts": {},
+  "sessions": {
+    "s_6460c5f7fa6fd5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b87162a0-3726-4fef-8026-ed3f79857c9f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": null
+    }
+  }
+}

@@ -1,0 +1,39 @@
+home-manager/obsidian-plugins/action-dag/main.js
+  s_e84d7afe4c12c1::t_143e271a22f8a3 1-1201
+  s_e84d7afe4c12c1::t_83b74e29fb6abe 1202-1212
+home-manager/obsidian-plugins/action-dag/README.md
+  s_e84d7afe4c12c1::t_b87c23a63a89ee 3-5,9-21,27,37-38,44-48,51-52,56-57,60-62,65-66,71-80,84-85,88,96,105,107,109-111,115,119-121,129-131
+  s_e84d7afe4c12c1::t_1c9615fd7eb385 1-2,6-8,22-26,28-36,39-43,49-50,53-55,58-59,63-64,67-70,81-83,86-87,90-91,95,99-104,106,108,112-113,116-118,122-128
+  s_e84d7afe4c12c1::t_bb982a770c8fa8 97-98
+  s_e84d7afe4c12c1::t_e0f27fae73a0ee 89
+  s_e84d7afe4c12c1::t_185ceea7025b6d 92-94
+  s_e84d7afe4c12c1::t_d971a493a581f5 114
+home-manager/obsidian-plugins/action-dag/styles.css
+  s_e84d7afe4c12c1::t_7b9a9e7baa6f38 1-126
+home-manager/obsidian-plugins/action-dag/tests/test-rules.js
+  s_e84d7afe4c12c1::t_948a4ab776874c 1-96
+home-manager/obsidian-plugins/action-dag/manifest.json
+  s_e84d7afe4c12c1::t_87e20e2f2f2b50 1-9
+home-manager/bin/action-dag.py
+  s_e84d7afe4c12c1::t_af0f25a36cf525 28-32,364-365,423-425,616-623,707,742-743,798,824-828,1017-1019,1025-1030,1118-1253,1355,1362-1363,1366,1439
+home-manager/bin/tests/test_action_dag.py
+  s_e84d7afe4c12c1::t_fee9427f97f3cd 560-674
+home-manager/claude-skills/action-dag/SKILL.md
+  s_e84d7afe4c12c1::t_4ed605c2eb3900 63,65-71,156-173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "29916837663d6c9d8f2bd8f084f2200a8dd81d2c",
+  "prompts": {},
+  "sessions": {
+    "s_e84d7afe4c12c1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "160cfec7-1655-4898-8ea2-423a1bf91992",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}
