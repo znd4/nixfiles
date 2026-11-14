@@ -392,6 +392,7 @@
             # definitions, so callers outside this flake keep working.
             hostModule = {
               znd4.sesh = seshClConfig;
+              znd4.certificateAuthorities = certificateAuthorities;
             };
           in
           home-manager.lib.homeManagerConfiguration {
@@ -409,20 +410,6 @@
                 _1password_ssh
                 ;
               keys = defaultKeys // (keys."${hostname}" or { });
-              certificateAuthority =
-                if certificateAuthorities != [ ] then
-                  let
-                    combinedCA = nixpkgs.legacyPackages.${system}.concatTextFile {
-                      name = "ca-bundle-combined";
-                      files = [
-                        "${nixpkgs.legacyPackages.${system}.cacert}/etc/ssl/certs/ca-bundle.crt"
-                        (builtins.toFile "custom-ca.pem" (lib.strings.concatStringsSep "\n" certificateAuthorities))
-                      ];
-                    };
-                  in
-                  "${combinedCA}"
-                else
-                  null;
             }
             // extraSpecialArgs;
             modules = [

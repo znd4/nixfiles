@@ -4,7 +4,6 @@
   inputs,
   pkgs,
   keys,
-  certificateAuthority,
   lib,
   ...
 }:

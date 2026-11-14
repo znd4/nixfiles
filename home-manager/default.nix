@@ -11,7 +11,6 @@
   pkgs,
   stateVersion,
   keys,
-  certificateAuthority,
   identityAgent,
   ...
 }@args:
@@ -24,6 +23,7 @@ let
   dotConfig = "${inputs.self}/dotfiles/xdg-config/.config";
   system = pkgs.stdenv.system;
   isDarwin = pkgs.stdenv.isDarwin;
+  caBundle = config.znd4.certificateAuthorityBundle;
   personal_python = inputs.nixpkgs.legacyPackages.${system}.python3.withPackages (
     ps:
     # personal_python = inputs.nixpkgs-main.legacyPackages.${system}.python3.withPackages (ps:
@@ -89,10 +89,10 @@ let
     GOBIN = "$HOME/.local/bin.go";
     GOPATH = "$HOME/go";
   }
-  // (lib.attrsets.optionalAttrs (certificateAuthority != null) {
-    NODE_EXTRA_CA_CERTS = certificateAuthority;
-    REQUESTS_CA_BUNDLE = certificateAuthority;
-    SSL_CERT_FILE = certificateAuthority;
+  // (lib.attrsets.optionalAttrs (caBundle != null) {
+    NODE_EXTRA_CA_CERTS = caBundle;
+    REQUESTS_CA_BUNDLE = caBundle;
+    SSL_CERT_FILE = caBundle;
   });
 in
 {
