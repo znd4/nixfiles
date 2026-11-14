@@ -210,6 +210,26 @@
     }@inputs:
     let
       lib = nixpkgs.lib;
+
+      # A home-manager configuration for `system`. Per-host knobs are options
+      # (see home-manager/modules/znd4.nix) that the host's modules set.
+      mkHomeConfiguration =
+        {
+          system,
+          modules,
+          outputs ? self,
+          extraSpecialArgs ? { },
+        }:
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.${system};
+          extraSpecialArgs = {
+            inherit inputs outputs;
+            identityAgent = null;
+            _1password_ssh = false;
+          }
+          // extraSpecialArgs;
+          modules = [ self.homeModules.default ] ++ modules;
+        };
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
@@ -370,6 +390,9 @@
           default = ./home-manager;
           workmux = ./home-manager/modules/workmux.nix;
         };
+        # Compatibility shim for callers outside this flake: turns the old
+        # arguments into option definitions. New code should build a host from
+        # modules instead (see homeConfigurations below).
         homeConfigurationFactory =
           {
             system,
@@ -387,84 +410,66 @@
             extraModules ? [ ],
             extraSpecialArgs ? { },
           }:
-          let
-            # Compatibility shim: turn the factory arguments into option
-            # definitions, so callers outside this flake keep working.
-            hostModule = {
-              home.username = username;
-              home.stateVersion = stateVersion;
-              znd4.hostname = hostname;
-              znd4.sesh = seshClConfig;
-              znd4.certificateAuthorities = certificateAuthorities;
-              znd4.keys = defaultKeys // (keys.${hostname} or { });
-              znd4.knownHosts = knownHosts;
-            };
-          in
-          home-manager.lib.homeManagerConfiguration {
-            pkgs = nixpkgs.legacyPackages.${system};
-            extraSpecialArgs = {
-              inherit
-                outputs
-                inputs
-                identityAgent
-                _1password_ssh
-                ;
-            }
-            // extraSpecialArgs;
+          mkHomeConfiguration {
+            inherit system outputs;
+            extraSpecialArgs =
+              lib.warnIf (extraSpecialArgs != { })
+                "homeConfigurationFactory: extraSpecialArgs is deprecated; set home-manager options from extraModules instead."
+                ({ inherit identityAgent _1password_ssh; } // extraSpecialArgs);
             modules = [
-              self.homeModules.default
-              hostModule
+              {
+                home.username = username;
+                home.stateVersion = stateVersion;
+                znd4.hostname = hostname;
+                znd4.sesh = seshClConfig;
+                znd4.certificateAuthorities = certificateAuthorities;
+                znd4.keys = defaultKeys // (keys.${hostname} or { });
+                znd4.knownHosts = knownHosts;
+              }
             ]
             ++ extraModules;
           };
-        homeConfigurations = (
-          builtins.listToAttrs (
-            builtins.map
-              (
-                args:
-                (lib.attrsets.nameValuePair "${args.username}@${args.hostname}" (
-                  self.homeConfigurationFactory (
-                    {
-                      certificateAuthorities = [ ];
-                      system = "x86_64-linux";
-                      stateVersion = "23.11";
-                    }
-                    // args
-                  )
-                ))
-              )
-              [
-                {
-                  username = "znd4";
-                  # nh looks for username@hostname without ".local".
-                  hostname = "Zanes-MacBook-Neo";
-                  system = "aarch64-darwin";
-                  identityAgent = ''"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"'';
-                  _1password_ssh = true;
-                }
-                {
-                  username = "znd4";
-                  hostname = "desktop";
-                }
-                {
-                  username = "znd4";
-                  hostname = "t470";
-                }
-                {
-                  username = "znd4";
-                  hostname = "work";
-                  system = "aarch64-darwin";
-                  stateVersion = "24.11";
-                }
-                {
-                  username = "znd4";
-                  hostname = "mac-mini";
-                  system = "aarch64-darwin";
-                  stateVersion = "24.11";
-                }
-              ]
-          )
-        );
+        homeConfigurations =
+          let
+            host =
+              hostname:
+              {
+                system ? "x86_64-linux",
+                modules,
+                extraSpecialArgs ? { },
+              }:
+              lib.nameValuePair "znd4@${hostname}" (mkHomeConfiguration {
+                inherit system extraSpecialArgs;
+                modules = [
+                  {
+                    home.username = "znd4";
+                    znd4.hostname = hostname;
+                  }
+                ]
+                ++ modules;
+              });
+          in
+          lib.mapAttrs' host {
+            # nh looks for username@hostname without ".local".
+            Zanes-MacBook-Neo = {
+              system = "aarch64-darwin";
+              modules = [ { home.stateVersion = "23.11"; } ];
+              extraSpecialArgs = {
+                identityAgent = ''"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"'';
+                _1password_ssh = true;
+              };
+            };
+            desktop.modules = [ { home.stateVersion = "23.11"; } ];
+            t470.modules = [ { home.stateVersion = "23.11"; } ];
+            work = {
+              system = "aarch64-darwin";
+              modules = [ { home.stateVersion = "24.11"; } ];
+            };
+            mac-mini = {
+              system = "aarch64-darwin";
+              modules = [ { home.stateVersion = "24.11"; } ];
+            };
+          };
       };
     };
 }
