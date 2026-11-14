@@ -83,7 +83,9 @@ in
         ];
       };
     };
-    settings.http.sslCAInfo = lib.mkIf (config.znd4.certificateAuthorityBundle != null) config.znd4.certificateAuthorityBundle;
+    settings.http.sslCAInfo = lib.mkIf (
+      config.znd4.certificateAuthorityBundle != null
+    ) config.znd4.certificateAuthorityBundle;
     settings.alias = {
       a = "add";
       pl = "pull";
