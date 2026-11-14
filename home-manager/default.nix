@@ -101,6 +101,7 @@ in
     ./nixos
     ./programs
     ./modules/workmux.nix
+    ./modules/znd4.nix
     inputs.git-town-znd4.homeManagerModules.default
   ];
 

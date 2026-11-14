@@ -4,7 +4,6 @@
   config,
   pkgs,
   lib,
-  seshClConfig,
   ...
 }:
 let
@@ -162,7 +161,7 @@ let
   };
 
   # Repo picker -> clone into ~/Work/{host}/{path} -> herdr workspace. The same
-  # tool backs the tmux M-m popup (with --open sesh), fed the same seshClConfig.
+  # tool backs the tmux M-m popup (with --open sesh), fed the same znd4.sesh options.
   clonePick = import ../../pkgs/clone-pick { inherit pkgs; };
   herdrClonePick = pkgs.writeShellScript "herdr-clone-pick" "exec ${
     lib.escapeShellArgs (
@@ -175,11 +174,11 @@ let
       ++ lib.concatMap (h: [
         "--gitlab-host"
         h
-      ]) seshClConfig.gitlabHosts
+      ]) config.znd4.sesh.gitlabHosts
       ++ lib.concatMap (o: [
         "--github-org"
         o
-      ]) seshClConfig.githubOrgs
+      ]) config.znd4.sesh.githubOrgs
     )
   }";
 

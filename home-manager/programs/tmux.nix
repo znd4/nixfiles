@@ -4,7 +4,6 @@
   config,
   inputs,
   system,
-  seshClConfig,
   ...
 }:
 let
@@ -187,11 +186,11 @@ let
     ++ lib.concatMap (h: [
       "--gitlab-host"
       h
-    ]) seshClConfig.gitlabHosts
+    ]) config.znd4.sesh.gitlabHosts
     ++ lib.concatMap (o: [
       "--github-org"
       o
-    ]) seshClConfig.githubOrgs
+    ]) config.znd4.sesh.githubOrgs
   );
 in
 {

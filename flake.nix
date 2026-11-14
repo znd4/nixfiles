@@ -387,6 +387,13 @@
             extraModules ? [ ],
             extraSpecialArgs ? { },
           }:
+          let
+            # Compatibility shim: turn the factory arguments into option
+            # definitions, so callers outside this flake keep working.
+            hostModule = {
+              znd4.sesh = seshClConfig;
+            };
+          in
           home-manager.lib.homeManagerConfiguration {
             pkgs = nixpkgs.legacyPackages.${system};
             extraSpecialArgs = {
@@ -416,14 +423,13 @@
                   "${combinedCA}"
                 else
                   null;
-              seshClConfig = {
-                gitlabHosts = [ ];
-                githubOrgs = [ ];
-              }
-              // seshClConfig;
             }
             // extraSpecialArgs;
-            modules = [ self.homeModules.default ] ++ extraModules;
+            modules = [
+              self.homeModules.default
+              hostModule
+            ]
+            ++ extraModules;
           };
         homeConfigurations = (
           builtins.listToAttrs (
