@@ -4,7 +4,6 @@
   config,
   inputs,
   pkgs,
-  keys,
   lib,
   _1password_ssh,
   ...
@@ -25,7 +24,7 @@ in
     ];
     signing = {
       signByDefault = true;
-      key = "${pkgs.writeText "github.com_id_rsa.pub" keys."github.com"}";
+      key = "${pkgs.writeText "github.com_id_rsa.pub" config.znd4.keys."github.com"}";
     };
     settings = {
       user.name = "Zane Dufour";
@@ -45,7 +44,7 @@ in
       gpg.ssh.program = lib.optional _1password_ssh "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
       gpg.format = "ssh";
       # TODO - configure this differently on MacOS
-      user.signingKey = keys."github.com";
+      user.signingKey = config.znd4.keys."github.com";
 
       init.defaultBranch = "main";
       commit.template = "${pkgs.writeText "commit-template" (

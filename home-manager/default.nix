@@ -7,10 +7,8 @@
   lib,
   config,
   osConfig,
-  knownHosts,
   pkgs,
   stateVersion,
-  keys,
   identityAgent,
   ...
 }@args:
@@ -272,7 +270,7 @@ in
         addKeysToAgent = "yes";
         userKnownHostsFile = "${
           (pkgs.writeText "known_hosts" (
-            builtins.concatStringsSep "\n" (lib.attrsets.mapAttrsToList (name: value: value) knownHosts)
+            builtins.concatStringsSep "\n" (lib.attrsets.mapAttrsToList (name: value: value) config.znd4.knownHosts)
           ))
         }";
       };
@@ -280,7 +278,7 @@ in
     // lib.attrsets.mapAttrs (name: value: {
       identitiesOnly = true;
       identityFile = "${pkgs.writeText "${name}_id_rsa.pub" value}";
-    }) keys
+    }) config.znd4.keys
     // {
       # Nobara gaming PC; same 1Password "Desktop" key as desktop.local.
       desktop = {
@@ -288,7 +286,7 @@ in
         user = "znd4";
         extraOptions.HostKeyAlias = "desktop";
         identitiesOnly = true;
-        identityFile = "${pkgs.writeText "desktop_id_rsa.pub" keys."desktop.local"}";
+        identityFile = "${pkgs.writeText "desktop_id_rsa.pub" config.znd4.keys."desktop.local"}";
       };
     };
   };

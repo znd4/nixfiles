@@ -2,6 +2,7 @@
 # (see `homeConfigurations` in flake.nix) instead of passing factory arguments.
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
@@ -12,6 +13,23 @@ let
 in
 {
   options.znd4 = {
+    keys = mkOption {
+      type = types.attrsOf types.str;
+      description = ''
+        SSH public keys by host name. Each key becomes an `IdentityFile`
+        match block in the SSH config; `github.com` is also the git signing
+        key. Each entry of `defaultKeys` in flake.nix is set with
+        `mkDefault`, so a host can add or override single entries.
+      '';
+    };
+    knownHosts = mkOption {
+      type = types.attrsOf types.lines;
+      description = ''
+        `known_hosts` lines, grouped by host name. The SSH config uses them
+        as its `UserKnownHostsFile`. Each entry of `knownHosts` in flake.nix
+        is set with `mkDefault`.
+      '';
+    };
     certificateAuthorities = mkOption {
       type = types.listOf types.str;
       default = [ ];
@@ -47,6 +65,9 @@ in
       };
     };
   };
+
+  config.znd4.keys = lib.mapAttrs (_: lib.mkDefault) inputs.self.defaultKeys;
+  config.znd4.knownHosts = lib.mapAttrs (_: lib.mkDefault) inputs.self.knownHosts;
 
   config.znd4.certificateAuthorityBundle =
     if cfg.certificateAuthorities == [ ] then

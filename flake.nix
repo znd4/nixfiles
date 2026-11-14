@@ -393,6 +393,8 @@
             hostModule = {
               znd4.sesh = seshClConfig;
               znd4.certificateAuthorities = certificateAuthorities;
+              znd4.keys = defaultKeys // (keys.${hostname} or { });
+              znd4.knownHosts = knownHosts;
             };
           in
           home-manager.lib.homeManagerConfiguration {
@@ -400,7 +402,6 @@
             extraSpecialArgs = {
               inherit
                 outputs
-                knownHosts
                 inputs
                 system
                 username
@@ -409,7 +410,6 @@
                 identityAgent
                 _1password_ssh
                 ;
-              keys = defaultKeys // (keys."${hostname}" or { });
             }
             // extraSpecialArgs;
             modules = [
