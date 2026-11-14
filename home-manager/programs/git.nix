@@ -27,8 +27,8 @@ in
       key = "${pkgs.writeText "github.com_id_rsa.pub" config.znd4.keys."github.com"}";
     };
     settings = {
-      user.name = "Zane Dufour";
-      user.email = "zane@znd4.dev";
+      user.name = config.znd4.user.name;
+      user.email = config.znd4.user.email;
       # https://git-scm.com/book/en/v2/Git-Tools-Rerere
       rerere.enabled = true;
       # pager = {

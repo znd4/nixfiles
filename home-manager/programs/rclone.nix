@@ -14,7 +14,7 @@ let
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/rclone \
-        --set-default RCLONE_PASSWORD_COMMAND "${pkgs._1password-cli}/bin/op read op://Private/rclone/password" \
+        --set-default RCLONE_PASSWORD_COMMAND "${pkgs._1password-cli}/bin/op read ${config.znd4.rclone.passwordReference}" \
         --set-default RCLONE_EXCLUDE_FROM "${config.xdg.configHome}/rclone/excludes.txt"
     '';
   };

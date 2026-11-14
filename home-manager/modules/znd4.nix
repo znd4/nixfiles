@@ -62,6 +62,33 @@ in
       '';
     };
 
+    user = {
+      name = mkOption {
+        type = types.str;
+        default = "Zane Dufour";
+        description = "Full name for commits (git `user.name`, jj `user.name`).";
+      };
+      email = mkOption {
+        type = types.str;
+        default = "zane@znd4.dev";
+        description = "Email address for commits (git `user.email`, jj `user.email`).";
+      };
+    };
+    flakePath = mkOption {
+      type = types.str;
+      default = "${config.home.homeDirectory}/nixfiles";
+      defaultText = lib.literalExpression ''"''${config.home.homeDirectory}/nixfiles"'';
+      description = "Checkout of this flake that `nh` switches from.";
+    };
+    rclone.passwordReference = mkOption {
+      type = types.str;
+      default = "op://Private/rclone/password";
+      description = ''
+        1Password secret reference (`op read`) of the password that encrypts
+        rclone.conf. The rclone wrapper sets it as the default
+        `RCLONE_PASSWORD_COMMAND`.
+      '';
+    };
     sesh = {
       gitlabHosts = mkOption {
         type = types.listOf types.str;

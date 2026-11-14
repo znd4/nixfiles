@@ -209,7 +209,7 @@ in
   # Nix refuses for a repo root doesn't own).
   programs.nh = {
     enable = true;
-    flake = "${config.home.homeDirectory}/nixfiles";
+    flake = config.znd4.flakePath;
   };
 
   home.sessionVariables = {
