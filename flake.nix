@@ -406,7 +406,6 @@
               inherit
                 outputs
                 inputs
-                system
                 identityAgent
                 _1password_ssh
                 ;

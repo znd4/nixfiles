@@ -1,12 +1,12 @@
 {
   inputs,
-  system,
   config,
   pkgs,
   lib,
   ...
 }:
 let
+  system = pkgs.stdenv.hostPlatform.system;
   cfg = config.programs.herdr;
 
   herdr = inputs.herdr.packages.${system}.default;

@@ -1,19 +1,10 @@
 {
   pkgs,
   lib,
-  system,
   ...
 }:
-let
-  enabled = builtins.elem system [
-    "x86_64-linux"
-    "aarch64-linux"
-  ];
-in
-if !enabled then
-  { }
-else
-  {
+{
+  config = lib.mkIf pkgs.stdenv.isLinux {
     fonts.fontconfig.enable = true;
     home.packages = with pkgs; [
       monaspace
@@ -61,4 +52,5 @@ else
         package = pkgs.nerd-fonts.monaspace;
       };
     };
-  }
+  };
+}

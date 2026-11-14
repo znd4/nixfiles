@@ -1,6 +1,7 @@
 # Personal workmux configuration. ../modules/workmux.nix defines the options.
-{ inputs, lib, pkgs, system, ... }:
+{ inputs, lib, pkgs, ... }:
 let
+  system = pkgs.stdenv.hostPlatform.system;
   # Sets the Claude session name to the workmux handle. Panes start in the
   # worktree, and the worktree directory name is the handle (the branch
   # slug). The tmux window name is the icon prefix plus the handle.

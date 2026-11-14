@@ -1,12 +1,12 @@
 {
   pkgs,
-  system,
   inputs,
   lib,
   config,
   ...
 }:
 let
+  system = pkgs.stdenv.hostPlatform.system;
   neovim_python = pkgs.python3.withPackages (
     ps: with ps; [
       pynvim
