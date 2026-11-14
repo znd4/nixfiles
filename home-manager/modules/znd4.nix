@@ -13,13 +13,25 @@ let
 in
 {
   options.znd4 = {
+    hostname = mkOption {
+      type = types.str;
+      example = "desktop";
+      description = ''
+        Name of the machine this configuration is for, as in the
+        `homeConfigurations."<user>@<hostname>"` attribute. It selects the
+        host's entry in the flake's `keys`. To change behavior per machine,
+        add an option that names the capability (see `znd4.ssh.agent`)
+        rather than testing this value.
+      '';
+    };
     keys = mkOption {
       type = types.attrsOf types.str;
       description = ''
         SSH public keys by host name. Each key becomes an `IdentityFile`
         match block in the SSH config; `github.com` is also the git signing
         key. Each entry of `defaultKeys` in flake.nix is set with
-        `mkDefault`, so a host can add or override single entries.
+        `mkDefault`, and each entry of `keys.''${hostname}` with priority
+        900, so a host can add or override single entries.
       '';
     };
     knownHosts = mkOption {
@@ -66,7 +78,9 @@ in
     };
   };
 
-  config.znd4.keys = lib.mapAttrs (_: lib.mkDefault) inputs.self.defaultKeys;
+  config.znd4.keys =
+    lib.mapAttrs (_: lib.mkDefault) inputs.self.defaultKeys
+    // lib.mapAttrs (_: lib.mkOverride 900) (inputs.self.keys.${cfg.hostname} or { });
   config.znd4.knownHosts = lib.mapAttrs (_: lib.mkDefault) inputs.self.knownHosts;
 
   config.znd4.certificateAuthorityBundle =

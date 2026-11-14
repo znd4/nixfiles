@@ -391,6 +391,7 @@
             # Compatibility shim: turn the factory arguments into option
             # definitions, so callers outside this flake keep working.
             hostModule = {
+              znd4.hostname = hostname;
               znd4.sesh = seshClConfig;
               znd4.certificateAuthorities = certificateAuthorities;
               znd4.keys = defaultKeys // (keys.${hostname} or { });
@@ -405,7 +406,6 @@
                 inputs
                 system
                 username
-                hostname
                 stateVersion
                 identityAgent
                 _1password_ssh
