@@ -1,6 +1,5 @@
 {
   inputs,
-  username,
   config,
   system,
   pkgs,
@@ -25,6 +24,6 @@ else
       };
     };
 
-    home.homeDirectory = "/Users/${username}";
+    home.homeDirectory = "/Users/${config.home.username}";
     home.sessionPath = [ "${config.home.homeDirectory}/homebrew/bin" ];
   }

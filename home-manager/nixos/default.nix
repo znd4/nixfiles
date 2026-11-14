@@ -1,5 +1,5 @@
 {
-  username,
+  config,
   pkgs,
   lib,
   system,
@@ -33,7 +33,7 @@ else
     # )
     ;
 
-    home.homeDirectory = "/home/" + username;
+    home.homeDirectory = "/home/" + config.home.username;
     home.packages = with pkgs; [
       #appimageTools
 

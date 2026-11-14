@@ -3,12 +3,10 @@
 {
   inputs,
   outputs,
-  username,
   lib,
   config,
   osConfig,
   pkgs,
-  stateVersion,
   identityAgent,
   ...
 }@args:
@@ -220,7 +218,6 @@ in
     CLAUDE_CODE_DISABLE_AUTO_MEMORY = 1;
     CLAUDE_CODE_ENABLE_AUTO_MODE = 1;
   };
-  home.username = username;
 
   xdg.configFile =
     let
@@ -506,7 +503,4 @@ in
       };
     };
   };
-
-  # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
-  home.stateVersion = stateVersion;
 }
