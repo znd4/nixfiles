@@ -5,7 +5,6 @@
   inputs,
   pkgs,
   lib,
-  _1password_ssh,
   ...
 }:
 let
@@ -38,10 +37,8 @@ in
       # };
       core.longPaths = true;
 
-      # Configure commit signing with my ssh key
-      #     [gpg "ssh"]
-      # program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
-      gpg.ssh.program = lib.optional _1password_ssh "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+      # Commit signing with the SSH key. ./ssh.nix sets gpg.ssh.program
+      # from znd4.ssh.agent.
       gpg.format = "ssh";
       # TODO - configure this differently on MacOS
       user.signingKey = config.znd4.keys."github.com";

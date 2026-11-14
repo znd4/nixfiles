@@ -224,8 +224,6 @@
           pkgs = nixpkgs.legacyPackages.${system};
           extraSpecialArgs = {
             inherit inputs outputs;
-            identityAgent = null;
-            _1password_ssh = false;
           }
           // extraSpecialArgs;
           modules = [ self.homeModules.default ] ++ modules;
@@ -415,7 +413,7 @@
             extraSpecialArgs =
               lib.warnIf (extraSpecialArgs != { })
                 "homeConfigurationFactory: extraSpecialArgs is deprecated; set home-manager options from extraModules instead."
-                ({ inherit identityAgent _1password_ssh; } // extraSpecialArgs);
+                extraSpecialArgs;
             modules = [
               {
                 home.username = username;
@@ -425,6 +423,22 @@
                 znd4.certificateAuthorities = certificateAuthorities;
                 znd4.keys = defaultKeys // (keys.${hostname} or { });
                 znd4.knownHosts = knownHosts;
+                # Old behavior: _1password_ssh, or an identityAgent socket,
+                # and otherwise keychain on macOS and 1Password on Linux.
+                znd4.ssh.agent =
+                  let
+                    agentPath = if identityAgent == null then "" else identityAgent;
+                  in
+                  lib.mkDefault (
+                    if _1password_ssh || lib.hasInfix "1password" agentPath then
+                      "1password"
+                    else if lib.hasInfix "Secretive" agentPath then
+                      "secretive"
+                    else
+                      lib.warnIf (identityAgent != null)
+                        "homeConfigurationFactory: identityAgent ${identityAgent} is not a known agent; set znd4.ssh.agent from extraModules."
+                        (if lib.hasSuffix "darwin" system then "keychain" else "1password")
+                  );
               }
             ]
             ++ extraModules;
@@ -453,21 +467,42 @@
             # nh looks for username@hostname without ".local".
             Zanes-MacBook-Neo = {
               system = "aarch64-darwin";
-              modules = [ { home.stateVersion = "23.11"; } ];
-              extraSpecialArgs = {
-                identityAgent = ''"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"'';
-                _1password_ssh = true;
-              };
+              modules = [
+                {
+                  home.stateVersion = "23.11";
+                  znd4.ssh.agent = "1password";
+                }
+              ];
             };
-            desktop.modules = [ { home.stateVersion = "23.11"; } ];
-            t470.modules = [ { home.stateVersion = "23.11"; } ];
+            desktop.modules = [
+              {
+                home.stateVersion = "23.11";
+                znd4.ssh.agent = "1password";
+              }
+            ];
+            t470.modules = [
+              {
+                home.stateVersion = "23.11";
+                znd4.ssh.agent = "1password";
+              }
+            ];
             work = {
               system = "aarch64-darwin";
-              modules = [ { home.stateVersion = "24.11"; } ];
+              modules = [
+                {
+                  home.stateVersion = "24.11";
+                  znd4.ssh.agent = "keychain";
+                }
+              ];
             };
             mac-mini = {
               system = "aarch64-darwin";
-              modules = [ { home.stateVersion = "24.11"; } ];
+              modules = [
+                {
+                  home.stateVersion = "24.11";
+                  znd4.ssh.agent = "1password";
+                }
+              ];
             };
           };
       };
