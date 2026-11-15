@@ -80,7 +80,7 @@ in
       defaultText = lib.literalExpression ''"''${config.home.homeDirectory}/Work"'';
       description = ''
         Absolute path of the directory that repos are cloned into, as
-        <workDir>/<host>/<path>. The repo pickers (tmux M-m, herdr alt+m),
+        `<workDir>/<host>/<path>`. The repo pickers (tmux M-m, herdr alt+m),
         the review popups and new tmux/herdr sessions use it.
       '';
     };

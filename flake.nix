@@ -261,18 +261,26 @@
                 };
                 relative = path: lib.removePrefix "${self}/" (toString path);
               in
-              (pkgs.nixosOptionsDoc {
-                options = { inherit (eval.options) znd4; };
-                transformOptions =
-                  opt:
-                  opt
-                  // {
-                    declarations = map (decl: {
-                      name = relative decl;
-                      url = "https://github.com/znd4/nixfiles/blob/main/${relative decl}";
-                    }) opt.declarations;
-                  };
-              }).optionsCommonMark;
+              # mdformat collapses nixosOptionsDoc's blank lines and drops its
+              # needless escapes, so the file also reads well as plain text.
+              pkgs.runCommand "znd4-options.md" { nativeBuildInputs = [ pkgs.mdformat ]; } ''
+                cp ${
+                  (pkgs.nixosOptionsDoc {
+                    options = { inherit (eval.options) znd4; };
+                    transformOptions =
+                      opt:
+                      opt
+                      // {
+                        declarations = map (decl: {
+                          name = relative decl;
+                          url = "https://github.com/znd4/nixfiles/blob/main/${relative decl}";
+                        }) opt.declarations;
+                      };
+                  }).optionsCommonMark
+                } $out
+                chmod u+w $out
+                mdformat --wrap keep $out
+              '';
             nixos-rebuild-switch = pkgs.writeShellApplication {
               name = "nixos-rebuild-switch";
               runtimeInputs = with pkgs; [
