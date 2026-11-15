@@ -115,8 +115,6 @@
     nixpkgs-unstable.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&ref=nixos-unstable";
     # nixpkgs-24_11.url = "github:NixOS/nixpkgs/nixos-24.11-small";
     nixpkgs-opencode.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&rev=1f0f25154225df0302adcd7b8110ad2c99e48adc";
-    # nixpkgs-git-town-21_1_0.url = "github:nixos/nixpkgs/pull/419405/head";
-    nixpkgs-git-town-21_2_0.url = "git+ssh://git@github.com/znd4/nixpkgs.git?ref=git-town-21.2.0";
     # tuicr landed in nixpkgs long after the `nixpkgs-unstable` pin above, which
     # is why this gets its own rev rather than reading from that input: bumping
     # unstable repo-wide to reach one package would drag eight months of drift
