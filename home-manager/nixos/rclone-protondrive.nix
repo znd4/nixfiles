@@ -2,15 +2,17 @@
   pkgs,
   config,
   ...
-}: let
+}:
+let
   mountdir = config.home.homeDirectory + "/Proton";
-in {
+in
+{
   services.onedrive_mount = {
     Unit = {
       Description = "mount protondrive dirs";
-      After = ["network-online.target"];
+      After = [ "network-online.target" ];
     };
-    Install.WantedBy = ["multi-user.target"];
+    Install.WantedBy = [ "multi-user.target" ];
     Service = {
       ExecStartPre = "/run/current-system/sw/bin/mkdir -p ${mountdir}";
       ExecStart = ''
@@ -26,7 +28,7 @@ in {
       Type = "notify";
       Restart = "always";
       RestartSec = "10s";
-      Environment = ["PATH=${pkgs.fuse}/bin:/run/wrappers/bin/:$PATH"];
+      Environment = [ "PATH=${pkgs.fuse}/bin:/run/wrappers/bin/:$PATH" ];
     };
   };
 }

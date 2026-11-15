@@ -12,7 +12,8 @@
 {
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  boot.initrd.luks.devices."luks-2a3d8835-b168-4890-b176-31ffcaa2477f".device = "/dev/disk/by-uuid/2a3d8835-b168-4890-b176-31ffcaa2477f";
+  boot.initrd.luks.devices."luks-2a3d8835-b168-4890-b176-31ffcaa2477f".device =
+    "/dev/disk/by-uuid/2a3d8835-b168-4890-b176-31ffcaa2477f";
   boot.initrd.availableKernelModules = [
     "xhci_pci"
     "ahci"
@@ -29,7 +30,8 @@
     fsType = "ext4";
   };
 
-  boot.initrd.luks.devices."luks-e4cec459-f79b-4aba-89da-d674767fdbde".device = "/dev/disk/by-uuid/e4cec459-f79b-4aba-89da-d674767fdbde";
+  boot.initrd.luks.devices."luks-e4cec459-f79b-4aba-89da-d674767fdbde".device =
+    "/dev/disk/by-uuid/e4cec459-f79b-4aba-89da-d674767fdbde";
 
   fileSystems."/boot" = {
     device = "/dev/disk/by-uuid/DC2E-553A";

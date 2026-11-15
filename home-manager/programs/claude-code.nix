@@ -2,7 +2,8 @@
 let
   skillSrc = "${inputs.claude-skills-bendrucker}/plugins/git-town/skills/git-town";
   jjSkillSrc = "${inputs.jujutsu-workflow-skill}/skills/jujutsu-workflow";
-  mkSkillFiles = dir: prefix:
+  mkSkillFiles =
+    dir: prefix:
     let
       entries = builtins.readDir dir;
     in
