@@ -89,7 +89,9 @@ in
         identityFile = "${pkgs.writeText "${name}_id_rsa.pub" value}";
       }) config.znd4.keys
       // {
-        # Nobara gaming PC; same 1Password "Desktop" key as desktop.local.
+        # The desktop gaming PC, reached as nobara-pc.local while it runs
+        # Nobara (it is meant to go back to NixOS). Same 1Password "Desktop"
+        # key as desktop.local.
         desktop = {
           hostname = "nobara-pc.local";
           user = "znd4";
