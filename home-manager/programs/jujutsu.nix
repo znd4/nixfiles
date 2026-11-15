@@ -1,16 +1,16 @@
 # Jujutsu configuration with tokyonight-storm theme
 # Documentation: https://github.com/jj-vcs/jj/blob/main/docs/config.md
-{ inputs, system, ... }:
+{ config, inputs, pkgs, ... }:
 {
   programs.jujutsu.enable = true;
   # Pinned separately from nixpkgs-unstable (see flake.nix): that input sits on
   # a 2025-11 rev carrying jj 0.35, which is older than the jujutsu-workflow
   # skill assumes.
-  programs.jujutsu.package = inputs.nixpkgs-jujutsu.legacyPackages.${system}.jujutsu;
+  programs.jujutsu.package = inputs.nixpkgs-jujutsu.legacyPackages.${pkgs.stdenv.hostPlatform.system}.jujutsu;
   programs.jujutsu.settings = {
     user = {
-      email = "zane@znd4.dev";
-      name = "Zane Dufour";
+      email = config.znd4.user.email;
+      name = config.znd4.user.name;
     };
 
     # TokyoNight Storm theme colors to match ghostty configuration

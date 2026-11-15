@@ -6,6 +6,20 @@ repos:
         entry: nixfmt
         types: [nix]
         language: system
+      # docs/options.md is generated from the znd4.* option declarations.
+      # Regenerate it, and fail the commit (so the new file can be staged)
+      # when it changed. About 3-8 s.
+      - id: options-doc
+        name: regenerate docs/options.md
+        entry: >-
+          sh -c 'out=$(nix build --no-link --print-out-paths .#znd4-options-doc) &&
+          if ! cmp -s "$out" docs/options.md; then
+          install -m 644 "$out" docs/options.md;
+          echo "docs/options.md was out of date; regenerated it, stage it and commit again";
+          exit 1; fi'
+        language: system
+        files: \.nix$
+        pass_filenames: false
       # - id: vulnix
       #   name: check for vulnerabilities in nixpkgs
       #   language: system

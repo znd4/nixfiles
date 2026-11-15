@@ -1,9 +1,11 @@
 {
   pkgs,
   inputs,
-  system,
   ...
 }:
+let
+  system = pkgs.stdenv.hostPlatform.system;
+in
 {
   nixpkgs.overlays = [
     (final: prev: {

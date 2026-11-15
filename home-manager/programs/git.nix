@@ -1,12 +1,10 @@
 # This is your home-manager configuration file
 # Use this to configure your home environment (it replaces ~/.config/nixpkgs/home.nix)
 {
+  config,
   inputs,
   pkgs,
-  keys,
-  certificateAuthority,
   lib,
-  _1password_ssh,
   ...
 }:
 let
@@ -25,11 +23,11 @@ in
     ];
     signing = {
       signByDefault = true;
-      key = "${pkgs.writeText "github.com_id_rsa.pub" keys."github.com"}";
+      key = "${pkgs.writeText "github.com_id_rsa.pub" config.znd4.keys."github.com"}";
     };
     settings = {
-      user.name = "Zane Dufour";
-      user.email = "zane@znd4.dev";
+      user.name = config.znd4.user.name;
+      user.email = config.znd4.user.email;
       # https://git-scm.com/book/en/v2/Git-Tools-Rerere
       rerere.enabled = true;
       # pager = {
@@ -39,13 +37,11 @@ in
       # };
       core.longPaths = true;
 
-      # Configure commit signing with my ssh key
-      #     [gpg "ssh"]
-      # program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
-      gpg.ssh.program = lib.optional _1password_ssh "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+      # Commit signing with the SSH key. ./ssh.nix sets gpg.ssh.program
+      # from znd4.ssh.agent.
       gpg.format = "ssh";
       # TODO - configure this differently on MacOS
-      user.signingKey = keys."github.com";
+      user.signingKey = config.znd4.keys."github.com";
 
       init.defaultBranch = "main";
       commit.template = "${pkgs.writeText "commit-template" (
@@ -84,7 +80,9 @@ in
         ];
       };
     };
-    settings.http.sslCAInfo = lib.mkIf (certificateAuthority != null) certificateAuthority;
+    settings.http.sslCAInfo = lib.mkIf (
+      config.znd4.certificateAuthorityBundle != null
+    ) config.znd4.certificateAuthorityBundle;
     settings.alias = {
       a = "add";
       pl = "pull";

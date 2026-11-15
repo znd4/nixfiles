@@ -3,27 +3,16 @@
 {
   inputs,
   outputs,
-  username,
   lib,
   config,
   osConfig,
-  knownHosts,
   pkgs,
-  stateVersion,
-  keys,
-  certificateAuthority,
-  identityAgent,
   ...
 }@args:
 let
-  authSocks = {
-    x86_64-linux = "${config.home.homeDirectory}/.1password/agent.sock";
-    aarch64-linux = "${config.home.homeDirectory}/.1password/agent.sock";
-    aarch64-darwin = "${config.home.homeDirectory}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
-  };
   dotConfig = "${inputs.self}/dotfiles/xdg-config/.config";
   system = pkgs.stdenv.system;
-  isDarwin = pkgs.stdenv.isDarwin;
+  caBundle = config.znd4.certificateAuthorityBundle;
   personal_python = inputs.nixpkgs.legacyPackages.${system}.python3.withPackages (
     ps:
     # personal_python = inputs.nixpkgs-main.legacyPackages.${system}.python3.withPackages (ps:
@@ -89,10 +78,10 @@ let
     GOBIN = "$HOME/.local/bin.go";
     GOPATH = "$HOME/go";
   }
-  // (lib.attrsets.optionalAttrs (certificateAuthority != null) {
-    NODE_EXTRA_CA_CERTS = certificateAuthority;
-    REQUESTS_CA_BUNDLE = certificateAuthority;
-    SSL_CERT_FILE = certificateAuthority;
+  // (lib.attrsets.optionalAttrs (caBundle != null) {
+    NODE_EXTRA_CA_CERTS = caBundle;
+    REQUESTS_CA_BUNDLE = caBundle;
+    SSL_CERT_FILE = caBundle;
   });
 in
 {
@@ -101,6 +90,7 @@ in
     ./nixos
     ./programs
     ./modules/workmux.nix
+    ./modules/znd4.nix
     inputs.git-town-znd4.homeManagerModules.default
   ];
 
@@ -212,7 +202,7 @@ in
   # Nix refuses for a repo root doesn't own).
   programs.nh = {
     enable = true;
-    flake = "${config.home.homeDirectory}/nixfiles";
+    flake = config.znd4.flakePath;
   };
 
   home.sessionVariables = {
@@ -221,7 +211,6 @@ in
     CLAUDE_CODE_DISABLE_AUTO_MEMORY = 1;
     CLAUDE_CODE_ENABLE_AUTO_MODE = 1;
   };
-  home.username = username;
 
   xdg.configFile =
     let
@@ -252,45 +241,6 @@ in
         })
       )
     ];
-
-  programs.ssh = {
-    enable = true;
-    extraConfig = "IdentityAgent ${
-      if identityAgent != null then identityAgent else authSocks.${system}
-    }";
-
-    # home-manager's implicit `Host *` defaults only restated OpenSSH's own.
-    enableDefaultConfig = false;
-    matchBlocks = {
-      "*" = {
-        # "yes" (not "confirm"): with "confirm", every key *use* needs an
-        # interactive TouchID/prompt, which silently fails non-interactive git
-        # pushes (the key is in the agent but each use is blocked). No-op on
-        # machines whose IdentityAgent is Secretive/1Password (those manage
-        # keys internally and ignore this).
-        addKeysToAgent = "yes";
-        userKnownHostsFile = "${
-          (pkgs.writeText "known_hosts" (
-            builtins.concatStringsSep "\n" (lib.attrsets.mapAttrsToList (name: value: value) knownHosts)
-          ))
-        }";
-      };
-    }
-    // lib.attrsets.mapAttrs (name: value: {
-      identitiesOnly = true;
-      identityFile = "${pkgs.writeText "${name}_id_rsa.pub" value}";
-    }) keys
-    // {
-      # Nobara gaming PC; same 1Password "Desktop" key as desktop.local.
-      desktop = {
-        hostname = "nobara-pc.local";
-        user = "znd4";
-        extraOptions.HostKeyAlias = "desktop";
-        identitiesOnly = true;
-        identityFile = "${pkgs.writeText "desktop_id_rsa.pub" keys."desktop.local"}";
-      };
-    };
-  };
 
   # Add stuff for your user as you see fit:
 
@@ -459,39 +409,7 @@ in
       if set -q NVIM
         set -gx EDITOR "nvr -cc split --remote-wait"
       end
-    ''
-    + (
-      if isDarwin then
-        ''
-
-          # Ensure a working SSH agent on macOS.
-          # 1. Try the launchd-managed agent (socket path changes after reboots)
-          # 2. Fall back to a persistent agent at ~/.ssh/agent.sock
-          set -l _ssh_sock (launchctl print gui/(id -u)/com.openssh.ssh-agent 2>/dev/null | string match -r 'SSH_AUTH_SOCK => (.+)' | tail -1)
-          if test -n "$_ssh_sock" -a -S "$_ssh_sock"
-            set -gx SSH_AUTH_SOCK $_ssh_sock
-          else
-            # launchd socket is dead (e.g. /private/tmp was cleaned).
-            # Start or reuse a persistent agent.
-            set -l _fallback ~/.ssh/agent.sock
-            if not test -S "$_fallback"
-              /usr/bin/ssh-agent -a "$_fallback" >/dev/null 2>&1
-            end
-            if test -S "$_fallback"
-              set -gx SSH_AUTH_SOCK $_fallback
-            end
-          end
-          # Load keychain-stored keys into the agent if none are loaded.
-          # macOS no longer does this automatically at login.
-          if not ssh-add -l >/dev/null 2>&1
-            ssh-add --apple-load-keychain 2>/dev/null
-          end
-        ''
-      else if identityAgent != null then
-        ""
-      else
-        ("\nset -q SSH_AUTH_SOCK" + "\nset -g SSH_AUTH_SOCK ${authSocks.${system}}")
-    );
+    '';
   };
 
   programs.starship = {
@@ -507,7 +425,4 @@ in
       };
     };
   };
-
-  # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
-  home.stateVersion = stateVersion;
 }

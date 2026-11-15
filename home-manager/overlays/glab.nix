@@ -16,13 +16,13 @@
 {
   inputs,
   outputs,
-  system,
   ...
 }:
 (final: prev: {
   glab =
     let
       version = "1.125.0";
+      system = prev.stdenv.hostPlatform.system;
       pinned = inputs.nixpkgs-glab.legacyPackages.${system};
       go = outputs.packages.${system}.go_1_27_3;
     in

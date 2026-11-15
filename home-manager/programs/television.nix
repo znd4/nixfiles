@@ -1,12 +1,13 @@
 {
   inputs,
-  system,
+  pkgs,
   config,
   lib,
   ...
 }:
 let
   inherit (lib) mkOption types;
+  system = pkgs.stdenv.hostPlatform.system;
   cfg = config.programs.znd4-television;
 
   unstablePkgs = inputs.nixpkgs-unstable.legacyPackages.${system};

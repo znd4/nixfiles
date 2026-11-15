@@ -210,6 +210,24 @@
     }@inputs:
     let
       lib = nixpkgs.lib;
+
+      # A home-manager configuration for `system`. Per-host knobs are options
+      # (see home-manager/modules/znd4.nix) that the host's modules set.
+      mkHomeConfiguration =
+        {
+          system,
+          modules,
+          outputs ? self,
+          extraSpecialArgs ? { },
+        }:
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.${system};
+          extraSpecialArgs = {
+            inherit inputs outputs;
+          }
+          // extraSpecialArgs;
+          modules = [ self.homeModules.default ] ++ modules;
+        };
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
@@ -217,10 +235,52 @@
         ./flake_modules
       ];
       perSystem =
-        { config, pkgs, ... }:
+        {
+          config,
+          pkgs,
+          system,
+          ...
+        }:
         {
           formatter = pkgs.nixfmt-rfc-style;
           packages = (import ./pkgs { inherit pkgs inputs; }) // {
+            # Markdown reference for the znd4.* home-manager options, committed
+            # as docs/options.md (a pre-commit hook keeps it current).
+            znd4-options-doc =
+              let
+                eval = mkHomeConfiguration {
+                  inherit system;
+                  modules = [
+                    {
+                      home.username = "user";
+                      home.stateVersion = "24.11";
+                      znd4.hostname = "host";
+                      znd4.ssh.agent = "system";
+                    }
+                  ];
+                };
+                relative = path: lib.removePrefix "${self}/" (toString path);
+              in
+              # mdformat collapses nixosOptionsDoc's blank lines and drops its
+              # needless escapes, so the file also reads well as plain text.
+              pkgs.runCommand "znd4-options.md" { nativeBuildInputs = [ pkgs.mdformat ]; } ''
+                cp ${
+                  (pkgs.nixosOptionsDoc {
+                    options = { inherit (eval.options) znd4; };
+                    transformOptions =
+                      opt:
+                      opt
+                      // {
+                        declarations = map (decl: {
+                          name = relative decl;
+                          url = "https://github.com/znd4/nixfiles/blob/main/${relative decl}";
+                        }) opt.declarations;
+                      };
+                  }).optionsCommonMark
+                } $out
+                chmod u+w $out
+                mdformat --wrap keep $out
+              '';
             nixos-rebuild-switch = pkgs.writeShellApplication {
               name = "nixos-rebuild-switch";
               runtimeInputs = with pkgs; [
@@ -244,7 +304,8 @@
             desktop.local ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCjzYEuKtErq3irlOePfFj9tcbMSEp8Jkto1GnxQGJeyBwymwJ10THsN4Nidmpz/jne6GtxmXqzhq2577SImhjeN/FTid04js7EZ//vIXn9P0gJ4L70bAQzn1741l5Hg4ChD4h+hYkNh81HIKt59Es4+YA8QG1ktRStftFv/ks5dFQnVXlfapYsJpvxd4AhiyfQu5DdQoo8rPa8ReWQWb9B+CIV4N1ytfaqya3EMuLCJRCwjgDAgz9tDJDIiTSOqHgxtBRP5HGUVCFNXusMgHseVCzl5J5evOl+ZlVtONuxWMwS2uiyIbMXCZvi9qukEN7ukajfAbFFAowaLD9yz9WixLuxG6/Q3IlHJ07z9f4aNr15hLGysNNswGimNqfbBhIwxdc1H1tKUUZTbxNSFWnoOYBokvBQd/a+S1cVr1FmHXn0gbmFeJtCueJyrEHV7pgfxqDmWc3QaeLPhXlHj1WUzTVNcwUzCsRj0kPBNwClR/s9/9ayYexnRoj0i4HnmG/tTLtQEi/IuXiBAkPrTcpouPY83vvhAHUUFMaUXABidX8aIXgxIxnG/afUzGP2YwqSF8yjxIVoZXf+ZdZrT42AJC94/QuU5c48p96Pzd7Luoabt6tfJPx4RH8efGvR8aA1R6NXCbxEoXrPYORIbAyiRugvVxD7eFKc+CQULXcE3w==
             desktop.local ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHA6aLV48Q1ga/cKaWavmBOuNmV60YP4Au/2PmbNZZlF
           '';
-          # Nobara gaming PC (nobara-pc.local); matched via HostKeyAlias.
+          # The desktop gaming PC while it runs Nobara (nobara-pc.local);
+          # matched via HostKeyAlias.
           "desktop" = ''
             desktop ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ9czHJq12YrPVQhJsj/+jc05/PYC/YvqdDWKrzSw/gj
           '';
@@ -370,6 +431,9 @@
           default = ./home-manager;
           workmux = ./home-manager/modules/workmux.nix;
         };
+        # Compatibility shim for callers outside this flake: turns the old
+        # arguments into option definitions. New code should build a host from
+        # modules instead (see homeConfigurations below).
         homeConfigurationFactory =
           {
             system,
@@ -387,92 +451,103 @@
             extraModules ? [ ],
             extraSpecialArgs ? { },
           }:
-          home-manager.lib.homeManagerConfiguration {
-            pkgs = nixpkgs.legacyPackages.${system};
-            extraSpecialArgs = {
-              inherit
-                outputs
-                knownHosts
-                inputs
-                system
-                username
-                hostname
-                stateVersion
-                identityAgent
-                _1password_ssh
-                ;
-              keys = defaultKeys // (keys."${hostname}" or { });
-              certificateAuthority =
-                if certificateAuthorities != [ ] then
+          mkHomeConfiguration {
+            inherit system outputs;
+            extraSpecialArgs =
+              lib.warnIf (extraSpecialArgs != { })
+                "homeConfigurationFactory: extraSpecialArgs is deprecated; set home-manager options from extraModules instead."
+                extraSpecialArgs;
+            modules = [
+              {
+                home.username = username;
+                home.stateVersion = stateVersion;
+                znd4.hostname = hostname;
+                znd4.sesh = seshClConfig;
+                znd4.certificateAuthorities = certificateAuthorities;
+                znd4.keys = defaultKeys // (keys.${hostname} or { });
+                znd4.knownHosts = knownHosts;
+                # Old behavior: _1password_ssh, or an identityAgent socket,
+                # and otherwise the system agent on macOS and 1Password on Linux.
+                znd4.ssh.agent =
                   let
-                    combinedCA = nixpkgs.legacyPackages.${system}.concatTextFile {
-                      name = "ca-bundle-combined";
-                      files = [
-                        "${nixpkgs.legacyPackages.${system}.cacert}/etc/ssl/certs/ca-bundle.crt"
-                        (builtins.toFile "custom-ca.pem" (lib.strings.concatStringsSep "\n" certificateAuthorities))
-                      ];
-                    };
+                    agentPath = if identityAgent == null then "" else identityAgent;
                   in
-                  "${combinedCA}"
-                else
-                  null;
-              seshClConfig = {
-                gitlabHosts = [ ];
-                githubOrgs = [ ];
+                  lib.mkDefault (
+                    if _1password_ssh || lib.hasInfix "1password" agentPath then
+                      "1password"
+                    else if lib.hasInfix "Secretive" agentPath then
+                      "secretive"
+                    else
+                      lib.warnIf (identityAgent != null)
+                        "homeConfigurationFactory: identityAgent ${identityAgent} is not a known agent; set znd4.ssh.agent from extraModules."
+                        (if lib.hasSuffix "darwin" system then "system" else "1password")
+                  );
               }
-              // seshClConfig;
-            }
-            // extraSpecialArgs;
-            modules = [ self.homeModules.default ] ++ extraModules;
+            ]
+            ++ extraModules;
           };
-        homeConfigurations = (
-          builtins.listToAttrs (
-            builtins.map
-              (
-                args:
-                (lib.attrsets.nameValuePair "${args.username}@${args.hostname}" (
-                  self.homeConfigurationFactory (
-                    {
-                      certificateAuthorities = [ ];
-                      system = "x86_64-linux";
-                      stateVersion = "23.11";
-                    }
-                    // args
-                  )
-                ))
-              )
-              [
+        homeConfigurations =
+          let
+            host =
+              hostname:
+              {
+                system ? "x86_64-linux",
+                modules,
+                extraSpecialArgs ? { },
+              }:
+              lib.nameValuePair "znd4@${hostname}" (mkHomeConfiguration {
+                inherit system extraSpecialArgs;
+                modules = [
+                  {
+                    home.username = "znd4";
+                    znd4.hostname = hostname;
+                  }
+                ]
+                ++ modules;
+              });
+          in
+          lib.mapAttrs' host {
+            # nh looks for username@hostname without ".local".
+            Zanes-MacBook-Neo = {
+              system = "aarch64-darwin";
+              modules = [
                 {
-                  username = "znd4";
-                  # nh looks for username@hostname without ".local".
-                  hostname = "Zanes-MacBook-Neo";
-                  system = "aarch64-darwin";
-                  identityAgent = ''"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"'';
-                  _1password_ssh = true;
+                  home.stateVersion = "23.11";
+                  znd4.ssh.agent = "1password";
                 }
+              ];
+            };
+            desktop.modules = [
+              {
+                home.stateVersion = "23.11";
+                znd4.ssh.agent = "1password";
+              }
+            ];
+            t470.modules = [
+              {
+                home.stateVersion = "23.11";
+                znd4.ssh.agent = "1password";
+              }
+            ];
+            work = {
+              system = "aarch64-darwin";
+              modules = [
                 {
-                  username = "znd4";
-                  hostname = "desktop";
+                  home.stateVersion = "24.11";
+                  znd4.ssh.agent = "system";
                 }
+              ];
+            };
+            mac-mini = {
+              system = "aarch64-darwin";
+              modules = [
                 {
-                  username = "znd4";
-                  hostname = "t470";
+                  home.stateVersion = "24.11";
+                  znd4.ssh.agent = "1password";
                 }
-                {
-                  username = "znd4";
-                  hostname = "work";
-                  system = "aarch64-darwin";
-                  stateVersion = "24.11";
-                }
-                {
-                  username = "znd4";
-                  hostname = "mac-mini";
-                  system = "aarch64-darwin";
-                  stateVersion = "24.11";
-                }
-              ]
-          )
-        );
+              ];
+            };
+          };
       };
     };
 }

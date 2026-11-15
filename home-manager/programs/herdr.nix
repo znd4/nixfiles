@@ -1,13 +1,12 @@
 {
   inputs,
-  system,
   config,
   pkgs,
   lib,
-  seshClConfig,
   ...
 }:
 let
+  system = pkgs.stdenv.hostPlatform.system;
   cfg = config.programs.herdr;
 
   herdr = inputs.herdr.packages.${system}.default;
@@ -16,7 +15,7 @@ let
   # different `tv` than the one the rest of the config is configured for.
   television = inputs.nixpkgs-television.legacyPackages.${system}.television;
 
-  workDir = "$HOME/Work";
+  workDir = config.znd4.workDir;
 
   # Flake ref for an arbitrary herdr release tag. herdr-handoff below uses it
   # only as a fallback, to materialize a CLI matching the running server when
@@ -162,7 +161,7 @@ let
   };
 
   # Repo picker -> clone into ~/Work/{host}/{path} -> herdr workspace. The same
-  # tool backs the tmux M-m popup (with --open sesh), fed the same seshClConfig.
+  # tool backs the tmux M-m popup (with --open sesh), fed the same znd4.sesh options.
   clonePick = import ../../pkgs/clone-pick { inherit pkgs; };
   herdrClonePick = pkgs.writeShellScript "herdr-clone-pick" "exec ${
     lib.escapeShellArgs (
@@ -171,15 +170,17 @@ let
         "--open"
         "herdr"
         "--wait-on-error"
+        "--work-dir"
+        config.znd4.workDir
       ]
       ++ lib.concatMap (h: [
         "--gitlab-host"
         h
-      ]) seshClConfig.gitlabHosts
+      ]) config.znd4.sesh.gitlabHosts
       ++ lib.concatMap (o: [
         "--github-org"
         o
-      ]) seshClConfig.githubOrgs
+      ]) config.znd4.sesh.githubOrgs
     )
   }";
 

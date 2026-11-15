@@ -3,11 +3,10 @@
   lib,
   config,
   inputs,
-  system,
-  seshClConfig,
   ...
 }:
 let
+  system = pkgs.stdenv.hostPlatform.system;
   cfg = config.programs.tmux-new-session;
 
   # Runs the editor in a pane of a hidden window. edit-scrollback swaps that
@@ -183,15 +182,17 @@ let
       "--open"
       "sesh"
       "--wait-on-error"
+      "--work-dir"
+      config.znd4.workDir
     ]
     ++ lib.concatMap (h: [
       "--gitlab-host"
       h
-    ]) seshClConfig.gitlabHosts
+    ]) config.znd4.sesh.gitlabHosts
     ++ lib.concatMap (o: [
       "--github-org"
       o
-    ]) seshClConfig.githubOrgs
+    ]) config.znd4.sesh.githubOrgs
   );
 in
 {
@@ -204,7 +205,8 @@ in
     };
     defaultDirectory = lib.mkOption {
       type = lib.types.str;
-      default = "~/Work";
+      default = config.znd4.workDir;
+      defaultText = lib.literalExpression "config.znd4.workDir";
       description = "Default working directory for new tmux sessions.";
     };
     shell = lib.mkOption {

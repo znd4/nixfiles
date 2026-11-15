@@ -5,8 +5,9 @@
 }:
 let
   # Wraps rclone instead of rebuilding it, so the binary cache still applies.
-  # The wrapper fetches the rclone.conf encryption password from 1Password via
-  # a store-path op, so op needn't be on PATH. --set-default lets either
+  # The wrapper gets the rclone.conf encryption password from
+  # znd4.rclone.passwordCommand (by default `op read` from 1Password, via a
+  # store-path op so op needn't be on PATH). --set-default lets either
   # variable be overridden per command.
   rclone = pkgs.symlinkJoin {
     name = "rclone-wrapped";
@@ -14,7 +15,7 @@ let
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/rclone \
-        --set-default RCLONE_PASSWORD_COMMAND "${pkgs._1password-cli}/bin/op read op://Private/rclone/password" \
+        --set-default RCLONE_PASSWORD_COMMAND "${config.znd4.rclone.passwordCommand}" \
         --set-default RCLONE_EXCLUDE_FROM "${config.xdg.configHome}/rclone/excludes.txt"
     '';
   };
