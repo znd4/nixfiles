@@ -235,10 +235,44 @@
         ./flake_modules
       ];
       perSystem =
-        { config, pkgs, ... }:
+        {
+          config,
+          pkgs,
+          system,
+          ...
+        }:
         {
           formatter = pkgs.nixfmt-rfc-style;
           packages = (import ./pkgs { inherit pkgs inputs; }) // {
+            # Markdown reference for the znd4.* home-manager options, committed
+            # as docs/options.md (a pre-commit hook keeps it current).
+            znd4-options-doc =
+              let
+                eval = mkHomeConfiguration {
+                  inherit system;
+                  modules = [
+                    {
+                      home.username = "user";
+                      home.stateVersion = "24.11";
+                      znd4.hostname = "host";
+                      znd4.ssh.agent = "system";
+                    }
+                  ];
+                };
+                relative = path: lib.removePrefix "${self}/" (toString path);
+              in
+              (pkgs.nixosOptionsDoc {
+                options = { inherit (eval.options) znd4; };
+                transformOptions =
+                  opt:
+                  opt
+                  // {
+                    declarations = map (decl: {
+                      name = relative decl;
+                      url = "https://github.com/znd4/nixfiles/blob/main/${relative decl}";
+                    }) opt.declarations;
+                  };
+              }).optionsCommonMark;
             nixos-rebuild-switch = pkgs.writeShellApplication {
               name = "nixos-rebuild-switch";
               runtimeInputs = with pkgs; [
