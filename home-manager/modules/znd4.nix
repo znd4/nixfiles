@@ -90,13 +90,14 @@ in
       defaultText = lib.literalExpression ''"''${config.home.homeDirectory}/nixfiles"'';
       description = "Checkout of this flake that `nh` switches from.";
     };
-    rclone.passwordReference = mkOption {
+    rclone.passwordCommand = mkOption {
       type = types.str;
-      default = "op://Private/rclone/password";
+      default = "${pkgs._1password-cli}/bin/op read op://Private/rclone/password";
+      defaultText = lib.literalExpression ''"''${pkgs._1password-cli}/bin/op read op://Private/rclone/password"'';
       description = ''
-        1Password secret reference (`op read`) of the password that encrypts
-        rclone.conf. The rclone wrapper sets it as the default
-        `RCLONE_PASSWORD_COMMAND`.
+        Command that prints the password that encrypts rclone.conf. The
+        rclone wrapper sets it as the default `RCLONE_PASSWORD_COMMAND`, so
+        a single command can still override it.
       '';
     };
     sesh = {
