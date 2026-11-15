@@ -145,6 +145,11 @@
     # *same rev* as it, nixpkgs-jujutsu and nixpkgs-television, so this costs no
     # extra fetch.
     nixpkgs-glab.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&rev=624af665418d3c65d544145b4d34ad696439570e";
+    # gh: `gh skill` (install agent skills from a repo) needs gh 2.90+, and both
+    # `nixpkgs` and `nixpkgs-unstable` above carry 2.83. Same per-package-pin
+    # reasoning as nixpkgs-tuicr, and deliberately the *same rev* as it, so this
+    # costs no extra fetch. That rev has gh 2.96.0.
+    nixpkgs-gh.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&rev=624af665418d3c65d544145b4d34ad696439570e";
 
     nil.url = "git+ssh://git@github.com/oxalica/nil.git?shallow=1";
     nil.inputs.nixpkgs.follows = "nixpkgs";
