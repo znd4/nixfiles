@@ -1,4 +1,4 @@
-{ username, pkgs, ... }:
+{ config, pkgs, ... }:
 {
 
   environment.systemPackages = with pkgs; [ _1password-cli ];
@@ -6,7 +6,7 @@
     enable = true;
     # Certain features, including CLI integration and system authentication support,
     # require enabling PolKit integration on some desktop environments (e.g. Plasma).
-    polkitPolicyOwners = [ username ];
+    polkitPolicyOwners = [ config.znd4.username ];
   };
 
 }

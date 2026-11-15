@@ -1,14 +1,14 @@
 {
+  config,
+  lib,
   pkgs,
-  hostname,
-  username,
   ...
 }:
-if !(builtins.elem hostname [ "desktop" ]) then
-  { }
-else
-  {
-    users.users.${username}.packages = with pkgs; [
+{
+  options.znd4.steam.enable = lib.mkEnableOption "Steam, with Remote Play and dedicated-server ports open";
+
+  config = lib.mkIf config.znd4.steam.enable {
+    users.users.${config.znd4.username}.packages = with pkgs; [
       # nix run nixpkgs#steamcmd
       steam-tui
     ];
@@ -18,4 +18,5 @@ else
       remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
       dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
     };
-  }
+  };
+}

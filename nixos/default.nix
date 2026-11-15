@@ -3,25 +3,17 @@
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 {
   lib,
-  inputs,
+  config,
   pkgs,
-  username,
-  hostname,
   outputs,
-  stateVersion,
   ...
 }@args:
 let
-  machineConfigMap = {
-    "t470" = ./machines/t470.nix;
-    "desktop" = ./machines/desktop.nix;
-  };
-  hardwareConfig = machineConfigMap.${hostname};
+  username = config.znd4.username;
 in
 {
   imports = [
-    # Include the results of the hardware scan.
-    hardwareConfig
+    ./options.nix
     ./modules
   ];
 
@@ -68,7 +60,7 @@ in
     nerd-fonts.symbols-only
   ];
 
-  networking.hostName = hostname; # Define your hostname.
+  # networking.hostName is set by the host module (see ./hosts).
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -217,5 +209,6 @@ in
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = stateVersion; # Did you read the comment?
+  #
+  # The host module (see ./hosts) sets system.stateVersion.
 }
