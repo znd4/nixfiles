@@ -12,7 +12,7 @@ let
   cfg = config.znd4.ssh;
   home = config.home.homeDirectory;
 
-  # Agent socket for each agent that has a fixed socket. "keychain" has
+  # Agent socket for each agent that has a fixed socket. "system" has
   # none: on macOS the launchd agent's socket changes after a reboot, so fish
   # finds it at startup and ssh reads SSH_AUTH_SOCK.
   sockets = {
@@ -36,7 +36,7 @@ in
     type = lib.types.enum [
       "1password"
       "secretive"
-      "keychain"
+      "system"
     ];
     description = ''
       The SSH agent that holds this machine's keys.
@@ -45,7 +45,7 @@ in
         git signs commits with `op-ssh-sign`.
       - `secretive`: the Secretive agent (macOS only). ssh and fish use its
         socket.
-      - `keychain`: the system agent. On macOS, fish finds the launchd
+      - `system`: the operating system's agent. On macOS, fish finds the launchd
         agent (or starts one at {file}`~/.ssh/agent.sock`) and loads the
         keys stored in the keychain into it. On Linux, the session's agent
         is used as it is. ssh uses `SSH_AUTH_SOCK` in both cases.

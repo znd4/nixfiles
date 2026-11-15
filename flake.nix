@@ -424,7 +424,7 @@
                 znd4.keys = defaultKeys // (keys.${hostname} or { });
                 znd4.knownHosts = knownHosts;
                 # Old behavior: _1password_ssh, or an identityAgent socket,
-                # and otherwise keychain on macOS and 1Password on Linux.
+                # and otherwise the system agent on macOS and 1Password on Linux.
                 znd4.ssh.agent =
                   let
                     agentPath = if identityAgent == null then "" else identityAgent;
@@ -437,7 +437,7 @@
                     else
                       lib.warnIf (identityAgent != null)
                         "homeConfigurationFactory: identityAgent ${identityAgent} is not a known agent; set znd4.ssh.agent from extraModules."
-                        (if lib.hasSuffix "darwin" system then "keychain" else "1password")
+                        (if lib.hasSuffix "darwin" system then "system" else "1password")
                   );
               }
             ]
@@ -491,7 +491,7 @@
               modules = [
                 {
                   home.stateVersion = "24.11";
-                  znd4.ssh.agent = "keychain";
+                  znd4.ssh.agent = "system";
                 }
               ];
             };
