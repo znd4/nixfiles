@@ -3,12 +3,12 @@
 # agent offers only the vaults listed here, so keep "Private".
 # https://developer.1password.com/docs/ssh/agent/config/
 {
+  config,
   lib,
-  _1password_ssh ? false,
   ...
 }:
 {
-  config = lib.mkIf _1password_ssh {
+  config = lib.mkIf (config.znd4.ssh.agent == "1password") {
     xdg.configFile."1Password/ssh/agent.toml".text = ''
       [[ssh-keys]]
       vault = "Private"
