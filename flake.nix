@@ -110,6 +110,9 @@
     };
 
     # pre-commit.url = "git+ssh://git@github.com/znd4/nixpkgs.git?shallow=1&ref=feat/pre-commit/add-pip-system-certs";
+    # This repo's own pre-commit hooks (flake_modules/git-hooks.nix).
+    git-hooks.url = "git+ssh://git@github.com/cachix/git-hooks.nix.git?shallow=1";
+    git-hooks.inputs.nixpkgs.follows = "nixpkgs";
     # nixpkgs.url = nixos_unstable_url;
     nixpkgs.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&ref=nixos-25.11-small";
     nixpkgs-unstable.url = "git+ssh://git@github.com/NixOS/nixpkgs.git?shallow=1&ref=nixos-unstable";
