@@ -521,22 +521,6 @@
         "url": "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz"
       }
     },
-    "nixpkgs-git-town-21_2_0": {
-      "locked": {
-        "lastModified": 1751653599,
-        "narHash": "sha256-o3bmoTfHgbNo6QEmcf4V+WOpyaf6VqJKFYyCANCsGG4=",
-        "ref": "git-town-21.2.0",
-        "rev": "642f9edd7c44239ba4044de0b0af5c99fba4eac6",
-        "revCount": 822715,
-        "type": "git",
-        "url": "ssh://git@github.com/znd4/nixpkgs.git"
-      },
-      "original": {
-        "ref": "git-town-21.2.0",
-        "type": "git",
-        "url": "ssh://git@github.com/znd4/nixpkgs.git"
-      }
-    },
     "nixpkgs-glab": {
       "locked": {
         "lastModified": 1785090369,
@@ -816,7 +800,6 @@
         "jujutsu-workflow-skill": "jujutsu-workflow-skill",
         "nil": "nil",
         "nixpkgs": "nixpkgs_6",
-        "nixpkgs-git-town-21_2_0": "nixpkgs-git-town-21_2_0",
         "nixpkgs-glab": "nixpkgs-glab",
         "nixpkgs-jujutsu": "nixpkgs-jujutsu",
         "nixpkgs-opencode": "nixpkgs-opencode",
