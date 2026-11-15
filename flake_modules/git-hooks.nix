@@ -8,7 +8,7 @@
 #
 # To add a hook: enable one of git-hooks.nix's built-in hooks, or add an
 # attribute to `hooks` with an `entry` (see `options-doc` below).
-{ inputs, ... }:
+{ inputs, lib, ... }:
 {
   imports = [ inputs.git-hooks.flakeModule ];
 
@@ -52,7 +52,25 @@
       '';
 
       devShells.default = pkgs.mkShell {
-        shellHook = config.pre-commit.installationScript;
+        # The second install is not redundant. The git hook is shared by all
+        # worktrees, but .pre-commit-config.yaml exists only in worktrees
+        # where this shell has run. Without --allow-missing-config, every
+        # commit in any other worktree fails with "No .pre-commit-config.yaml
+        # file was found". With it, the hook does nothing there; `nix flake
+        # check` still runs the hooks.
+        #
+        # installationScript sets core.hooksPath, and `pre-commit install`
+        # refuses to run while it is set, so unset it and restore it.
+        shellHook = ''
+          ${config.pre-commit.installationScript}
+          if [ -L .pre-commit-config.yaml ]; then
+            hooks_path=$(git config --local core.hooksPath)
+            git config --local --unset-all core.hooksPath
+            ${lib.getExe config.pre-commit.settings.package} install --allow-missing-config \
+              -c .pre-commit-config.yaml -t pre-commit >/dev/null
+            if [ -n "$hooks_path" ]; then git config --local core.hooksPath "$hooks_path"; fi
+          fi
+        '';
         packages = config.pre-commit.settings.enabledPackages;
       };
     };
