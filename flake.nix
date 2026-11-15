@@ -269,6 +269,10 @@
         darwinModules = {
           default = ./darwin;
         };
+        # Compatibility shim for callers outside this flake: turns the old
+        # arguments into option definitions. The special args stay so that
+        # extraModules written against the old interface keep evaluating.
+        # New code should list modules directly (see darwinConfigurations).
         darwinFactory =
           {
             system ? "aarch64-darwin",
@@ -277,30 +281,48 @@
             stateVersion,
           }:
           darwin.lib.darwinSystem {
-            system = system;
-            inherit inputs;
             specialArgs = {
-              inherit inputs;
-              username = username;
-              stateVersion = stateVersion;
-              system = system;
+              inherit
+                inputs
+                username
+                stateVersion
+                system
+                ;
             };
-            modules = [ self.darwinModules.default ] ++ extraModules;
+            modules = [
+              self.darwinModules.default
+              {
+                nixpkgs.hostPlatform = system;
+                system.primaryUser = username;
+                system.stateVersion = stateVersion;
+              }
+            ]
+            ++ extraModules;
           };
         # darwin-rebuild picks the config named after `scutil --get LocalHostName`,
         # which has no ".local" suffix.
-        darwinConfigurations."Zanes-MacBook-Neo" = self.darwinFactory {
-          username = "znd4";
-          stateVersion = 6;
-          extraModules = [
+        darwinConfigurations."Zanes-MacBook-Neo" = darwin.lib.darwinSystem {
+          modules = [
+            self.darwinModules.default
             ./darwin/determinate.nix
-            # nix-darwin owns /etc/pam.d/sudo_local, which already enabled this.
-            { security.pam.services.sudo_local.touchIdAuth = true; }
+            {
+              nixpkgs.hostPlatform = "aarch64-darwin";
+              system.primaryUser = "znd4";
+              system.stateVersion = 6;
+              # nix-darwin owns /etc/pam.d/sudo_local, which already enabled this.
+              security.pam.services.sudo_local.touchIdAuth = true;
+            }
           ];
         };
-        darwinConfigurations.work = self.darwinFactory {
-          username = "znd4";
-          stateVersion = 4;
+        darwinConfigurations.work = darwin.lib.darwinSystem {
+          modules = [
+            self.darwinModules.default
+            {
+              nixpkgs.hostPlatform = "aarch64-darwin";
+              system.primaryUser = "znd4";
+              system.stateVersion = 4;
+            }
+          ];
         };
 
         nixosConfigurations = (
