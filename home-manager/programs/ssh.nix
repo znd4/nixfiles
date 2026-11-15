@@ -1,6 +1,7 @@
 # SSH client config and the SSH agent. One option, znd4.ssh.agent, chooses
-# the agent for all three places that need to agree on it: ssh's
-# IdentityAgent, SSH_AUTH_SOCK in fish, and git's SSH signing program.
+# the agent for all the places that need to agree on it: ssh's
+# IdentityAgent, SSH_AUTH_SOCK in the interactive shells (fish, bash, zsh,
+# nushell), and git's SSH signing program.
 {
   config,
   lib,
@@ -13,8 +14,9 @@ let
   home = config.home.homeDirectory;
 
   # Agent socket for each agent that has a fixed socket. "system" has
-  # none: on macOS the launchd agent's socket changes after a reboot, so fish
-  # finds it at startup and ssh reads SSH_AUTH_SOCK.
+  # none: on macOS the launchd agent's socket changes after a reboot, so each
+  # shell asks macosSystemAgent for it at startup and ssh reads
+  # SSH_AUTH_SOCK.
   sockets = {
     "1password" =
       if isDarwin then
@@ -24,6 +26,46 @@ let
     secretive = "${home}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
   };
   socket = sockets.${cfg.agent} or null;
+
+  # Prints the socket of a working system agent on macOS, or nothing.
+  # 1. Try the launchd-managed agent (socket path changes after reboots).
+  # 2. Fall back to a persistent agent at ~/.ssh/agent.sock.
+  # Then loads keychain-stored keys into the agent if none are loaded:
+  # macOS no longer does this automatically at login. It calls Apple's
+  # ssh-add by path: nixpkgs' openssh has no --apple-load-keychain.
+  macosSystemAgent = pkgs.writeShellScript "ssh-system-agent" ''
+    sock=$(/bin/launchctl print "gui/$(/usr/bin/id -u)/com.openssh.ssh-agent" 2>/dev/null |
+      /usr/bin/sed -n 's/.*SSH_AUTH_SOCK => //p' | /usr/bin/tail -n 1)
+    if [ -z "$sock" ] || [ ! -S "$sock" ]; then
+      # launchd socket is dead (e.g. /private/tmp was cleaned).
+      # Start or reuse a persistent agent.
+      sock=$HOME/.ssh/agent.sock
+      [ -S "$sock" ] || /usr/bin/ssh-agent -a "$sock" >/dev/null 2>&1
+      [ -S "$sock" ] || exit 0
+    fi
+    if ! SSH_AUTH_SOCK=$sock /usr/bin/ssh-add -l >/dev/null 2>&1; then
+      SSH_AUTH_SOCK=$sock /usr/bin/ssh-add --apple-load-keychain >/dev/null 2>&1
+    fi
+    printf '%s\n' "$sock"
+  '';
+  # The socket is only known at run time: ask macosSystemAgent.
+  dynamic = socket == null && isDarwin;
+
+  posixInit =
+    if socket != null then
+      ''
+        export SSH_AUTH_SOCK=${lib.escapeShellArg socket}
+      ''
+    else if dynamic then
+      ''
+        _ssh_sock="$(${macosSystemAgent})"
+        if [ -n "$_ssh_sock" ]; then
+          export SSH_AUTH_SOCK="$_ssh_sock"
+        fi
+        unset _ssh_sock
+      ''
+    else
+      "";
 
   opSshSign =
     if isDarwin then
@@ -41,13 +83,13 @@ in
     description = ''
       The SSH agent that holds this machine's keys.
 
-      - `1password`: the 1Password agent. ssh and fish use its socket, and
-        git signs commits with `op-ssh-sign`.
-      - `secretive`: the Secretive agent (macOS only). ssh and fish use its
-        socket.
-      - `system`: the operating system's agent. On macOS, fish finds the launchd
-        agent (or starts one at {file}`~/.ssh/agent.sock`) and loads the
-        keys stored in the keychain into it. On Linux, the session's agent
+      - `1password`: the 1Password agent. ssh and the shells use its socket,
+        and git signs commits with `op-ssh-sign`.
+      - `secretive`: the Secretive agent (macOS only). ssh and the shells use
+        its socket.
+      - `system`: the operating system's agent. On macOS, each shell finds
+        the launchd agent (or starts one at {file}`~/.ssh/agent.sock`) and
+        loads the keys stored in the keychain into it. On Linux, the session's agent
         is used as it is. ssh uses `SSH_AUTH_SOCK` in both cases.
     '';
   };
@@ -102,37 +144,34 @@ in
       };
     };
 
-    # At the end of the interactive init. Nothing before it reads
-    # SSH_AUTH_SOCK.
+    # SSH_AUTH_SOCK for each interactive shell, at the end of its init.
+    # Nothing before it reads SSH_AUTH_SOCK.
     programs.fish.interactiveShellInit = lib.mkAfter (
       if socket != null then
         ''
           set -gx SSH_AUTH_SOCK "${socket}"
         ''
-      else if isDarwin then
+      else if dynamic then
         ''
-          # Ensure a working SSH agent on macOS.
-          # 1. Try the launchd-managed agent (socket path changes after reboots)
-          # 2. Fall back to a persistent agent at ~/.ssh/agent.sock
-          set -l _ssh_sock (launchctl print gui/(id -u)/com.openssh.ssh-agent 2>/dev/null | string match -r 'SSH_AUTH_SOCK => (.+)' | tail -1)
-          if test -n "$_ssh_sock" -a -S "$_ssh_sock"
+          set -l _ssh_sock (${macosSystemAgent})
+          if test -n "$_ssh_sock"
             set -gx SSH_AUTH_SOCK $_ssh_sock
-          else
-            # launchd socket is dead (e.g. /private/tmp was cleaned).
-            # Start or reuse a persistent agent.
-            set -l _fallback ~/.ssh/agent.sock
-            if not test -S "$_fallback"
-              /usr/bin/ssh-agent -a "$_fallback" >/dev/null 2>&1
-            end
-            if test -S "$_fallback"
-              set -gx SSH_AUTH_SOCK $_fallback
-            end
           end
-          # Load keychain-stored keys into the agent if none are loaded.
-          # macOS no longer does this automatically at login.
-          if not ssh-add -l >/dev/null 2>&1
-            ssh-add --apple-load-keychain 2>/dev/null
-          end
+        ''
+      else
+        ""
+    );
+    programs.bash.initExtra = lib.mkAfter posixInit;
+    programs.zsh.initContent = lib.mkAfter posixInit;
+    programs.nushell.extraConfig = lib.mkAfter (
+      if socket != null then
+        ''
+          $env.SSH_AUTH_SOCK = "${socket}"
+        ''
+      else if dynamic then
+        ''
+          let _ssh_sock = (^${macosSystemAgent} | str trim)
+          if ($_ssh_sock | is-not-empty) { $env.SSH_AUTH_SOCK = $_ssh_sock }
         ''
       else
         ""
