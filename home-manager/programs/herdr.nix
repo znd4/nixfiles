@@ -15,7 +15,7 @@ let
   # different `tv` than the one the rest of the config is configured for.
   television = inputs.nixpkgs-television.legacyPackages.${system}.television;
 
-  workDir = "$HOME/Work";
+  workDir = config.znd4.workDir;
 
   # Flake ref for an arbitrary herdr release tag. herdr-handoff below uses it
   # only as a fallback, to materialize a CLI matching the running server when
@@ -170,6 +170,8 @@ let
         "--open"
         "herdr"
         "--wait-on-error"
+        "--work-dir"
+        config.znd4.workDir
       ]
       ++ lib.concatMap (h: [
         "--gitlab-host"

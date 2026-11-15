@@ -50,7 +50,8 @@ in
 
     workDirectory = mkOption {
       type = types.str;
-      default = "~/Work";
+      default = config.znd4.workDir;
+      defaultText = lib.literalExpression "config.znd4.workDir";
       description = "Root where repos are cloned (<workDir>/<host>/<project>).";
     };
   };

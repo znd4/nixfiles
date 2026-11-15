@@ -182,6 +182,8 @@ let
       "--open"
       "sesh"
       "--wait-on-error"
+      "--work-dir"
+      config.znd4.workDir
     ]
     ++ lib.concatMap (h: [
       "--gitlab-host"
@@ -203,7 +205,8 @@ in
     };
     defaultDirectory = lib.mkOption {
       type = lib.types.str;
-      default = "~/Work";
+      default = config.znd4.workDir;
+      defaultText = lib.literalExpression "config.znd4.workDir";
       description = "Default working directory for new tmux sessions.";
     };
     shell = lib.mkOption {
