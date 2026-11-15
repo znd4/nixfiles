@@ -1,11 +1,13 @@
+# nix-darwin config shared by every Mac. A host sets system.primaryUser (the
+# user this config is for), system.stateVersion and nixpkgs.hostPlatform.
 {
+  config,
   pkgs,
-  inputs,
-  username,
-  system,
-  stateVersion,
   ...
 }:
+let
+  username = config.system.primaryUser;
+in
 {
   users.knownUsers = [ username ];
   users.users.${username} = {
@@ -41,8 +43,6 @@
   };
   nix.package = pkgs.nix;
 
-  system.stateVersion = stateVersion;
-
   ids.gids.nixbld = 350;
 
   environment.systemPackages = with pkgs; [
@@ -58,7 +58,6 @@
     VISUAL = "${pkgs.neovim}/bin/nvim";
   };
 
-  system.primaryUser = username;
   homebrew = {
     enable = true;
     casks = [ "1password-cli" ];
