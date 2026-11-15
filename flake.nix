@@ -394,46 +394,33 @@
           ];
         };
 
-        nixosConfigurations = (
-          builtins.listToAttrs (
-            builtins.map
-              (
-                {
-                  system ? "x86_64-linux",
-                  stateVersion ? "23.11",
-                  username,
-                  hostname,
-                }:
-                (lib.attrsets.nameValuePair hostname (
-                  lib.nixosSystem {
-                    system = system;
-                    specialArgs = {
-                      inherit inputs;
-                      system = system;
-                      outputs = self;
-                      stateVersion = stateVersion;
-                      username = username;
-                      hostname = hostname;
-                    };
-                    modules = [
-                      ./nixos
-                      ./shell
-                    ];
-                  }
-                ))
-              )
-              [
-                {
-                  hostname = "desktop";
-                  username = "znd4";
-                }
-                {
-                  hostname = "t470";
-                  username = "znd4";
-                }
-              ]
-          )
-        );
+        nixosModules.default = {
+          imports = [
+            ./nixos
+            ./shell
+          ];
+        };
+        # Each host is a module that imports its hardware config and sets the
+        # znd4.* options; see nixos/hosts.
+        nixosConfigurations =
+          lib.mapAttrs
+            (
+              _: host:
+              lib.nixosSystem {
+                specialArgs = {
+                  inherit inputs;
+                  outputs = self;
+                };
+                modules = [
+                  self.nixosModules.default
+                  host
+                ];
+              }
+            )
+            {
+              desktop = ./nixos/hosts/desktop.nix;
+              t470 = ./nixos/hosts/t470.nix;
+            };
 
         homeModules = {
           default = ./home-manager;
