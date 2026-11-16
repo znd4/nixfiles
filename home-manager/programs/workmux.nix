@@ -1,5 +1,10 @@
 # Personal workmux configuration. ../modules/workmux.nix defines the options.
-{ inputs, lib, pkgs, ... }:
+{
+  inputs,
+  lib,
+  pkgs,
+  ...
+}:
 let
   system = pkgs.stdenv.hostPlatform.system;
   # Sets the Claude session name to the workmux handle. Panes start in the

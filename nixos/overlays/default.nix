@@ -1,6 +1,6 @@
 # import all nix files in the current folder,
 # and execute them with args as parameters
-# The return value is a list of all execution results, 
+# The return value is a list of all execution results,
 # which is the list of overlays
 
 args:

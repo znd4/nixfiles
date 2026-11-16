@@ -7,7 +7,7 @@
 }:
 {
   home.packages = [ pkgs.opencode ];
-  
+
   programs.git.ignores = [ ".opencode" ];
   # To check available models: curl -s https://models.dev/api.json | jq '.anthropic.models | keys[]'
   programs.fish.shellInit = ''

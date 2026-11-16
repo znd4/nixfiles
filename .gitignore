@@ -4,3 +4,6 @@
 result
 .opencode/
 __pycache__/
+
+# Written by `nix develop` from flake_modules/git-hooks.nix.
+/.pre-commit-config.yaml

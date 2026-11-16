@@ -21,7 +21,7 @@
     })
   ];
   home.packages = with pkgs; [ hydroxide ];
-  # TODO: create aliases for hydroxide that set `HYDROXIDE_BRIDGE_PASS` 
+  # TODO: create aliases for hydroxide that set `HYDROXIDE_BRIDGE_PASS`
   # using values from `op read ...`
   # map `hostname` to the `op` password ID
   systemd.user.services.hydroxide = {
