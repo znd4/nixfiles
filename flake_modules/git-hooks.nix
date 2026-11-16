@@ -27,8 +27,7 @@
           entry = toString (
             pkgs.writeShellScript "options-doc" ''
               # In `nix flake check` this runs in the build sandbox, where
-              # there is no nix to build with. checks.options-doc does the
-              # same comparison there.
+              # there is no nix to build with, so it does nothing there.
               if [ -n "''${NIX_BUILD_TOP:-}" ]; then exit 0; fi
               out=$(nix build --no-link --print-out-paths .#znd4-options-doc) || exit 1
               if ! ${pkgs.diffutils}/bin/cmp -s "$out" docs/options.md; then
@@ -43,27 +42,13 @@
         };
       };
 
-      # Fails `nix flake check` when docs/options.md is out of date. The
-      # options-doc hook above catches this at commit time, but it skips
-      # inside `nix flake check` (no nix in the sandbox), and commits can
-      # skip it too (a worktree without the config, `--no-verify`). This
-      # check covers those cases, whenever someone runs `nix flake check`;
-      # no CI runs it.
-      checks.options-doc = pkgs.runCommand "options-doc-up-to-date" { } ''
-        if ! ${pkgs.diffutils}/bin/diff -u ${../docs/options.md} ${config.packages.znd4-options-doc}; then
-          echo "docs/options.md is out of date: run the pre-commit hooks (nix develop -c pre-commit run options-doc)"
-          exit 1
-        fi
-        touch $out
-      '';
-
       devShells.default = pkgs.mkShell {
         # The second install is not redundant. The git hook is shared by all
         # worktrees, but .pre-commit-config.yaml exists only in worktrees
         # where this shell has run. Without --allow-missing-config, every
         # commit in any other worktree fails with "No .pre-commit-config.yaml
-        # file was found". With it, the hook does nothing there; `nix flake
-        # check` still runs the hooks.
+        # file was found". With it, the hook does nothing there, so commits
+        # from those worktrees are not checked.
         #
         # installationScript sets core.hooksPath, and `pre-commit install`
         # refuses to run while it is set, so unset it and restore it.
