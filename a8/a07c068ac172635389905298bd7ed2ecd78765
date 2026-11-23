@@ -1,0 +1,19 @@
+home-manager/programs/kubeswitch.nix
+  s_9da47cef23a909::t_b7f92e5c8f527e 1-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "a8a07c068ac172635389905298bd7ed2ecd78765",
+  "prompts": {},
+  "sessions": {
+    "s_9da47cef23a909": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "be2e87ea-72a2-4d4d-8141-2678f905d644",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}
