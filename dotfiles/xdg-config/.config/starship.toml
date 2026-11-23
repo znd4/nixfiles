@@ -18,7 +18,7 @@ $php\
 [](fg:peach bg:mauve)\
 $time\
 [ ](fg:mauve)\
-\n$character"""
+\n$direnv$character"""
 
 [directory]
 style = "fg:crust bg:blue"
@@ -73,6 +73,9 @@ format = '[[ $symbol ($version) ](fg:crust bg:peach)]($style)'
 symbol = ""
 style = "bg:peach"
 format = '[[ $symbol ($version) ](fg:crust bg:peach)]($style)'
+
+[direnv]
+disabled = false
 
 [time]
 disabled = false
