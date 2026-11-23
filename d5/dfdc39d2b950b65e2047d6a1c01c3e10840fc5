@@ -1,0 +1,20 @@
+dotfiles/xdg-config/.config/starship.toml
+  s_9da47cef23a909::t_a2e163a9dfce04 21
+  s_9da47cef23a909::t_0235336eadfe33 77-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "d5dfdc39d2b950b65e2047d6a1c01c3e10840fc5",
+  "prompts": {},
+  "sessions": {
+    "s_9da47cef23a909": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "be2e87ea-72a2-4d4d-8141-2678f905d644",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}
