@@ -15,10 +15,11 @@ $nodejs\
 $rust\
 $golang\
 $php\
+$direnv\
 [](fg:peach bg:mauve)\
 $time\
 [ ](fg:mauve)\
-\n$direnv$character"""
+\n$character"""
 
 [directory]
 style = "fg:crust bg:blue"
@@ -76,6 +77,12 @@ format = '[[ $symbol ($version) ](fg:crust bg:peach)]($style)'
 
 [direnv]
 disabled = false
+symbol = ""
+style = "bg:peach"
+allowed_msg = ""
+loaded_msg = ""
+unloaded_msg = ""
+format = '[[ $symbol( $loaded$allowed) ](fg:crust bg:peach)]($style)'
 
 [time]
 disabled = false
