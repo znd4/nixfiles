@@ -1,0 +1,42 @@
+From bdd6809c23777529e0c2584a58525debfad7b642 Mon Sep 17 00:00:00 2001
+From: Mathew Peterson <mathewpeterson@me.com>
+Date: Tue, 4 Mar 2025 14:43:59 -0600
+Subject: [PATCH] fix: Removes GKE CA Data when using DNS Endpoint
+
+When using the GKE DNS Endpoint, GCP uses a different CA, Google Trust Service, LLC, to sign the certificate.  Since this CA is publicly trusted, there is no need to set CA here.
+---
+ pkg/store/kubeconfig_store_gke.go | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/pkg/store/kubeconfig_store_gke.go b/pkg/store/kubeconfig_store_gke.go
+index 085afa232..33b93c6f5 100644
+--- a/pkg/store/kubeconfig_store_gke.go
++++ b/pkg/store/kubeconfig_store_gke.go
+@@ -306,12 +306,18 @@ func (s *GKEStore) GetKubeconfigForPath(path string, _ map[string]string) ([]byt
+ 	}
+ 
+ 	var endpoint string
++	var certificate string
++
++	certificate = cluster.MasterAuth.ClusterCaCertificate
++
+ 	if s.Config.PreferredEndpoint == nil {
+ 		endpoint = cluster.Endpoint
+ 	} else {
+ 		switch *s.Config.PreferredEndpoint {
+ 		case types.GkeDnsEndpoint:
+ 			endpoint = cluster.ControlPlaneEndpointsConfig.DnsEndpointConfig.Endpoint
++			// DNS Endpoint certificate is not signed this Certificate Authority
++			certificate = ""
+ 		case types.GkePrivateEndpoint:
+ 			endpoint = cluster.ControlPlaneEndpointsConfig.IpEndpointsConfig.PrivateEndpoint
+ 		case types.GkePublicEndpoint:
+@@ -329,7 +335,7 @@ func (s *GKEStore) GetKubeconfigForPath(path string, _ map[string]string) ([]byt
+ 		Clusters: []types.KubeCluster{{
+ 			Name: contextName,
+ 			Cluster: types.Cluster{
+-				CertificateAuthorityData: cluster.MasterAuth.ClusterCaCertificate,
++				CertificateAuthorityData: certificate,
+ 				Server:                   fmt.Sprintf("https://%s", endpoint),
+ 			},
+ 		}},
