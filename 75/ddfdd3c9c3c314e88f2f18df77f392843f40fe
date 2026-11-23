@@ -1,0 +1,26 @@
+home-manager/programs/kubeswitch/default.nix
+  s_9da47cef23a909::t_0f9e87f8703909 5-6
+  s_9da47cef23a909::t_4cfb29505d4dac 8
+  s_9da47cef23a909::t_b6edf57db6b161 3-4
+  s_9da47cef23a909::t_341c4041f88652 7
+  s_9da47cef23a909::t_42a93d7ea00189 9-10
+  s_9da47cef23a909::t_ee0cc34c06e9c5 1
+home-manager/programs/kubeswitch/gke-dns-endpoint-ca.patch
+  s_9da47cef23a909::t_e37964c1171b6a 1-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "75ddfdd3c9c3c314e88f2f18df77f392843f40fe",
+  "prompts": {},
+  "sessions": {
+    "s_9da47cef23a909": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "be2e87ea-72a2-4d4d-8141-2678f905d644",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}
