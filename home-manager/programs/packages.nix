@@ -86,7 +86,6 @@ in
       jsonnet-bundler
       just
       kubectl
-      kubeswitch
       kubernetes-helm
       nixfmt-rfc-style
       nodejs

@@ -1,0 +1,3 @@
+{
+  programs.kubeswitch.enable = true;
+}
