@@ -1,0 +1,19 @@
+home-manager/programs/packages.nix
+  s_0656019c4f06d4::t_ae83e6ae98d720 89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "4b567cde315342a5af0f46588e768cbc4193a840",
+  "prompts": {},
+  "sessions": {
+    "s_0656019c4f06d4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4f8ccb4c-7cbb-4fb6-8789-7feda31eb913",
+        "model": "unknown"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}
