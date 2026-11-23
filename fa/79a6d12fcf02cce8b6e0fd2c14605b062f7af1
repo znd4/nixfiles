@@ -1,0 +1,19 @@
+dotfiles/xdg-config/.config/starship.toml
+  s_380db9e53d4605::t_3374ee3c11395e 18,22,80-85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "fa79a6d12fcf02cce8b6e0fd2c14605b062f7af1",
+  "prompts": {},
+  "sessions": {
+    "s_380db9e53d4605": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_380db9e53d4605",
+        "model": "unknown"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}
