@@ -1,0 +1,19 @@
+home-manager/programs/neovim/lazy-lock.json
+  s_9da47cef23a909::t_880a0545305a0e 40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "b2f7c31abe88097c92f7b98cf4c7bde33a31c62b",
+  "prompts": {},
+  "sessions": {
+    "s_9da47cef23a909": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "be2e87ea-72a2-4d4d-8141-2678f905d644",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}
