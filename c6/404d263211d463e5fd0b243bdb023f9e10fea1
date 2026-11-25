@@ -1,0 +1,19 @@
+home-manager/programs/kubeswitch/default.nix
+  s_1d641b1dd13361::t_8d47699fdfe84f 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "c6404d263211d463e5fd0b243bdb023f9e10fea1",
+  "prompts": {},
+  "sessions": {
+    "s_1d641b1dd13361": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7dbb7c90-e429-4dab-b9e6-e2e8f6844447",
+        "model": "unknown"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}
