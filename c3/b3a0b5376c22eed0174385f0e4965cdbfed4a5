@@ -1,0 +1,21 @@
+flake.lock
+  s_9da47cef23a909::t_21e559c2dae293 564-565,567,573
+flake.nix
+  s_9da47cef23a909::t_0994b0949fd83c 153-155
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "c3b3a0b5376c22eed0174385f0e4965cdbfed4a5",
+  "prompts": {},
+  "sessions": {
+    "s_9da47cef23a909": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "be2e87ea-72a2-4d4d-8141-2678f905d644",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Zane Dufour <zane@znd4.dev>"
+    }
+  }
+}
