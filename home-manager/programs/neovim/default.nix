@@ -18,7 +18,7 @@ in
 {
   xdg.configFile = {
     "nvim/lazy-lock.json".source = (
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixfiles/home-manager/programs/neovim/lazy-lock.json"
+      config.lib.file.mkOutOfStoreSymlink "${config.znd4.flakePath}/home-manager/programs/neovim/lazy-lock.json"
     );
     # "nvim/lazy-lock.json".enable = false;
     "nvim/".source = "${inputs.self}/xdg-config/nvim/";
